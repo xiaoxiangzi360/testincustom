@@ -64,7 +64,7 @@ import 'swiper/css/effect-fade';
 const backgroundImages = [
   '/images/homebg.png',
   '/images/homebg.png',
-  '/images/homebg.png',
+  // '/images/homebg.png',
 ];
 const features = [
   { icon: '/images/service1.png', title: 'Delivery within 48-72 hours' },

@@ -339,14 +339,15 @@
                   </div>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-4 mt-6 sm:mt-8">
+
+                  <UButton class="w-full sm:flex-1 flex items-center justify-center rounded-md text-white font-normal"
+                    color="primary" variant="solid" size="xl" :loading="orderloding" @click="createorder">
+                    Order Now
+                  </UButton>
                   <UButton
                     class="w-full sm:flex-1 flex items-center justify-center bg-primary-100 rounded-md text-primary font-normal hover:text-white"
                     :loading="cartloding" @click="addtocart" color="primary" variant="solid" size="xl">
                     Add to Cart
-                  </UButton>
-                  <UButton class="w-full sm:flex-1 flex items-center justify-center rounded-md text-white font-normal"
-                    color="primary" variant="solid" size="xl" :loading="orderloding" @click="createorder">
-                    Order Now
                   </UButton>
                 </div>
               </div>

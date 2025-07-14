@@ -4,7 +4,7 @@
         <div class="grid grid-cols-1 md:grid-cols-4 bg-white py-6 rounded-xl">
             <div v-for="(feature, index) in features" :key="index" class="flex items-center gap-4 px-6 py-2"
                 :class="{ 'md:border-l md:border-gray-100': index !== 0 }">
-                <NuxtImg class="w-12 h-12 md:w-16 md:h-16" :src="feature.icon" />
+                <NuxtImg class="w-12 h-12 md:w-16 md:h-16" :alt="feature.title" :src="feature.icon" />
                 <span class="text-blackcolor text-sm md:text-lg break-words">
                     {{ feature.title }}
                 </span>

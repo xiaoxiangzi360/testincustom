@@ -11,10 +11,10 @@
                 <!-- Product Category Card -->
                 <div class="relative rounded-lg overflow-hidden md:h-[150px] h-[150px] group cursor-pointer"
                     v-for="(need, index) in needs" :key="index">
-                    <img :src="need.img" :alt="need.title" class="w-full h-full object-cover object-top" />
+                    <NuxtImg :src="need.img" :alt="need.title" class="w-full h-full object-cover object-top" />
                     <div class="absolute inset-0  transition-all duration-300  flex items-center justify-center">
                         <div class="text-white text-center">
-                            <img :src="need.icon" class="w-12 md:w-16 mx-auto mb-2">
+                            <NuxtImg :src="need.icon" :alt="need.title" class="w-12 md:w-16 mx-auto mb-2" />
                             <h3 class="text-xl font-medium">{{ need.title }}</h3>
                         </div>
                     </div>

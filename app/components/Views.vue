@@ -12,7 +12,8 @@
                     </p>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3 md:gap-4">
-                            <img :src="review.avatar" class="w-10 h-10 sm:w-16 sm:h-16 rounded-full object-cover">
+                            <NuxtImg :src="review.avatar" :alt="review.name"
+                                class="w-10 h-10 sm:w-16 sm:h-16 rounded-full object-cover" />
                             <div>
                                 <h5 class="font-semibold text-title">{{ review.name }}</h5>
                                 <div class="flex text-primary">
@@ -40,10 +41,10 @@
 
 <script setup>
 const reviews = [
-    { name: "SELFLESS", text: "An outstanding competitor to CJ with much lower prices & fast fulfillment times,l was originally approached on WhatsApp by one of their agents and they have been very good to me. If you are starting with dropshipping I highly recommend Dropsure as they have much lower prices & source faster if you contact your agent.", avatar: "/images/avatar1.png", date: "Nov 15, 2023" },
-    { name: "RevvoHive", text: "Highly recommend. Dropshipping made easy. Once connected you will get a account manager that takes care of your orders.", avatar: "/images/avatar2.png", date: "Nov 12, 2023" },
-    { name: "Saint Drako", text: "Highly recommend Dropsure. Our agent Taylor Liu has been amazing to work with. I've worked with a lot of suppliers and Taylor has been the best agent by far and Dropsure has a great user interface. Easy to navigate and fulfill orders.", avatar: "/images/avatar3.png", date: "Nov 10, 2023" },
-    { name: "My Store", text: "Found this app on shopify while looking for a dropshipping supplier. Taylor has been really helpful with answering the questions I have.", avatar: "/images/avatar4.png", date: "Nov 8, 2023" },
+    { name: "SELFLESS", text: "An outstanding competitor to CJ with much lower prices & fast fulfillment times,l was originally approached on WhatsApp by one of their agents and they have been very good to me. If you are starting with dropshipping I highly recommend Dropsure as they have much lower prices & source faster if you contact your agent.", avatar: "/images/avatar1.png", date: "Nov 15, 2024" },
+    { name: "RevvoHive", text: "Highly recommend. Dropshipping made easy. Once connected you will get a account manager that takes care of your orders.", avatar: "/images/avatar2.png", date: "Nov 12, 2024" },
+    { name: "Saint Drako", text: "Highly recommend Dropsure. Our agent Taylor Liu has been amazing to work with. I've worked with a lot of suppliers and Taylor has been the best agent by far and Dropsure has a great user interface. Easy to navigate and fulfill orders.", avatar: "/images/avatar3.png", date: "Nov 10, 2024" },
+    { name: "My Store", text: "Found this app on shopify while looking for a dropshipping supplier. Taylor has been really helpful with answering the questions I have.", avatar: "/images/avatar4.png", date: "Nov 8, 2024" },
 ];
 </script>
 

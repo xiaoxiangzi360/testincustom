@@ -141,7 +141,7 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
             @focus="isSearchHistoryVisible = true" @blur="closePanel">
             <template #trailing>
               <div class="pointer-events-auto">
-                <button @click="onEnterSearch"
+                <button aria-label="search" @click="onEnterSearch"
                   class="flex items-center justify-center h-full px-2 text-gray-500 hover:text-black cursor-pointer font-bold"
                   :class="searchInput.trim() ? 'text-primary' : 'text-gray-400'">
                   <UIcon name="i-heroicons-magnifying-glass" class="w-5 h-5 font-bold" style="stroke-width: 3" />

@@ -13,15 +13,16 @@
           Trusted to deliver 99.8M items since 2024
         </p>
 
-        <div class="flex flex-wrap justify-center items-center gap-3 mt-4"><img src="/email-2.png" class="h-10" />
+        <div class="flex flex-wrap justify-center items-center gap-3 mt-4">
+          <NuxtImg src="/email-2.png" alt="email" class="h-10" />
           <span>hello@incustom.com </span>
         </div>
         <!-- 社交图标 -->
         <div class="flex flex-wrap justify-start gap-4 mt-4">
 
           <NuxtLink :to="item.url" target="_blank" v-for="item in medialist">
-            <img @mouseover="hovered = item.id" @mouseleave="hovered = null"
-              :src="hovered === item.id ? item.img + '-active.png' : item.img + '.png'" class="w-10 cursor-pointer">
+            <NuxtImg @mouseover="hovered = item.id" :alt="item.url" @mouseleave="hovered = null"
+              :src="hovered === item.id ? item.img + '-active.png' : item.img + '.png'" class="w-10 cursor-pointer" />
           </NuxtLink>
         </div>
       </div>
