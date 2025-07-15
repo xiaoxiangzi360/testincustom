@@ -649,17 +649,20 @@ const selectproperty = (index, type) => {
     }
   } else {
     //选到最后一个，去请求sku价格
-    const skuLists = productinfo.value.normalPropertyList
-      .map(property => property.selectedproperty?.skuList)
-      .filter(list => Array.isArray(list) && list.length > 0);
+    if (!productinfo.value.normalPropertyList[index + 1]) {
+      const skuLists = productinfo.value.normalPropertyList
+        .map(property => property.selectedproperty?.skuList)
+        .filter(list => Array.isArray(list) && list.length > 0);
 
-    if (skuLists.length === 0) return;
-    let innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)));
+      if (skuLists.length === 0) return;
+      let innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)));
 
-    let firstsku = innersku[0];
-    if (firstsku) {
-      getskuprice(firstsku);
+      let firstsku = innersku[0];
+      if (firstsku) {
+        getskuprice(firstsku);
+      }
     }
+
   }
 
 };
