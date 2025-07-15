@@ -496,8 +496,8 @@ const designimage = ref('');
 //   normalPropertyList: []
 // });
 const productinfo = ref(serverProductData.value?.result ?? {});
-const skuprice = ref(productinfo.value?.erpProduct.customPrice ?? {});
 
+const skuprice = ref(productinfo.value?.erpProduct.customPrice ?? {});
 const relatedList = [];
 
 
@@ -556,7 +556,18 @@ const increment = () => {
 const decrement = () => {
   if (quantity.value > 1) quantity.value--;
 };
-
+const handleGetrelated = async () => {
+  try {
+    let parmes = {
+      catalogId: productinfo.value.erpProduct.catalogId,
+      size: 5
+    };
+    let res = await randomRecommendationProductByCatalogId(parmes);
+    products.value = res.result;
+  } catch (error) {
+    console.error(error);
+  }
+};
 const selectproperty = (index, type) => {
   if (type.disabled) {
     return
@@ -1025,6 +1036,49 @@ const handleGetProudct = async () => {
 
   }
 };
+const organizeproduct = () => {
+  try {
+
+    updateBreadcrumbProduct(productinfo.value.productEnglishName)
+
+    specList = productinfo.value.erpProduct.specList;
+    productinfo.value.normalPropertyList.forEach(element => {
+      let noneedinputlist = ref([]);
+      let needinputlist = ref([]);
+      element.detailList.forEach(item => {
+        item.isactive = true;
+        item.label = item.detailName
+        if (item.inputList) {
+          let inputvalue = [];
+          item.inputList.forEach(element => {
+            inputvalue.push('');
+          });
+          item.inputvalue = inputvalue;
+          element.isneedinput = true;
+          needinputlist.value.push(item);
+        } else {
+          noneedinputlist.value.push(item);
+        }
+        element.needinputlist = needinputlist.value;
+        element.noneedinputlist = noneedinputlist.value;
+        element.chooseindex = 1;
+        if (noneedinputlist.value.length == 0) {
+          element.chooseindex = 2;
+        }
+      });
+    });
+    productinfo.value.normalPropertyList[0].showType = true;
+  } catch (error) {
+    console.log(error);
+    message.error('Failed to load product data');
+  } finally {
+    isLoading.value = false; // 加载完成
+    handleGetrelated();
+
+  }
+};
+organizeproduct()
+
 const handleSelectChange = (propertyIndex, selected) => {
   if (selected && selected.propertyDetailId) {
     selectproperty(propertyIndex, selected);
@@ -1090,18 +1144,7 @@ const getcustomprice = async (inputvalue) => {
 };
 
 
-const handleGetrelated = async () => {
-  try {
-    let parmes = {
-      catalogId: productinfo.value.erpProduct.catalogId,
-      size: 5
-    };
-    let res = await randomRecommendationProductByCatalogId(parmes);
-    products.value = res.result;
-  } catch (error) {
-    console.error(error);
-  }
-};
+
 
 // Antd 默认 filterOption 使用 label 和 value 字段，如果你想自定义筛选逻辑，可以用这个：
 const customFilter = (input, option) => {

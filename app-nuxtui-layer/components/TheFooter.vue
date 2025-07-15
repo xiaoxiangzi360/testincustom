@@ -4,7 +4,7 @@
       <!-- 左侧 Logo & 介绍 -->
       <div class="flex-1 flex flex-col items-start text-left">
         <h2 class="text-2xl font-bold">
-          <img src="/images/footerlogo.png" class="h-8 md:h-12" />
+          <NuxtImg format="webp" alt="incustom" src="/images/footerlogo.png" class="h-8 md:h-12" />
         </h2>
         <p class="text-sm mt-2">
           Fulfilling your ideas on demand
@@ -14,14 +14,14 @@
         </p>
 
         <div class="flex flex-wrap justify-center items-center gap-3 mt-4">
-          <NuxtImg src="/email-2.png" alt="email" class="h-10" />
+          <NuxtImg format="webp" src="/email-2.png" alt="email" class="h-10" />
           <span>hello@incustom.com </span>
         </div>
         <!-- 社交图标 -->
         <div class="flex flex-wrap justify-start gap-4 mt-4">
 
           <NuxtLink :to="item.url" target="_blank" v-for="item in medialist">
-            <NuxtImg @mouseover="hovered = item.id" :alt="item.url" @mouseleave="hovered = null"
+            <NuxtImg format="webp" @mouseover="hovered = item.id" :alt="item.url" @mouseleave="hovered = null"
               :src="hovered === item.id ? item.img + '-active.png' : item.img + '.png'" class="w-10 cursor-pointer" />
           </NuxtLink>
         </div>
