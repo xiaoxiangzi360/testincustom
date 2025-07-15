@@ -1,6 +1,6 @@
 <template>
     <div class="relative h-[320px] md:h-[336px] w-full bg-cover bg-center bg-no-repeat px-6 md:px-32"
-        style="background-image: url('/images/business.png')">
+        style="background-image: url('/images/business.webp')">
         <div class="absolute inset-0 bg-gray-900/50"></div>
 
         <div class="relative z-10 flex flex-col justify-center h-full text-left max-row">

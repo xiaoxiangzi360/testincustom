@@ -53,9 +53,9 @@
                             class="rounded-lg overflow-hidden shadow-md bg-white transition-transform duration-300 hover:scale-[1.05] hover:-translate-y-1 hover:shadow-xl cursor-pointer">
                             <!-- 产品图片 -->
                             <div class="relative w-full aspect-square overflow-hidden">
-                                <img :src="product.erpProduct.mainPic ?? '/images/empty.jpg'"
+                                <NuxtImg format="webp" :src="product.erpProduct.mainPic ?? '/images/empty.jpg'"
                                     :alt="product.erpProduct.productEnglishName" loading="lazy"
-                                    class="w-full h-full object-cover object-top transition-all duration-300 hover:rounded-[8px]">
+                                    class="w-full h-full object-cover object-top transition-all duration-300 hover:rounded-[8px]" />
                             </div>
 
                             <!-- 产品详情 -->

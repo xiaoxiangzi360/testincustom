@@ -11,7 +11,8 @@
                 <!-- Product Category Card -->
                 <div class="relative rounded-lg overflow-hidden md:h-[150px] h-[150px] group cursor-pointer"
                     v-for="(need, index) in needs" :key="index">
-                    <NuxtImg :src="need.img" :alt="need.title" class="w-full h-full object-cover object-top" />
+                    <NuxtImg :src="need.img" format="webp" :alt="need.title"
+                        class="w-full h-full object-cover object-top" />
                     <div class="absolute inset-0  transition-all duration-300  flex items-center justify-center">
                         <div class="text-white text-center">
                             <NuxtImg :src="need.icon" :alt="need.title" class="w-12 md:w-16 mx-auto mb-2" />
@@ -28,9 +29,9 @@
 import { ref } from 'vue';
 
 const needs = ref([
-    { title: 'Product category', img: '/images/needs1.png', icon: '/images/needs_icon1.png' },
-    { title: 'Color selection', img: '/images/needs2.png', icon: '/images/needs_icon2.png' },
-    { title: 'Size customization', img: '/images/needs3.png', icon: '/images/needs_icon3.png' },
-    { title: 'Print-On-Demand', img: '/images/needs4.png', icon: '/images/needs_icon4.png' },
+    { title: 'Product category', img: '/images/needs1.webp', icon: '/images/needs_icon1.png' },
+    { title: 'Color selection', img: '/images/needs2.webp', icon: '/images/needs_icon2.png' },
+    { title: 'Size customization', img: '/images/needs3.webp', icon: '/images/needs_icon3.png' },
+    { title: 'Print-On-Demand', img: '/images/needs4.webp', icon: '/images/needs_icon4.png' },
 ]);
 </script>

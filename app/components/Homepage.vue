@@ -4,50 +4,51 @@
     <Swiper :slides-per-view="1" :loop="true" :autoplay="{ delay: 3000, disableOnInteraction: false }" :effect="'fade'"
       :fade-effect="{ crossFade: true }" class="w-full h-full" @slideChange="onSlideChange">
       <SwiperSlide v-for="(image, index) in backgroundImages" :key="index">
-        <div class="w-full bg-cover bg-center" :style="{ backgroundImage: `url(${image})`, height: '100%' }">
-          <!-- 遮罩层 -->
-          <div class="absolute inset-0 bg-black bg-opacity-30"></div>
+        <div class="relative w-full h-full">
+          <!-- 使用 NuxtImg 加载背景图，并开启预加载 -->
+          <NuxtImg :src="image" alt="Home background" class="absolute inset-0 w-full h-full object-cover" preload
+            fetchpriority="high" :width="1440" :height="swiperHeight" />
 
-          <!-- 内容 -->
+          <!-- 遮罩层 -->
+          <div class="absolute inset-0 bg-black bg-opacity-30 z-10"></div>
+
+          <!-- 内容层 -->
           <div
-            class="relative z-10 flex flex-col items-start justify-center w-full h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 max-row">
+            class="relative z-20 flex flex-col items-start justify-center w-full h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 max-row">
             <!-- 标题 -->
             <div class="text-4xl sm:text-5xl lg:text-6xl text-white mb-10 leading-normal"
-              style="text-shadow: 0px 2px 4px rgba(0,0,0,0.5);">
+              style="text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);">
               No Limits No Rules<br />Just Your Design
-
             </div>
 
             <!-- 描述 -->
-            <p class="text-lg sm:text-4xl text-white mb-10" style="text-shadow: 0px 2px 4px rgba(0,0,0,0.5);">
+            <p class="text-lg sm:text-4xl text-white mb-10" style="text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);">
               Where Creativity Meets Customization
             </p>
 
             <!-- 特性列表 -->
-            <div class=" flex flex-col items-start md:flex-row md:items-center md:space-x-6 text-lg text-primary"
-              style="text-shadow: 0px 2px 4px rgba(0,0,0,0.5);">
-              <span class="flex items-center ">
-                <UIcon name="i-material-symbols-check-circle" class="w-5 h-5 mr-2 text-white" /> <span
-                  class="text-white">100% Free
-                  to use</span>
+            <div class="flex flex-col items-start md:flex-row md:items-center md:space-x-6 text-lg text-primary"
+              style="text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);">
+              <span class="flex items-center">
+                <UIcon name="i-material-symbols-check-circle" class="w-5 h-5 mr-2 text-white" />
+                <span class="text-white">100% Free to use</span>
               </span>
               <span class="flex items-center">
-                <UIcon name="i-material-symbols-check-circle" class="w-5 h-5 mr-2" /> <span class="text-white">No
-                  minimum order</span>
+                <UIcon name="i-material-symbols-check-circle" class="w-5 h-5 mr-2" />
+                <span class="text-white">No minimum order</span>
               </span>
               <span class="flex items-center">
-                <UIcon name="i-material-symbols-check-circle" class="w-5 h-5 mr-2" /> <span
-                  class="text-white">Inventory-Free</span>
+                <UIcon name="i-material-symbols-check-circle" class="w-5 h-5 mr-2" />
+                <span class="text-white">Inventory-Free</span>
               </span>
             </div>
-
           </div>
         </div>
       </SwiperSlide>
     </Swiper>
-
   </div>
 </template>
+
 
 <script setup>
 import { Swiper, SwiperSlide } from 'swiper/vue';
@@ -62,9 +63,9 @@ import 'swiper/css/effect-fade';
 
 // 定义背景图片数组
 const backgroundImages = [
-  '/images/homebg.png',
-  '/images/homebg.png',
-  // '/images/homebg.png',
+  '/images/homebg.webp',
+  '/images/homebg.webp',
+  // '/images/homebg.webp',
 ];
 const features = [
   { icon: '/images/service1.png', title: 'Delivery within 48-72 hours' },
