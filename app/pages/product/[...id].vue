@@ -206,7 +206,7 @@
                       <div class="truncate-2-lines text-center">{{ type.detailName }}</div>
                     </div>
                   </div>
-                  <div class="w-full flex flex-wrap max-h-[500px] overflow-y-auto"
+                  <div class="w-full flex flex-wrap max-h-[160px] overflow-y-auto"
                     v-if="!property.isneedinput && property.productPropertyDetailType == 'text'">
                     <div v-for="(type, propertyindex) in property.detailList" :key="type"
                       @click="selectproperty(index, type)" :class="[
@@ -242,7 +242,7 @@
 
                               <input type="radio" v-model="property.chooseindex" :value="needindex + 2" />
                               <span class="font-semibold text-sm">{{ needinput.detailName
-                              }}</span>
+                                }}</span>
                             </label>
 
                           </div>
@@ -402,7 +402,7 @@
             </div>
             <div class="mt-2">
               <h3 class="text-base font-normal mb-2 line-clamp-2">{{ product.erpProduct.productEnglishName
-                }}</h3>
+              }}</h3>
               <p class="text-xl font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}
               </p>
             </div>
@@ -967,7 +967,6 @@ if (lastpage) {
 
 const updateBreadcrumbProduct = (productName) => {
   const productPath = `/product/${productid.value}/${productName}`
-
   // 检查最后一项是否已经是产品详情
   const lastIndex = breadcrumbLinks.value.length - 1
   const lastItem = breadcrumbLinks.value[lastIndex]
@@ -1039,7 +1038,7 @@ const handleGetProudct = async () => {
 const organizeproduct = () => {
   try {
 
-    updateBreadcrumbProduct(productinfo.value.productEnglishName)
+    updateBreadcrumbProduct(productinfo.value.erpProduct.productEnglishName)
 
     specList = productinfo.value.erpProduct.specList;
     productinfo.value.normalPropertyList.forEach(element => {

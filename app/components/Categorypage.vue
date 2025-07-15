@@ -37,7 +37,7 @@ const items = ref([
     {
         title: 'Outdoor Shade Solutions',
         description: 'UV protection for outdoor living. >',
-        image: '/images/cate1.png'
+        image: '/images/cate1.webp'
     },
     {
         title: 'Privacy & Garden Decor',

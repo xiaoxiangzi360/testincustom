@@ -37,7 +37,7 @@
           <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">Fabric Swatch Request
           </NuxtLink>
         </div>
-        <div class="pl-4">
+        <div class="md:pl-4">
           <p class="font-medium text-lg mb-6">Feature</p>
           <NuxtLink to="/article/about-us" class="block hover:text-primary mt-4 font-normal text-white/80">About Us
           </NuxtLink>
@@ -48,7 +48,7 @@
           <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">Affiliate / Influencer
             Program</NuxtLink>
         </div>
-        <div class="pl-4 hidden md:block">
+        <div class="md:pl-4">
           <p class="font-medium text-lg mb-6">Feature requests</p>
           <NuxtLink to="/article/faq" class="block hover:text-primary mt-4 font-normal text-white/80">FAQS</NuxtLink>
           <NuxtLink class="block hover:text-primary mt-4 font-normal text-white/80">Track My Order</NuxtLink>
