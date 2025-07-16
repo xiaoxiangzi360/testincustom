@@ -212,7 +212,7 @@ getCountrylist();
 watch(() => form.value.country, (newvalue, oldvalue) => {
 
     if (newvalue) {
-        console.log(form.value.country);
+
         getProvince()
     }
 });
@@ -220,7 +220,7 @@ watch(
     () => props.addressinfo,
     (newVal) => {
         if (newVal && Object.keys(newVal).length) {
-            console.log(newVal)
+
             // 使用深拷贝避免引用问题
             form.value = JSON.parse(JSON.stringify({
                 id: newVal.id || '',

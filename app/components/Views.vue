@@ -1,5 +1,5 @@
 <template>
-    <div class="p-6 md:p-10 mt-16">
+    <div class="p-2 md:p-10 mt-16">
         <div class="max-row">
             <h1 class="text-2xl md:text-5xl mb-6 md:mb-8 bg-clip-text font-normal text-blackcolor text-center">
                 Why Love inCustom

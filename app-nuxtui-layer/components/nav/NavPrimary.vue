@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router'
+const { isMobileMenuOpen, openMobileMenu } = useMobileMenu()
+
 const router = useRouter()
 // 按钮分类数
 const categories = ref([
@@ -38,14 +40,15 @@ const menuOpen = ref(false);
 
 const Gotocollection = (collection) => {
   router.push('/collections/' + collection)
-
+  openMobileMenu()
+  isMobileMenuOpen.value = false
 }
 
 </script>
 
 <template>
   <div class="flex flex-wrap gap-3 md:flex-nowrap md:flex-row md:gap-6">
-    <NuxtLink v-for="(category, index) in categories" :key="index" :to="category.link"
+    <NuxtLink @click="openMobileMenu" v-for="(category, index) in categories" :key="index" :to="category.link"
       class="text-base md:text-lg hover:text-primary hover:bg-transparent duration-200 p-2 border border-transparent md:border-none !text-base whitespace-nowrap">
       {{ category.label }}
     </NuxtLink>

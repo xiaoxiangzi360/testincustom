@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useCookie } from 'nuxt/app'
 import { useRouter, useRoute } from 'vue-router'
+const { logout } = useAuth();
 
 const router = useRouter()
 const route = useRoute()
@@ -102,6 +103,13 @@ const closePanel = () => {
   isSearchHistoryVisible.value = false
 }
 
+const gouserinfo = () => {
+  router.push('/userinfo')
+}
+const loginout = async () => {
+  let res = await logout();
+
+}
 // 监听路由变化和搜索历史变化
 watch(
   () => route.query.query,
@@ -123,7 +131,7 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
       <div style="grid-area: logo" class="flex">
         <TheLogo></TheLogo>
       </div>
-      <div data-pg-name="Hamburger" style="grid-area: hamburger" class="sm:hidden">
+      <div data-pg-name="Hamburger" style="grid-area: hamburger" class="sm:hidden flex">
         <NavHamburger @click="isMobileMenuOpen = true"></NavHamburger>
       </div>
       <div data-pg-name="NavBarPrimary" style="grid-area: primary-nav" class="hidden sm:flex mt-4">
@@ -177,14 +185,32 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
         </UFormGroup>
       </div>
 
-      <div data-pg-name="Profile" class="flex space-x-1">
+      <div data-pg-name="Profile" class="flex sm:space-x-1 justify-end sm:justify-start">
         <ProfileActions class="!hidden sm:!flex"></ProfileActions>
+        <UIcon name="i-heroicons-user-circle" class="sm:!hidden w-7 h-7" width="28" height="28" @click="gouserinfo" />
+
       </div>
     </div>
     <USlideover v-model="isMobileMenuOpen" data-pg-name="NavBarSecondary" style="grid-area: primary-nav"
-      class="w-80 sm:hidden" side="left">
-      <NavPrimary class="m-4"></NavPrimary>
+      class="w-72 sm:hidden" side="left">
+      <div class="flex flex-col h-full">
+        <!-- 主体内容 -->
+        <div class="flex-1 overflow-y-auto p-4">
+          <NavPrimary />
+        </div>
+
+        <!-- 底部内容 -->
+        <div class="p-4 flex justify-end">
+          <div @click="loginout">
+            <div class="flex items-center">
+              <img src="/loginout.png" class="w-4 mr-2 h-4" />
+              <div>login out</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </USlideover>
+
   </nav>
 </template>
 

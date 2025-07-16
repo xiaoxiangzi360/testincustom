@@ -293,7 +293,6 @@ watch(
 )
 watch(() => form.value.country, (newVal) => {
     if (newVal) {
-        console.log('newVal', newVal);
 
         getProvince()
 

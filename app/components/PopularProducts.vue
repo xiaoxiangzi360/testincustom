@@ -27,8 +27,8 @@
                 <!-- Swiper 轮播图 -->
                 <Swiper v-else :modules="swiperModules" :space-between="24" :breakpoints="{
                     0: {
-                        slidesPerView: 1,
-                        slidesPerGroup: 1
+                        slidesPerView: 2,
+                        slidesPerGroup: 2
                     },
                     640: {
                         slidesPerView: 2,
@@ -60,13 +60,13 @@
 
                             <!-- 产品详情 -->
                             <div class="p-4">
-                                <h3 class="text-base font-normal mb-2 line-clamp-2 min-h-[3em]">{{
+                                <h3 class="text-sm sm:text-base font-normal mb-2 line-clamp-2 min-h-[3em]">{{
                                     product.erpProduct.productEnglishName }}</h3>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-customblack font-medium text-lg">
+                                    <span class="text-customblack font-medium text-sm sm:text-lg">
                                         $ {{ product.erpProduct.customPrice }}
                                     </span>
-                                    <span class="text-[#8E8E8E] text-sm">{{ product.thirtyDaysSales }} sold</span>
+                                    <span class="text-[#4A4A4A] text-sm">{{ product.thirtyDaysSales }} sold</span>
                                 </div>
                             </div>
                         </ULink>

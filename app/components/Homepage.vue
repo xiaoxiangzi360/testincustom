@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full h-[480px]">
+  <div class="relative w-full h-[420px] sm:h-[480px]">
     <!-- Swiper 轮播 -->
     <Swiper :slides-per-view="1" :loop="true" :autoplay="{ delay: 3000, disableOnInteraction: false }" :effect="'fade'"
       :fade-effect="{ crossFade: true }" class="w-full h-full" @slideChange="onSlideChange">
@@ -16,7 +16,7 @@
           <div
             class="relative z-20 flex flex-col items-start justify-center w-full h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 max-row">
             <!-- 标题 -->
-            <div class="text-4xl sm:text-5xl lg:text-6xl text-white mb-10 leading-normal"
+            <div class="text-3xl sm:text-5xl lg:text-6xl text-white mb-10 leading-normal"
               style="text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);">
               No Limits No Rules<br />Just Your Design
             </div>

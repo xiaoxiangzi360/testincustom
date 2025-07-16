@@ -83,12 +83,12 @@ const handleComplete = () => {
 };
 
 const handleViewOrder = () => {
-    console.log('View Order Details');
+
     router.push('/')
 };
 
 const handleBackHome = () => {
-    console.log('Back to Homepage');
+
     router.push('/')
 };
 

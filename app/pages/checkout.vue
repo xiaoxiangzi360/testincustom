@@ -83,12 +83,12 @@
                                 <div class="grid grid-cols-3 gap-y-4 gap-x-12 border-t border-t-blackcolor/10 p-6">
                                     <div><span class="text-blackcolor/50 mb-2">Full name</span>
                                         <div class="font-medium mt-1">{{ addressinfo.firstName }}{{ addressinfo.lastName
-                                        }}</div>
+                                            }}</div>
                                     </div>
                                     <div><span class="text-blackcolor/50 mb-2">Number</span>
                                         <div class="font-medium mt-1">({{ addressinfo.numberCode }}) {{
                                             addressinfo.number
-                                        }}
+                                            }}
                                         </div>
                                     </div>
                                     <div v-show="from != 'order'">
@@ -103,7 +103,7 @@
                                 <div class="px-6 pb-6"><span class="text-blackcolor/50 mb-2">Address detail</span>
                                     <div class="font-medium mt-1">{{ addressinfo.countryName }} {{
                                         addressinfo.provinceName
-                                    }} {{ addressinfo.city }} {{ addressinfo.address }}</div>
+                                        }} {{ addressinfo.city }} {{ addressinfo.address }}</div>
                                 </div>
                             </section>
                             <section class="border border-blackcolor/10 rounded-lg bg-white">
@@ -487,7 +487,7 @@ const getShippingRulelist = async () => {
                 item.label = `${item.feeEnName}　　${item.daysFrom}–${item.daysTo} days　　$${item.calFee.toFixed(2)}`
             })
         } else {
-            console.log(111)
+
             templates.value = [{
                 feeId: -1,
                 label: 'The current country does not support delivery, please change the delivery address',
@@ -941,7 +941,6 @@ const Invalidlist = ref([
 watch(() => addressinfo.value, (newvalue, oldvalue) => {
 
     if (newvalue) {
-        console.log(1111, newvalue)
         getShippingRulelist()
     }
 });
@@ -975,7 +974,6 @@ const payPalCaptureOrder = async (token) => {
         }
 
         let res = await completePayment(params);
-        console.log('上报完成')
 
         // router.push('/myorders')
 
@@ -1040,18 +1038,12 @@ onMounted(async () => {
                     const referenceId = details.purchase_units?.[0]?.reference_id
                     const paypalOrderId = details.id
                     const payerName = details.payer.name.given_name
-                    console.log(details);
                     const totalAmount = details.purchase_units[0].amount.value; // 总金额
                     const currency = details.purchase_units[0].amount.currency_code; // 货币（例如 USD）
 
                     const paymentTime = formatPaypalUtcToLocal(details.purchase_units[0].payments.captures[0].create_time); // 支付时间
-                    console.log(paymentTime);
 
-                    console.log('✅ pay successful：', {
-                        referenceId,
-                        paypalOrderId,
-                        payerName
-                    })
+
                     let res = payPalCaptureOrder(paypalOrderId)
                     // router.push('/myorders')
                     router.push({

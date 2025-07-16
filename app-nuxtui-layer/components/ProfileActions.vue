@@ -138,7 +138,6 @@ const getlocation = async () => {
 
   try {
     if (locationinfo.value) {
-      console.log(locationinfo.value);
       nowCountry.value = {
         countryCode: locationinfo.value.country_short,
         countryName: locationinfo.value.country_long,
@@ -189,9 +188,7 @@ getlocation();
 
 // 提交表单
 const handleSubmit = () => {
-  console.log('Form submitted:', {
-    country: selectedCountry.value,
-  })
+
   nowCountry.value = selectedCountry.value
   locationinfo.value = JSON.stringify(nowCountry.value)
 

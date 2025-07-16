@@ -105,7 +105,7 @@
                 nextEl: '.custom-button-next',
                 prevEl: '.custom-button-prev'
               }" :space-between="10" class="w-full" :breakpoints="{
-                640: { slidesPerView: 3, slidesPerGroup: 3 },
+                320: { slidesPerView: 3, slidesPerGroup: 3 },
                 768: { slidesPerView: 4, slidesPerGroup: 4 },
                 1024: { slidesPerView: 5, slidesPerGroup: 5 }
               }" @swiper="onSwiper" @slideChange="onSlideChange" :observer="true" :observeParents="true"
@@ -182,7 +182,7 @@
                 <div :class="[
                   'transition-all duration-300 ease-in-out grid gap-4',
                   property.showType ? 'max-h-[500px] mt-4' : 'overflow-hidden max-h-0',
-                  !property.isneedinput && property.productPropertyDetailType != 'text' ? 'grid-cols-6' : ''
+                  !property.isneedinput && property.productPropertyDetailType != 'text' ? 'grid-cols-5 sm:grid-cols-6' : ''
                 ]">
                   <div v-if="!property.isneedinput && property.productPropertyDetailType != 'text'"
                     v-for="(type, propertyindex) in property.detailList" :key="type"
