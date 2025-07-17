@@ -132,7 +132,7 @@ getlistlist()
       <div class="relative h-[180px] sm:h-[300px] overflow-hidden">
         <!-- 背景图 -->
         <div class="absolute inset-0">
-          <img src="/images/categorybanner.png" class="w-full h-full object-cover object-center sm:object-top"
+          <NuxtImg src="/images/categorybanner.png" class="w-full h-full object-cover object-center sm:object-top"
             alt="hero background" />
         </div>
 

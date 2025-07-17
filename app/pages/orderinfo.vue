@@ -2,7 +2,7 @@
     <div class="bg-white">
         <div class="flex min-h-screen text-sm max-row">
             <!-- Sidebar -->
-            <Userleft />
+            <Userleft class="hidden sm:block" />
             <!-- Main Content -->
             <main class="flex-1 space-y-6 bg-white">
                 <div>
@@ -60,7 +60,8 @@
                         </template>
                         <template v-else>
                             <!-- Order Header -->
-                            <div class="flex items-center mb-8">
+                            <div class="flex items-center mb-8 flex-wrap
+">
                                 <div class="text-xl font-bold">
                                     <span class="text-gray-200">Order: </span>#{{ orderInfo.orderNumber }}
                                 </div>
@@ -87,7 +88,7 @@
                                             Pay
                                         </button>
                                         <button v-if="orderInfo.status <= 1000" @click="setCancleOrder(orderInfo.id)"
-                                            class="whitespace-nowrap p-2 border border-[rgba(255,173,28,0.4)] bg-[rgba(255,213,215,0.2)] rounded">
+                                            class="whitespace-nowrap p-2 px-3 border border-[rgba(255,173,28,0.4)] bg-[rgba(255,213,215,0.2)] rounded">
                                             <img src="/deletered.png" class="w-5" />
                                         </button>
                                     </div>
@@ -148,7 +149,7 @@
 
                             <!-- Payment Info Tabs -->
                             <div class="bg-white rounded-lg border border-[#D9D9D9] p-6">
-                                <div class="flex gap-8  mb-6 text-base">
+                                <div class="flex gap-8  mb-6 text-sm sm:text-base">
                                     <button v-for="tab in tabs" :key="tab"
                                         :class="`pb-4 ${activeTab === tab ? 'font-bold text-black border-b-2 border-black' : 'text-gray-500'}`"
                                         @click="activeTab = tab">

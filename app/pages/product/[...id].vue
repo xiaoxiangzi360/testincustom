@@ -79,9 +79,9 @@
         <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
           <!-- Left section with image thumbnails -->
           <div class="md:col-span-5">
-            <div class="sticky top-[124px]">
+            <div class="sticky top-[124px] overflow-hidden">
               <div class="w-full aspect-square overflow-hidden mb-4 relative" v-if="mainImage">
-                <img :src="mainImage" alt="Shade sail"
+                <NuxtImg format="webp" :src="mainImage" @load="onMainImageLoaded" alt="Shade sail"
                   class="rounded-xl shadow-lg w-full transition-all duration-300 w-full h-full object-cover" />
                 <!-- Main image navigation buttons -->
                 <!-- 左箭头 -->
@@ -101,43 +101,43 @@
                 </div>
 
               </div>
-              <Swiper v-if="productinfo.erpProduct.photoList.length > 0" :modules="[Navigation]" :navigation="{
-                nextEl: '.custom-button-next',
-                prevEl: '.custom-button-prev'
-              }" :space-between="10" class="w-full" :breakpoints="{
-                320: { slidesPerView: 3, slidesPerGroup: 3 },
-                768: { slidesPerView: 4, slidesPerGroup: 4 },
-                1024: { slidesPerView: 5, slidesPerGroup: 5 }
-              }" @swiper="onSwiper" @slideChange="onSlideChange" :observer="true" :observeParents="true"
-                :watchSlidesProgress="true">
-                <SwiperSlide v-for="item in productinfo.erpProduct.photoList" :key="item.url">
-                  <img :src="item.url" alt="thumbnail"
-                    class="w-full object-cover rounded-xl cursor-pointer hover:opacity-80"
-                    @click="mainImage = item.url" />
-                </SwiperSlide>
-                <SwiperSlide>
-                  <div class="flex items-center justify-center h-full w-full">
-                    <video class="max-h-full max-w-full">
-                      <source :src="productinfo.erpProduct.productVideoUrl" type="video/mp4" />
-                    </video>
-                  </div>
-                </SwiperSlide>
+              <ClientOnly>
+                <Swiper :modules="[Navigation]" ref="swiperRefThumb" :navigation="{
+                  nextEl: '.custom-button-next',
+                  prevEl: '.custom-button-prev'
+                }" :space-between="10" class="w-full" :breakpoints="{
+                  0: { slidesPerView: 4, slidesPerGroup: 4 },
+                  1024: { slidesPerView: 5, slidesPerGroup: 5 }
+                }" @swiper="onSwiper" @slideChange="onSlideChange" :watchSlidesProgress="true">
+                  <SwiperSlide v-for="item in productinfo.erpProduct.photoList" :key="item.url">
+                    <NuxtImg width="80" height="80" loading="eager" :src="item.url" alt="thumbnail"
+                      class="w-full object-cover rounded-xl cursor-pointer hover:opacity-80"
+                      @click="mainImage = item.url" />
+                  </SwiperSlide>
+                  <SwiperSlide>
+                    <div class="flex items-center justify-center h-full w-full">
+                      <video class="max-h-full max-w-full">
+                        <source :src="productinfo.erpProduct.productVideoUrl" type="video/mp4" />
+                      </video>
+                    </div>
+                  </SwiperSlide>
 
-                <div class="custom-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
-                  :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }">
-                  <div class="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow text-primary">
-                    <UIcon name="i-raphael:arrowleft2" class="text-primary w-4 h-4" />
+                  <div class="custom-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
+                    :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }">
+                    <div class="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow text-primary">
+                      <UIcon name="i-raphael:arrowleft2" class="text-primary w-4 h-4" />
+                    </div>
                   </div>
-                </div>
 
-                <div class="custom-button-next absolute right-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
-                  :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }">
-                  <div class="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow text-primary">
-                    <UIcon name="i-raphael:arrowright2" class="text-primary w-4 h-4" />
+                  <div class="custom-button-next absolute right-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
+                    :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }">
+                    <div class="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow text-primary">
+                      <UIcon name="i-raphael:arrowright2" class="text-primary w-4 h-4" />
+                    </div>
                   </div>
-                </div>
 
-              </Swiper>
+                </Swiper>
+              </ClientOnly>
             </div>
           </div>
 
@@ -441,6 +441,8 @@
 </template>
 
 <script setup>
+
+
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation } from 'swiper/modules';
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
@@ -453,10 +455,14 @@ const route = useRoute();
 const router = useRouter();
 const lastpage = router.options.history.state.back;
 const cart = useCartStore();
-
+const swiperRefThumb = ref()
 // 新增loading状态
 const isLoading = computed(() => pending.value);
-
+const onMainImageLoaded = () => {
+  nextTick(() => {
+    swiperRefThumb.value?.swiper?.update()
+  })
+}
 
 // Swiper instance
 const swiperInstance = ref(null);
@@ -466,7 +472,7 @@ const cartloding = ref(false);
 const orderloding = ref(false);
 const orginproductinfo = ref({});
 
-const productid = computed(() => route.params.id[0] ?? '1912447337201045504');
+const productid = computed(() => route.params.id[0] ?? '29201');
 const { data: serverProductData, pending, error } = await useAsyncData('product-detail', () => {
   return getProductById({
     id: productid.value,
@@ -495,13 +501,17 @@ const designimage = ref('');
 //   printPropertyList: [],
 //   normalPropertyList: []
 // });
-const productinfo = ref(serverProductData.value?.result ?? {});
+const mainImage = ref('');
 
+const productinfo = ref(serverProductData.value?.result ?? {});
+if (productinfo.value.erpProduct?.mainPic) {
+
+  mainImage.value = productinfo.value.erpProduct.mainPic;
+}
 const skuprice = ref(productinfo.value?.erpProduct.customPrice ?? {});
 const relatedList = [];
 
 
-const mainImage = ref('');
 const quantity = ref(1);
 const totalPrice = computed(() => quantity.value * skuprice.value);
 const tabindex = ref(1);
@@ -1075,7 +1085,6 @@ const organizeproduct = () => {
     message.error('Failed to load product data');
   } finally {
     isLoading.value = false; // 加载完成
-    handleGetrelated();
 
   }
 };
@@ -1194,11 +1203,13 @@ onMounted(() => {
   //     mainImageIndex.value = initialIndex !== -1 ? initialIndex : 0;
   //   }
   // });
-  if (productinfo.value.erpProduct?.mainPic) {
-    mainImage.value = productinfo.value.erpProduct.mainPic;
-  }
 
-  handleGetrelated();
+  // if (productinfo.value.erpProduct?.mainPic) {
+
+  //   mainImage.value = productinfo.value.erpProduct.mainPic;
+  // }
+
+  // handleGetrelated();
 });
 
 watch(() => route.query, () => {
@@ -1217,8 +1228,16 @@ onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
 });
 </script>
-
+<style>
+/* .swiper .swiper-wrapper {
+  display: flex !important;
+} */
+</style>
 <style scoped>
+.swiper .swiper-wrapper {
+  display: flex !important;
+}
+
 .truncate-2-lines {
   display: -webkit-box;
   -webkit-line-clamp: 2;
