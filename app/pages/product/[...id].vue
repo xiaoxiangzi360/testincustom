@@ -442,6 +442,8 @@
 
 <script setup>
 
+import 'swiper/css';
+import 'swiper/css/navigation';
 
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation } from 'swiper/modules';
