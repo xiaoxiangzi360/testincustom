@@ -78,34 +78,45 @@
                             <!-- Account Info -->
                             <section class="border border-blackcolor/10 rounded-lg bg-white"
                                 v-if="addressarr.length > 0">
-                                <div class="p-3 px-6 text-customblack font-semibold text-lg">Address <span
-                                        style="color: red;">*</span></div>
-                                <div class="grid grid-cols-3 gap-y-4 gap-x-12 border-t border-t-blackcolor/10 p-6">
-                                    <div><span class="text-blackcolor/50 mb-2">Full name</span>
-                                        <div class="font-medium mt-1">{{ addressinfo.firstName }}{{ addressinfo.lastName
-                                            }}</div>
+                                <div class="p-3 px-4 sm:px-6 text-customblack font-semibold text-base sm:text-lg">
+                                    Address <span class="text-red-500">*</span>
+                                </div>
+
+                                <div
+                                    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-4 sm:gap-x-8 border-t border-t-blackcolor/10 p-4 sm:p-6">
+                                    <div>
+                                        <span class="text-blackcolor/50 text-sm mb-1 block">Full name</span>
+                                        <div class="font-medium text-sm sm:text-base">{{ addressinfo.firstName }}{{
+                                            addressinfo.lastName }}</div>
                                     </div>
-                                    <div><span class="text-blackcolor/50 mb-2">Number</span>
-                                        <div class="font-medium mt-1">({{ addressinfo.numberCode }}) {{
-                                            addressinfo.number
-                                            }}
+
+                                    <div>
+                                        <span class="text-blackcolor/50 text-sm mb-1 block">Number</span>
+                                        <div class="font-medium text-sm sm:text-base">({{ addressinfo.numberCode }}) {{
+                                            addressinfo.number }}</div>
+                                    </div>
+
+                                    <div v-show="from != 'order'" class="space-y-1 sm:space-y-2">
+                                        <div class="text-primary cursor-pointer text-sm sm:text-base"
+                                            @click="changeaddress()">
+                                            Change another address
+                                        </div>
+                                        <div class="text-primary cursor-pointer text-sm sm:text-base"
+                                            @click="addnewaddress()">
+                                            Add new address
                                         </div>
                                     </div>
-                                    <div v-show="from != 'order'">
-
-                                        <div class="mt-1 text-primary cursor-pointer" @click="changeaddress()">Change
-                                            another address</div>
-                                        <div class="mt-1 text-primary cursor-pointer" @click="addnewaddress()">Add new
-                                            address</div>
-                                    </div>
-
                                 </div>
-                                <div class="px-6 pb-6"><span class="text-blackcolor/50 mb-2">Address detail</span>
-                                    <div class="font-medium mt-1">{{ addressinfo.countryName }} {{
-                                        addressinfo.provinceName
-                                        }} {{ addressinfo.city }} {{ addressinfo.address }}</div>
+
+                                <div class="px-4 sm:px-6 pb-4 sm:pb-6">
+                                    <span class="text-blackcolor/50 text-sm mb-1 block">Address detail</span>
+                                    <div class="font-medium text-sm sm:text-base">
+                                        {{ addressinfo.countryName }} {{ addressinfo.provinceName }} {{ addressinfo.city
+                                        }} {{ addressinfo.address }}
+                                    </div>
                                 </div>
                             </section>
+
                             <section class="border border-blackcolor/10 rounded-lg bg-white">
                                 <div class="p-3 px-6 text-customblack font-semibold text-lg">Shipping methods <span
                                         style="color: red;">*</span></div>
@@ -120,7 +131,7 @@
                                                 class="w-full justify-between h-10 rounded-md"
                                                 :class="{ 'ring-2 ring-primary': open }">
                                                 <!-- 当前选中项显示 -->
-                                                <span>
+                                                <span class="text-sm">
                                                     {{
                                                         templates.find(item => item.feeId === templateid)?.label ||
                                                         'Select Shipping Method'
@@ -139,13 +150,13 @@
                                 <div class="p-3 px-6 text-customblack font-semibold text-lg">Payment methods <span
                                         style="color: red;">*</span>
                                 </div>
-                                <div class="grid grid-cols-3 gap-6 border-t border-t-blackcolor/10 p-6">
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 border-t border-t-blackcolor/10 p-6">
                                     <div v-for="option in options" :key="option.value"
                                         class="flex items-center space-x-4 p-2 rounded-md"
                                         :class="selected === option.value ? 'border-2 border-gray-200' : 'border border-transparent'">
                                         <input type="radio" :value="option.value" v-model="selected" class="form-radio">
                                         <label class="flex items-center space-x-2 cursor-pointer">
-                                            <img :src="option.icon" class="h-[50px]" />
+                                            <img :src="option.icon" class="h-8 sm:h-[50px]" />
                                         </label>
                                     </div>
                                 </div>
