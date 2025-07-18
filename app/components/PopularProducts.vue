@@ -142,6 +142,25 @@ getpopularlist()
     margin-top: 30px;
 }
 
+@media (max-width: 640px) {
+
+    .product-swiper :deep(.swiper-pagination-bullet),
+    .product-swiper :deep(.swiper-pagination-bullet-active) {
+        width: 10px;
+        height: 10px;
+    }
+
+    .product-swiper :deep(.swiper-pagination) {
+        margin-top: 20px;
+    }
+
+    .product-swiper {
+        padding-bottom: 50px;
+    }
+}
+
+
+
 .aspect-square {
     aspect-ratio: 1 / 1;
 }

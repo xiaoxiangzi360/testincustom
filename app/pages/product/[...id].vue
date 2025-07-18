@@ -479,6 +479,7 @@ const { data: serverProductData, pending, error } = await useAsyncData('product-
   return getProductById({
     id: productid.value,
     needPropData: true,
+    excludeUserCustomProp: true
   });
 });
 
@@ -1006,7 +1007,10 @@ const updateBreadcrumbProduct = (productName) => {
 const handleGetProudct = async () => {
   try {
     isLoading.value = true; // 开始加载
-    let parmes = { id: productid.value, needPropData: true };
+    let parmes = {
+      id: productid.value, needPropData: true,
+      excludeUserCustomProp: true
+    };
     let res = await getProductById(parmes);
     updateBreadcrumbProduct(res.result.erpProduct.productEnglishName)
 

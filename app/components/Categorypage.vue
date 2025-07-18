@@ -11,7 +11,7 @@
                 <div class="absolute inset-0  flex items-center">
                     <div class=" flex flex-col gap-3 text-white left-12 absolute">
                         <h2
-                            class="text-3xl font-semibold mb-0 text-shadow-custom group-hover:text-primary-500 transition-colors duration-300">
+                            class="text-2xl sm:text-3xl font-semibold mb-0 text-shadow-custom group-hover:text-primary-500 transition-colors duration-300">
                             {{ item.title }}
                         </h2>
 
