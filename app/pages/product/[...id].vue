@@ -106,8 +106,7 @@
                   nextEl: '.custom-button-next',
                   prevEl: '.custom-button-prev'
                 }" :space-between="10" class="w-full" :breakpoints="{
-                  0: { slidesPerView: 4, slidesPerGroup: 4 },
-                  1024: { slidesPerView: 5, slidesPerGroup: 5 }
+                  0: { slidesPerView: 5, slidesPerGroup: 5 },
                 }" @swiper="onSwiper" @slideChange="onSlideChange" :watchSlidesProgress="true">
                   <SwiperSlide v-for="item in productinfo.erpProduct.photoList" :key="item.url">
                     <NuxtImg width="80" height="80" loading="eager" :src="item.url" alt="thumbnail"
@@ -159,13 +158,15 @@
                 v-for="(property, index) in productinfo.normalPropertyList">
                 <div class="flex justify-between items-center cursor-pointer" @click="changeshow(index)">
                   <h2 class="font-bold text-lg flex items-center mb-0">
-                    <UBadge color="black" variant="solid" class="mr-3 w-6 h-6">{{ index + 1 }}
+                    <UBadge color="black" variant="solid" class="mr-3 w-6 h-6"
+                      :ui="{ color: { black: { solid: 'dark:bg-gray-900 dark:text-white' } } }">{{ index + 1 }}
                     </UBadge>
                     <span class="truncate-1-lines">{{ property.propertyNameShop }}</span>
                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" placement="topLeft"
                       v-if="property.desc" :title="property.desc"
                       :overlayStyle="{ maxWidth: '330px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
                       <img src="/question.png" class="w-6 h-6 ml-2">
+
                     </Tooltip>
                   </h2>
                   <div class="flex items-center">
@@ -411,7 +412,6 @@
       </div>
     </div>
 
-    <Faq />
     <div ref="bottomBarRef"
       class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4 px-8 bg-white rounded-md shadow-lg sticky bottom-0 transition-all duration-300 ease-in-out"
       :class="{
@@ -438,6 +438,8 @@
       </div>
     </div>
   </div>
+  <Faq />
+
 </template>
 
 <script setup>
@@ -1197,7 +1199,7 @@ const handleScroll = () => {
 };
 
 onMounted(() => {
-  // window.addEventListener('scroll', handleScroll);
+  window.addEventListener('scroll', handleScroll);
   // handleGetProudct().then(() => {
   //   if (swiperInstance.value && productinfo.value.erpProduct.photoList.length > 0) {
   //     const initialIndex = productinfo.value.erpProduct.photoList.findIndex(

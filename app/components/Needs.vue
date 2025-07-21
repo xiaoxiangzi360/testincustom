@@ -3,7 +3,7 @@
         <div class="max-row">
             <!-- 标题 -->
             <h1
-                class="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-normal mb-6 md:mb-8 bg-clip-text text-blackcolor text-center">
+                class="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-normal mb-6 md:mb-8 bg-clip-text text-blackcolor text-center dark:text-white">
                 Customized to your needs
             </h1>
 

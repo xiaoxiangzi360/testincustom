@@ -32,7 +32,7 @@
                 <div class="flex justify-between items-center mb-8" v-show="products.length != 0">
                     <div class="flex gap-6">
                         <UCheckbox :checked="selected === 'Hot Selling'" @change="handleChange('Hot Selling')"
-                            label="Hot Selling" class="text-sm" />
+                            label="Hot Selling" class="text-sm dark:bg-white" />
                         <UCheckbox :checked="selected === 'New Arrival'" @change="handleChange('New Arrival')"
                             label="New Arrival" class="text-sm" />
                         <UCheckbox :checked="selected === 'Discount'" @change="handleChange('Discount')"

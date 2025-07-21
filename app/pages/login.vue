@@ -2,7 +2,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 h-screen">
         <!-- 左侧带渐变背景 -->
         <div
-            class="bg-gradient-to-br from-[#00B2E3] to-[#0074C8] flex flex-col items-center justify-center text-white p-10">
+            class="hidden sm:flex bg-gradient-to-br from-[#00B2E3] to-[#0074C8] flex flex-col items-center justify-center text-white p-10">
             <h1 class="text-4xl font-bold">Welcome Back to InCustom</h1>
             <p class="mt-2 text-lg">Access your store, orders, and designs instantly</p>
             <img src="/images/homelogin.png" alt="Custom Design" class="mt-6 w-full max-w-xl shadow-lg rounded-lg" />
@@ -23,21 +23,23 @@
         </div>
 
         <!-- 右侧登录区域 -->
-        <div class="flex flex-col items-center justify-center p-8">
+        <div class="flex flex-col items-center justify-center p-8 bg-white">
             <NuxtLink to="/"><img src="/logo.png" class="h-10 mb-12" /></NuxtLink>
             <h2 class="text-2xl font-medium text-gray-900 mb-6">Log In</h2>
 
             <UForm :state="formState" @submit="handleLogin" class="w-full max-w-md">
                 <UFormGroup name="email" required class="mb-4">
-                    <UInput v-model="formState.email" size="xl" placeholder="Your email address" type="email"
-                        @blur="validateEmail" />
+                    <UInput :ui="{ base: 'dark:!bg-white dark:!text-gray-900' }" v-model="formState.email" size="xl"
+                        placeholder="Your email address" type="email" @blur="validateEmail" />
                     <span v-if="formErrors.email" class="text-red-500 text-sm mb-2">{{ formErrors.email
-                        }}</span>
+                    }}</span>
                 </UFormGroup>
 
                 <UFormGroup name="password" required class="mb-4">
                     <UInput v-model="formState.password" :type="showPassword ? 'text' : 'password'" size="xl"
-                        placeholder="Password" :ui="{ icon: { trailing: { pointer: '' } } }" @blur="validatePassword">
+                        placeholder="Password"
+                        :ui="{ icon: { trailing: { pointer: '' }, }, base: 'dark:!bg-white dark:!text-gray-900' }"
+                        @blur="validatePassword">
                         <template #trailing>
                             <UButton @click="togglePassword" variant="ghost" class="text-gray-500">
                                 <UIcon :name="showPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
@@ -46,7 +48,7 @@
                         </template>
                     </UInput>
                     <span v-if="formErrors.password" class="text-red-500 text-sm mb-2">{{ formErrors.password
-                        }}</span>
+                    }}</span>
                 </UFormGroup>
 
                 <div class="flex items-center justify-between w-full mb-6 text-sm text-gray-600">
@@ -72,19 +74,19 @@
 
             <div class="flex justify-center gap-4 mt-4">
                 <UButton variant="ghost"
-                    class="bg-gray-50 w-32 h-12 flex items-center justify-center gap-2 rounded-lg p-3 text-gray-700 hover:bg-primary hover:text-white transition-colors duration-300"
+                    class="bg-gray-50 w-28 sm:w-32 h-12 flex items-center justify-center gap-2 rounded-lg p-3 text-gray-700 hover:bg-primary hover:text-white transition-colors duration-300"
                     @click="socialLogin('google')">
                     <img src="/images/google.png" class="w-5 h-5" alt="Google" />
                     <span class="font-medium">Google</span>
                 </UButton>
                 <UButton variant="ghost"
-                    class="bg-gray-50 w-32 h-12 flex items-center justify-center gap-2 rounded-lg p-3 text-gray-700 hover:bg-primary hover:text-white transition-colors duration-300"
+                    class="bg-gray-50 w-28 sm:w-32 h-12 flex items-center justify-center gap-2 rounded-lg p-3 text-gray-700 hover:bg-primary hover:text-white transition-colors duration-300"
                     @click="socialLogin('apple')">
                     <img src="/images/apple.png" class="w-5 h-5" alt="Apple" />
                     <span class="font-medium">Apple</span>
                 </UButton>
                 <UButton variant="ghost"
-                    class="bg-gray-50 w-32 h-12 flex items-center justify-center gap-2 rounded-lg p-3 text-gray-700 hover:bg-primary hover:text-white transition-colors duration-300"
+                    class="bg-gray-50 w-28 sm:w-32 h-12 flex items-center justify-center gap-2 rounded-lg p-3 text-gray-700 hover:bg-primary hover:text-white transition-colors duration-300"
                     @click="socialLogin('facebook')">
                     <img src="/images/facebook.png" class="w-5 h-5" alt="Facebook" />
                     <span class="font-medium">Facebook</span>

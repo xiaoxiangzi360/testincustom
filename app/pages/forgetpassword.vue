@@ -1,13 +1,14 @@
 <template>
     <div class="grid grid-cols-1 md:grid-cols-2 h-screen">
         <!-- 右侧登录区域 -->
-        <div class="flex flex-col items-center justify-center p-8">
+        <div class="flex flex-col items-center justify-center p-8 bg-white">
             <NuxtLink to="/"><img src="/logo.png" class="h-10 mb-12" /></NuxtLink>
 
             <h2 class="text-2xl font-medium text-gray-900 text-title">Reset your password</h2>
             <div class="max-w-md text-title w-full text-base" v-if="step == 1">
                 <div class="mt-4 max-w-md text-title w-full text-base">Please enter your email and code</div>
-                <UInput v-model="email" size="xl" placeholder="Your email address" class="mt-1 w-full max-w-md" />
+                <UInput :ui="{ base: 'dark:!bg-white dark:!text-gray-900' }" v-model="email" size="xl"
+                    placeholder="Your email address" class="mt-1 w-full max-w-md" />
                 <div class="relative mt-2 w-full max-w-md text-red-500 text-xs">{{ errorMessages }}</div>
 
                 <ClientOnly>
@@ -63,7 +64,7 @@
 
         <!-- 左侧带渐变背景 -->
         <div
-            class="bg-gradient-to-br from-[#00B2E3] to-[#0074C8] flex flex-col items-center justify-center text-white p-10">
+            class="hidden sm:flex bg-gradient-to-br from-[#00B2E3] to-[#0074C8] flex flex-col items-center justify-center text-white p-10">
             <h1 class="text-4xl font-bold">Welcome Back to InCustom</h1>
             <p class="mt-2 text-lg">Access your store, orders, and designs instantly</p>
 

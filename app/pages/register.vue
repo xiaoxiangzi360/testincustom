@@ -2,7 +2,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 h-screen">
         <!-- 左侧带渐变背景 -->
         <div
-            class="bg-gradient-to-br from-[#00B2E3] to-[#0074C8] flex flex-col items-center justify-center text-white p-10">
+            class="hidden sm:flex bg-gradient-to-br from-[#00B2E3] to-[#0074C8] flex flex-col items-center justify-center text-white p-10">
             <h1 class="text-4xl font-bold">Welcome Back to InCustom</h1>
             <p class="mt-2 text-lg">Access your store, orders, and designs instantly</p>
             <img src="/images/homelogin.png" alt="Custom Design" class="mt-6 w-full max-w-xl shadow-lg rounded-lg" />
@@ -23,28 +23,31 @@
         </div>
 
         <!-- 右侧注册表单 -->
-        <div class="flex flex-col items-center justify-center p-8">
+        <div class="flex flex-col items-center justify-center p-8 bg-white">
             <NuxtLink to="/"><img src="/logo.png" class="h-10 mb-12" /></NuxtLink>
 
             <h2 class="text-2xl font-medium text-title mb-6">Create an account using email</h2>
 
             <UForm :state="formState" @submit="handleRegister" class="w-full max-w-md">
                 <UFormGroup name="fullName" required class="mb-4">
-                    <UInput v-model="formState.fullName" size="xl" placeholder="Full name" @blur="validatefullName" />
+                    <UInput :ui="{ base: 'dark:!bg-white dark:!text-gray-900' }" v-model="formState.fullName" size="xl"
+                        placeholder="Full name" @blur="validatefullName" />
                     <span v-if="formErrors.fullName" class="text-red-500 text-sm mb-2">{{ formErrors.fullName
-                    }}</span>
+                        }}</span>
                 </UFormGroup>
 
                 <UFormGroup name="email" required class="mb-4">
-                    <UInput v-model="formState.email" size="xl" placeholder="Email" type="email"
-                        @blur="validateemail" />
+                    <UInput :ui="{ base: 'dark:!bg-white dark:!text-gray-900' }" v-model="formState.email" size="xl"
+                        placeholder="Email" type="email" @blur="validateemail" />
                     <span v-if="formErrors.email" class="text-red-500 text-sm mb-2">{{ formErrors.email
-                    }}</span>
+                        }}</span>
                 </UFormGroup>
 
                 <UFormGroup name="password" required class="mb-4">
                     <UInput v-model="formState.password" :type="showPassword ? 'text' : 'password'" size="xl"
-                        placeholder="Password" :ui="{ icon: { trailing: { pointer: '' } } }" @blur="validatePassword">
+                        placeholder="Password"
+                        :ui="{ icon: { trailing: { pointer: '' }, }, base: 'dark:!bg-white dark:!text-gray-900' }"
+                        @blur="validatePassword">
                         <template #trailing>
                             <UButton @click="togglePassword" variant="ghost" class="text-gray-500">
                                 <UIcon :name="showPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
@@ -53,32 +56,34 @@
                         </template>
                     </UInput>
                     <span v-if="formErrors.password" class="text-red-500 text-sm mb-2">{{ formErrors.password
-                    }}</span>
+                        }}</span>
                 </UFormGroup>
 
                 <UFormGroup name="repassword" required class="mb-4">
-                    <UInput v-model="formState.repassword" type="password" size="xl" placeholder="Confirm password"
-                        @blur="validatePasswordMatch" />
+                    <UInput :ui="{ base: 'dark:!bg-white dark:!text-gray-900' }" v-model="formState.repassword"
+                        type="password" size="xl" placeholder="Confirm password" @blur="validatePasswordMatch" />
                     <span v-if="formErrors.repassword" class="text-red-500 text-sm mb-2">{{ formErrors.repassword
-                    }}</span>
+                        }}</span>
                 </UFormGroup>
 
                 <UFormGroup name="phone" required class="mb-4">
                     <div class="flex items-center">
                         <USelectMenu searchable-placeholder="" searchable v-model="formState.numberAreaCode"
-                            :options="countries" size="xl" class="mr-2" />
-                        <UInput v-model="formState.phoneNumber" size="xl" placeholder="Your number"
-                            class="flex-1 bg-gray-50 border-0 focus:ring-0" />
+                            :options="countries" size="xl" class="mr-2 dark:bg-white"
+                            :ui="{ background: 'dark:!bg-white', base: 'dark:!bg-white dark:!text-primary-900' }" />
+                        <UInput v-model="formState.phoneNumber" :ui="{ base: 'dark:!bg-white dark:!text-gray-900' }"
+                            size="xl" placeholder="Your number" class="flex-1 bg-gray-50 border-0 focus:ring-0" />
                     </div>
                     <span v-if="formErrors.phoneformat" class="text-red-500 text-sm mb-2">{{ formErrors.phoneformat
-                    }}</span>
+                        }}</span>
 
                 </UFormGroup>
 
 
             </UForm>
             <div class="flex items-center space-x-2 mb-6 w-full max-w-md">
-                <UCheckbox v-model="formState.isChecked" name="agreement" />
+                <UCheckbox v-model="formState.isChecked" name="agreement"
+                    :ui="{ background: 'dark:!bg-white', base: 'dark:!bg-white dark:!text-primary-900' }" />
                 <span class="text-sm text-title">
                     I have read the
                     <a href="/article/terms-of-service" target="_blank"
@@ -94,7 +99,7 @@
             </div>
             <div class="flex items-center space-x-2  w-full max-w-md">
                 <span v-if="formErrors.agreement" class="w-full text-red-500 text-sm mb-2">{{ formErrors.agreement
-                }}</span>
+                    }}</span>
             </div>
 
             <UButton @click="handleRegister" class="text-white w-full max-w-md mt-6 p-3 block text-center">Sign up

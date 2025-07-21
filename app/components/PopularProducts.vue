@@ -2,7 +2,8 @@
     <div class="mt-16">
         <div class="max-row">
             <!-- 标题 -->
-            <h1 class="text-2xl md:text-5xl mb-6 md:mb-8 bg-clip-text font-normal text-blackcolor text-center">
+            <h1
+                class="text-2xl md:text-5xl mb-6 md:mb-8 bg-clip-text font-normal text-blackcolor text-center dark:text-white">
                 Most Popular Products
             </h1>
 
@@ -63,7 +64,7 @@
                                 <h3 class="text-sm sm:text-base font-normal mb-2 line-clamp-2 min-h-[3em]">{{
                                     product.erpProduct.productEnglishName }}</h3>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-customblack font-medium text-sm sm:text-lg">
+                                    <span class="text-customblack font-medium text-sm sm:text-lg dark:text-primary">
                                         $ {{ product.erpProduct.customPrice }}
                                     </span>
                                     <span class="text-[#4A4A4A] text-sm">{{ product.thirtyDaysSales }} sold</span>

@@ -1,7 +1,7 @@
 <template>
     <div class="min-h-screen bg-[#F8F8F8]">
         <div class="max-w-7xl mx-auto px-4 py-8">
-            <div class="text-lg mb-6 font-bold">Shopping Cart</div>
+            <div class="text-lg mb-6 font-bold dark:text-black">Shopping Cart</div>
             <div class="rounded-lg shadow-sm ">
                 <div class="flex flex-col lg:flex-row gap-8 items-stretch">
                     <!-- Cart Items -->
@@ -63,9 +63,9 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="py-4 pl-4 text-center p-6">{{
+                                        <td class="py-4 pl-4 text-center p-6 text-gray-900">{{
                                             item.product.skuSpec.customPrice.toFixed(2)
-                                            }}
+                                        }}
                                         </td>
                                         <td class="py-4 text-center w-28">
                                             <!-- <InputNumber v-model:value="item.productQuantity" :min="1" :max="9999" /> -->
@@ -87,9 +87,10 @@
                                             </div>
 
                                         </td>
-                                        <td class="py-4 pl-4 text-center p-6">{{ (item.product.skuSpec.customPrice *
+                                        <td class="py-4 pl-4 text-center p-6 text-gray-900">{{
+                                            (item.product.skuSpec.customPrice *
                                             item.productQuantity).toFixed(2) }}</td>
-                                        <td class="py-4 pl-4 text-center p-6">
+                                        <td class="py-4 pl-4 text-center p-6 ">
                                             <img @click="deleteItem(item)" src="/del.png" class="w-6 cursor-pointer">
 
                                             <!-- <button @click="deleteItem(item)"
@@ -142,7 +143,7 @@
                                                 <div>
                                                     <div class="font-medium text-lg">{{
                                                         item.product ? item.product.erpProduct.productEnglishName : ''
-                                                        }}
+                                                    }}
                                                     </div>
                                                     <p class="text-sm text-gray-500">{{ item.product.skuSpec.specAttr }}
                                                     </p>
@@ -180,15 +181,15 @@
                     <!-- Cart Summary -->
                     <div class="md:w-80 bg-white rounded-lg shadow-sm flex flex-col justify-between min-h-[200px]">
                         <div class="p-6">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Selected {{ selectedQuantity }} items</span>
+                            <div class="flex justify-between text-gray-600">
+                                <span>Selected {{ selectedQuantity }} items</span>
                                 <span>${{ selectedTotal.toFixed(2) }}</span>
                             </div>
-                            <div class="flex justify-between mt-4">
-                                <span class="text-gray-600">Shipping</span>
+                            <div class="flex justify-between mt-4 text-gray-600">
+                                <span>Shipping</span>
                                 <span>${{ shipping.toFixed(2) }}</span>
                             </div>
-                            <div class="pt-4 flex justify-between font-bold mt-4">
+                            <div class="pt-4 flex justify-between font-bold mt-4 text-gray-600">
                                 <span>Total</span>
                                 <span>${{ (selectedTotal + shipping).toFixed(2) }}</span>
                             </div>

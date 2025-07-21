@@ -6,10 +6,12 @@
             <!-- Main Content -->
             <main class="flex-1 p-0 py-6 sm:p-6 bg-white">
                 <div class="flex flex-wrap items-center gap-3">
-                    <div class="text-sm whitespace-nowrap sm:px-3 sm:justify-center">Order Number</div>
+                    <div class="text-sm whitespace-nowrap sm:px-3 sm:justify-center dark:text-gray-900">Order Number
+                    </div>
 
                     <!-- 输入框：最大宽度限制 -->
-                    <UInput v-model="ordervalue" class="w-full max-w-[130px] sm:max-w-[200px]" />
+                    <UInput v-model="ordervalue" color="white" class="w-full max-w-[130px] sm:max-w-[200px] "
+                        placeholder="search" :ui="{ base: 'dark:!bg-white' }" />
 
                     <!-- 按钮 -->
                     <div @click="searchordernumber()"
@@ -32,7 +34,7 @@
 
                     <!-- 桌面端 Tabs -->
                     <UTabs v-model="selected" :items="tabs" @change="onChange" class="hidden md:block" :ui="{
-                        container: 'w-full',
+                        container: 'w-full dark:bg-white',
                         wrapper: 'px-4',
                         list: {
                             tab: {
@@ -41,14 +43,15 @@
                                 background: 'bg-transparent',
                                 rounded: ''
                             },
-                            background: 'bg-transparent'
+                            background: 'bg-transparent dark:bg-white'
                         }
                     }" />
 
                     <div v-if="orders.length > 0" class="mx-auto px-4">
                         <div class="bg-white rounded-lg shadow-sm">
                             <!-- Order Table Header -->
-                            <div class="hidden md:grid grid-cols-12 px-6 py-3 text-sm font-medium bg-[#F6F6F6]">
+                            <div
+                                class="hidden md:grid grid-cols-12 px-6 py-3 text-sm font-medium bg-[#F6F6F6] text-gray-600">
                                 <div class="col-span-6">Product</div>
                                 <div class="col-span-3 text-center">Total($)</div>
                                 <div class="col-span-3 text-right">Actions</div>
@@ -61,7 +64,7 @@
                                     <!-- Order Header -->
                                     <div
                                         class="flex flex-col md:flex-row md:items-center text-sm text-gray-500 gap-2 md:gap-4">
-                                        <div class="flex items-center">
+                                        <div class="flex items-center text-gray-600">
                                             Order Number:
                                             <span class="text-[#AEAEAE] mx-2">{{ order.orderNumber }}</span>
                                             <UTooltip text="Copy the order number" :popper="{ arrow: true }">
@@ -124,7 +127,8 @@
 
                                         <!-- Total Price -->
                                         <div class="md:col-span-3 flex items-start justify-start md:justify-center">
-                                            <span class="font-medium text-base mt-1 md:mt-0">${{ order.paymentAmount
+                                            <span class="font-medium text-base mt-1 md:mt-0 dark:text-gray-900">${{
+                                                order.paymentAmount
                                                 }}</span>
                                         </div>
 
@@ -174,11 +178,6 @@
                         </NuxtLink>
                     </div>
                 </section>
-                <div class="flex justify-end mt-6" v-show="ordercount > 0">
-                    <UPagination v-model="page" :page-count="pageSize" :total="ordercount"
-                        :prev-button="{ icon: 'i-material-symbols:chevron-left' }"
-                        :next-button="{ icon: 'i-material-symbols:chevron-right' }" />
-                </div>
             </main>
         </div>
     </div>

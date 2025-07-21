@@ -1,18 +1,19 @@
 <template>
     <div class="w-full">
         <div class="max-row py-10 ">
-            <h1 class="text-3xl md:text-5xl text-blackcolor font-normal text-center mb-12">
+            <h1 class="text-3xl md:text-5xl text-blackcolor font-normal text-center mb-12 dark:text-white">
                 FAQ
             </h1>
 
             <UAccordion variant="solid" size="xl" :items="faqItems" :ui="{
-                container: 'border-b border-[#00000014] dark:border-white'
-            }" class="text-title ">
+                container: 'border-b border-[#00000014] dark:border-white dark:text-white'
+            }" class="text-title dark:text-white">
                 <template #default="{ item, index, open }">
                     <UButton color="gray" variant="ghost"
-                        class="text-arialblack w-full flex justify-between items-center text-lg"
+                        class="text-arialblack w-full flex justify-between items-center text-lg dark:text-white"
                         :ui="{ rounded: 'rounded-none', padding: { sm: 'px-5 py-4' } }">
-                        <span class="truncate text-blackcolor text-left">{{ index + 1 }}. {{ item.label }}</span>
+                        <span class="truncate text-blackcolor text-left dark:text-white">{{ index + 1 }}. {{ item.label
+                        }}</span>
                         <UIcon name="i-heroicons-chevron-down-20-solid"
                             class="w-5 h-5 transition-transform duration-200" :class="[open ? 'rotate-180' : '']" />
                     </UButton>
