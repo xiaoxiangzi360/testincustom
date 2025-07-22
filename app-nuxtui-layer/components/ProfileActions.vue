@@ -138,13 +138,14 @@ const getlocation = async () => {
 
   try {
     if (locationinfo.value) {
+      console.log(locationinfo.value)
       nowCountry.value = {
-        countryCode: locationinfo.value.country_short,
-        countryName: locationinfo.value.country_long,
+        countryCode: locationinfo.value.countryCode,
+        countryName: locationinfo.value.countryName,
       }
       selectedCountry.value = {
-        countryCode: locationinfo.value.country_short,
-        countryName: locationinfo.value.country_long,
+        countryCode: locationinfo.value.countryCode,
+        countryName: locationinfo.value.countryName,
       }
     } else {
       let res = await getUserlPBylp2Location();
@@ -159,7 +160,7 @@ const getlocation = async () => {
         }
       }
 
-      locationinfo.value = JSON.stringify(res.result)
+      // locationinfo.value = JSON.stringify(res.result)
 
     }
 
@@ -244,7 +245,7 @@ const checkout = () => {
                       :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
                       <div class="text-sm text-[#8E8E8E]  truncate-1-lines w-52 mt-1">{{
                         item.product.skuSpec.specAttr
-                      }}</div>
+                        }}</div>
                     </Tooltip>
 
                     <div class="flex items-center mt-2">

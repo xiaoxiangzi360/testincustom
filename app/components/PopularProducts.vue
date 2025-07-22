@@ -55,7 +55,8 @@
                             <!-- 产品图片 -->
                             <div class="relative w-full aspect-square overflow-hidden">
                                 <NuxtImg format="webp" :src="product.erpProduct.mainPic ?? '/images/empty.jpg'"
-                                    :alt="product.erpProduct.productEnglishName" loading="lazy"
+                                    :alt="product.erpProduct.productEnglishName" loading="lazy" :width="400"
+                                    :height="400" quality="70"
                                     class="w-full h-full object-cover object-top transition-all duration-300 hover:rounded-[8px]" />
                             </div>
 

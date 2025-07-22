@@ -241,9 +241,10 @@
                           <div class="flex items-center">
                             <label class="flex items-center space-x-2 cursor-pointer">
 
-                              <input type="radio" v-model="property.chooseindex" :value="needindex + 2" />
+                              <input type="radio" v-model="property.chooseindex" :value="needindex + 2"
+                                @change="changeinputvalue(property, needindex + 2, index)" />
                               <span class="font-semibold text-sm">{{ needinput.detailName
-                                }}</span>
+                              }}</span>
                             </label>
 
                           </div>
@@ -261,7 +262,8 @@
                         <div v-if="property.noneedinputlist.length > 0"
                           class="flex items-center space-x-2 cursor-pointer mt-4">
                           <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="radio" v-model="property.chooseindex" value="1" />
+                            <input type="radio" v-model="property.chooseindex" value="1"
+                              @change="onChange(property.selectedproperty?.propertyDetailId, property, index)" />
                             <span class="font-bold text-sm">Standard size:</span>
                           </label>
                           <Select :value="property.selectedproperty?.propertyDetailId" style="width: 200px"
@@ -403,7 +405,7 @@
             </div>
             <div class="mt-2">
               <h3 class="text-base font-normal mb-2 line-clamp-2">{{ product.erpProduct.productEnglishName
-              }}</h3>
+                }}</h3>
               <p class="text-xl font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}
               </p>
             </div>
@@ -584,6 +586,7 @@ const handleGetrelated = async () => {
   }
 };
 const selectproperty = (index, type) => {
+
   if (type.disabled) {
     return
   }
@@ -606,13 +609,24 @@ const selectproperty = (index, type) => {
     let curskulist = joinsku.length > 0 ? joinsku.filter(item => type.skuList.includes(item)) : type.skuList || [];
     // let curskulist = type.skuList ? type.skuList : [];
     let nextProperty = productinfo.value.normalPropertyList[index + 1];
+    let nextselectedproperty = nextProperty['selectedproperty']
+    let nextselectedid = '-1'
+    if (nextselectedproperty) {
+      nextselectedid = nextselectedproperty.propertyDetailId
+    }
     if (nextProperty.isneedinput) {
+
       let nextdetailList = productinfo.value.normalPropertyList[index + 1].noneedinputlist;
+
       nextdetailList.forEach(element => {
         let skulist = element.skuList;
         let hasIntersection = skulist && skulist.some(item => curskulist.includes(item));
         element.isactive = hasIntersection;
         element.disabled = !hasIntersection;
+        if (nextselectedid == element.propertyDetailId && element.disabled) {
+          productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {};
+
+        }
       });
 
       let nextdetailList1 = productinfo.value.normalPropertyList[index + 1].needinputlist;
@@ -621,22 +635,35 @@ const selectproperty = (index, type) => {
         let hasIntersection = skulist && skulist.some(item => curskulist.includes(item));
         element1.isactive = hasIntersection;
         element1.disabled = !hasIntersection;
+        if (nextselectedid == element1.propertyDetailId && element1.disabled) {
+          productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {};
+
+        }
       });
     } else {
       let nextdetailList = productinfo.value.normalPropertyList[index + 1].detailList;
+      let nextselectedproperty = productinfo.value.normalPropertyList[index + 1]['selectedproperty']
+      let nextselectedid = '-1'
+      if (nextselectedproperty) {
+        nextselectedid = nextselectedproperty.propertyDetailId
+      }
       nextdetailList.forEach(element => {
         let skulist = element.skuList;
         let hasIntersection = skulist && skulist.some(item => curskulist.includes(item));
         element.isactive = hasIntersection;
         element.disabled = !hasIntersection;
+        if (nextselectedid == element.propertyDetailId && element.disabled) {
+          productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {};
+
+        }
       });
     }
   }
   productinfo.value.normalPropertyList[index]['selectedproperty'] = type;
-  if (productinfo.value.normalPropertyList[index + 1] && type.skulist) {
-    productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {};
 
-  }
+  // if (productinfo.value.normalPropertyList[index + 1] && type.skuList) {
+  //   productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {};
+  // }
   let inputvalue = [];
   let hasEmpty = false;
   let needinputproperty;
@@ -664,16 +691,16 @@ const selectproperty = (index, type) => {
     }
   } else {
     //选到最后一个，去请求sku价格
-    if (!productinfo.value.normalPropertyList[index + 1]) {
+    if (ischoose) {
       const skuLists = productinfo.value.normalPropertyList
         .map(property => property.selectedproperty?.skuList)
         .filter(list => Array.isArray(list) && list.length > 0);
 
       if (skuLists.length === 0) return;
       let innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)));
-
       let firstsku = innersku[0];
       if (firstsku) {
+        console.log('getskuprice');
         getskuprice(firstsku);
       }
     }
@@ -1112,7 +1139,6 @@ const onChange = (val, property, index) => {
 };
 
 const changeinputvalue = (element, index, propertyindex) => {
-
   element.chooseindex = index;
   let strresult = '';
   if (element.isneedinput) {

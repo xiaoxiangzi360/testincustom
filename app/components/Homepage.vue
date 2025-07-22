@@ -6,8 +6,8 @@
       <SwiperSlide v-for="(image, index) in backgroundImages" :key="index">
         <div class="relative w-full h-full">
           <!-- 使用 NuxtImg 加载背景图，并开启预加载 -->
-          <NuxtImg :src="image" alt="Home background" class="absolute inset-0 w-full h-full object-cover" preload
-            fetchpriority="high" :width="1440" :height="swiperHeight" />
+          <NuxtImg :src="image" format="webp" alt="Home background" class="absolute inset-0 w-full h-full object-cover"
+            preload fetchpriority="high" :width="1440" :height="swiperHeight" />
 
           <!-- 遮罩层 -->
           <div class="absolute inset-0 bg-black bg-opacity-30 z-10"></div>
