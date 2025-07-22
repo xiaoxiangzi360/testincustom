@@ -151,21 +151,20 @@ export default defineNuxtConfig({
   },
 
   image: {
-    // dir: 'assets/images', // doesn't always work, for eg, with vercel etc, https://github.com/nuxt/image/issues/1006. Therefore, we are storing the images in public folder, to have them not processed by vite, but rather by nuxt-image module on-demand
     // sizes: 'xs:100vw sm:100vw md:100vw lg:100vw xl:100vw', // Global sizes not yet supported, has to be specified in NuxtImg or NuxtPicture tags - https://github.com/nuxt/image/issues/216
     // densities: [1,2], // default
     // quality: 80, // can be overridden as NuxtImg prop
     format: ['webp, png, jpg'], // default is ['webp']
     // The screen sizes predefined by `@nuxt/image`:
-    // screens: {
-    //   xs: 320,
-    //   sm: 640,
-    //   md: 768,
-    //   lg: 1024,
-    //   xl: 1280,
-    //   xxl: 1536,
-    //   '2xl': 1536,
-    // },
+    screens: {
+      xs: 320,
+      sm: 640,
+      md: 768,
+      lg: 1024,
+      xl: 1280,
+      xxl: 1536,
+      '2xl': 1536,
+    },
 
     // TODO: Currently image optimization is paused until some bugs in Nuxt Image modules are fixed
     provider: 'ipx',
