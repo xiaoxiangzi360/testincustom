@@ -151,8 +151,7 @@ export default defineNuxtConfig({
     // sizes: 'xs:100vw sm:100vw md:100vw lg:100vw xl:100vw', // Global sizes not yet supported, has to be specified in NuxtImg or NuxtPicture tags - https://github.com/nuxt/image/issues/216
     // densities: [1,2], // default
     // quality: 80, // can be overridden as NuxtImg prop
-    format: ['webp, png, jpg'], // default is ['webp']
-    dir: 'public',
+    format: ['webp', 'png', 'jpg'], // default is ['webp']
     // The screen sizes predefined by `@nuxt/image`:
     screens: {
       xs: 320,
