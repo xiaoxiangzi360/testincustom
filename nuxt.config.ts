@@ -168,8 +168,8 @@ export default defineNuxtConfig({
     // },
 
     // TODO: Currently image optimization is paused until some bugs in Nuxt Image modules are fixed
-    // provider: 'ipx',
-    provider: 'none',
+    provider: 'ipx',
+    // provider: 'none',
 
     presets: {
       avatar: {
@@ -189,6 +189,9 @@ export default defineNuxtConfig({
       'res.cloudinary.com',
       'avatars.githubusercontent.com',
       'gravatar.com',
+      'erp.dropsure.com',
+      'image.distributetop.com',
+      's2.loli.net',
     ],
 
     alias: {
