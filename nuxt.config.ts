@@ -40,9 +40,6 @@ export default defineNuxtConfig({
   experimental: {
     componentIslands: true,
   },
-  generate: {
-    fallback: true, // ✅ 自動生成404.html兜底
-  },
   nitro: {
     // preset: 'netlify',
     preset: 'vercel',
@@ -155,6 +152,7 @@ export default defineNuxtConfig({
     // densities: [1,2], // default
     // quality: 80, // can be overridden as NuxtImg prop
     format: ['webp, png, jpg'], // default is ['webp']
+    dir: 'public',
     // The screen sizes predefined by `@nuxt/image`:
     screens: {
       xs: 320,

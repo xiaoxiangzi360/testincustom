@@ -1,0 +1,1 @@
+import{d as t,b as o,e as n,f as s}from"./kSsZQJMu.js";const i={style:{"min-height":"100px",display:"flex","align-items":"center","justify-content":"center","font-weight":"bold"}},c=t({__name:"delivery-policy",setup(l){return(r,e)=>(n(),o("div",i,e[0]||(e[0]=[s("span",{style:{color:"#0198cd"}},"delivery-policy.vue (Nuxt 3.6)",-1)])))}});export{c as default};

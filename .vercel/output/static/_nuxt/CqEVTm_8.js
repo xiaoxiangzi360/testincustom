@@ -1,0 +1,1 @@
+import{d as t,b as o,e as s,f as n}from"./kSsZQJMu.js";const r={style:{"min-height":"100px",display:"flex","align-items":"center","justify-content":"center","font-weight":"bold"}},d=t({__name:"order-history",setup(i){return(a,e)=>(s(),o("div",r,e[0]||(e[0]=[n("span",{style:{color:"#0198cd"}},"order-history.vue (Nuxt 3.6)",-1)])))}});export{d as default};
