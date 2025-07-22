@@ -31,6 +31,7 @@
     "@vee-validate/nuxt": "^4.13.2",
     "@vueuse/core": "^11.0.3",
     "ant-design-vue": "^4.2.6",
+    "ipx": "^3.0.3",
     "lite-youtube-embed": "^0.3.3",
     "pinia": "^2.2.2",
     "swiper": "^11.2.10",
