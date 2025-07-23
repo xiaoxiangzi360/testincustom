@@ -164,8 +164,8 @@ export default defineNuxtConfig({
     },
 
     // TODO: Currently image optimization is paused until some bugs in Nuxt Image modules are fixed
-    provider: 'ipx',
-    // provider: 'none',
+    // provider: 'ipx',
+    provider: 'none',
 
     presets: {
       avatar: {
