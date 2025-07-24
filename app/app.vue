@@ -38,6 +38,10 @@ const loading = useState<boolean>('global-loading')
 }
 
 .max-row {
-  @apply max-w-[1440px] mx-auto px-4 md:px-8 lg:px-12 xl:px-32;
+  @apply max-w-[1440px] mx-auto px-4;
 }
+
+/* .max-row {
+  @apply max-w-[1440px] mx-auto px-4 md:px-8 lg:px-12 xl:px-32;
+} */
 </style>
