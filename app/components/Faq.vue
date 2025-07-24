@@ -13,7 +13,7 @@
                         class="text-arialblack w-full flex justify-between items-center text-lg dark:text-white"
                         :ui="{ rounded: 'rounded-none', padding: { sm: 'px-5 py-4' } }">
                         <span class="truncate text-blackcolor text-left dark:text-white">{{ index + 1 }}. {{ item.label
-                            }}</span>
+                        }}</span>
                         <UIcon name="i-heroicons-chevron-down-20-solid"
                             class="w-5 h-5 transition-transform duration-200" :class="[open ? 'rotate-180' : '']" />
                     </UButton>
@@ -33,54 +33,43 @@
 <script setup>
 const faqItems = [
     {
-        label: "What is POD?",
+        label: "How long does it take to ship a custom order?",
         content:
-            "POD (Print On Demand) is a production model that allows products like t-shirts, mugs, or tote bags to be produced after an order is placed. This model requires no inventory, saving upfront costs. INcustom provides professional supply chain services to help you run your POD business"
+            "Depending on the complexity and production schedule, custom orders are usually completed within 2–5 business days."
     },
     {
-        label: "What is the process for using INcustom's POD service?",
-        content:
-            "1. You can use <strong>INcustom's online design system</strong> to create your own designs and submit orders directly.\n" +
-            "2. Our system will recommend suitable products, provide real-time production previews, and offer pricing estimates.\n" +
-            "3. Once the design is confirmed, we will arrange production, quality inspection, and delivery, so you can focus on sales.\n" +
-            "4. For <strong>special cases</strong> (such as custom requests or technical issues), you may contact <strong>INcustom’s dedicated agent</strong> for further assistance."
+        label: "What payment methods are accepted?",
+        content: "We currently accept payments via PayPal only."
     },
     {
-        label: "Do you support delivery to different countries and regions?",
+        label: "Is the “in stock” status shown on the product page accurate?",
         content:
-            "Yes, we support global delivery, covering multiple countries and regions, and provide various logistics options to meet delivery time requirements. Please contact our dedicated agent to confirm specific delivery solutions."
+            "If the product can be added to your cart, it means it is currently in stock and ready for purchase."
     },
     {
-        label: "What is the return policy for POD products?",
+        label: "Do your products come with a warranty?",
         content:
-            "Our POD service includes strict quality inspections. If there are product issues caused by production or transportation, INcustom will provide full compensation. Due to the personalized nature of custom products, non-quality-related issues may not be eligible for return. Specific cases can be discussed with your dedicated agent."
+            "Yes, we offer basic after-sales support. If you encounter any quality issues during normal use, we will assist in resolving them. For detailed warranty coverage and terms, please refer to the product page or contact our customer service team."
     },
     {
-        label: "How do you protect my designs from being stolen?",
+        label: "Will I need to pay import taxes or additional fees after placing an order?",
         content:
-            "INcustom is committed to protecting the intellectual property of customers' designs and has confidentiality agreements with partner suppliers. For special requests, our agents will provide you with detailed solutions to ensure your designs are secure."
+            "No, you won’t. We offer Delivered Duty Paid (DDP) service—customs duties and all taxes are included in the shipping cost. You will receive your package without any extra charges."
     },
     {
-        label: "How does the POD service integrate with Shopify or other platforms?",
+        label: "What should I know about product maintenance and cleaning?",
         content:
-            "Currently, INcustom does not support automatic integration. However, our dedicated agents will guide you on how to complete product uploads and order processing manually to ensure smooth operations."
+            "Different materials require different care. For example, mesh fabric products should be cleaned with a soft brush and mild detergent—avoid prolonged soaking. Metal parts should be wiped dry regularly to prevent rust. For more details, you can download our Care & Maintenance Manual."
     },
     {
-        label: "How do I select the right POD product?",
+        label: "Do you offer a referral or rewards program?",
         content:
-            "We recommend choosing products based on your target market needs, trending hot-sellers, and design style. INcustom's agents will assist you with product selection and provide market analysis to help you quickly identify potential bestsellers."
+            "Yes! We offer a referral rewards program—share your personal invitation link, and once your friend completes a purchase, you’ll receive shopping credits or points as a reward. Please refer to the 'Referral Rewards' page for more information."
     },
     {
-        label: "How are products printed?",
+        label: "What if the product dimensions are slightly off?",
         content:
-            "<strong>We use two main printing methods:</strong>\n\n" +
-            "<strong>1. Heat Sublimation Printing</strong>\n" +
-            "- Used for most handmade products such as custom shoes, all-over-print apparel, home goods, and accessories.\n" +
-            "- This method transfers ink onto special material, which is then heat-pressed onto the product.\n" +
-            "- Sublimation printing offers vibrant colors that never fade or crack!\n\n" +
-            "<strong>2. Direct-to-Garment (DTG) Printing</strong>\n" +
-            "- This is used for apparel like DTG t-shirts, hoodies, and canvas prints.\n" +
-            "- High-quality ink is printed directly onto the product using advanced digital printers."
+            "All of our standard products are manufactured with a tolerance of ±2cm, which is considered normal. If the size of the item you receive exceeds this range, please contact customer service with photos, and we will arrange a replacement or compensation."
     }
 ];
 
