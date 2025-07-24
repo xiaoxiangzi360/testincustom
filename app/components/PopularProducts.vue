@@ -123,21 +123,21 @@ getpopularlist()
 <style scoped>
 /* 轮播图底部留出空间 */
 .product-swiper {
-    padding-bottom: 80px;
+    padding-bottom: 60px;
 }
 
 /* Swiper 分页小圆点 */
 .product-swiper :deep(.swiper-pagination-bullet) {
-    width: 18px;
-    height: 18px;
+    width: 12px;
+    height: 12px;
     background: #B9B9B9;
     opacity: 1;
 }
 
 .product-swiper :deep(.swiper-pagination-bullet-active) {
     background: #222222;
-    width: 18px;
-    height: 18px;
+    width: 12px;
+    height: 12px;
 }
 
 .product-swiper :deep(.swiper-pagination) {
