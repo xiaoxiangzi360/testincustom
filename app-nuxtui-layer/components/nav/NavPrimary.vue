@@ -70,7 +70,7 @@ const navigate = (link: string) => {
       </NuxtLink>
 
       <!-- 菜单弹出层 -->
-      <div class="absolute top-full left-0 bg-white shadow-2xl flex z-50 rounded py-1" v-if="hoverLevel1 !== null"
+      <div class="absolute top-full left-0 bg-white shadow-2xl flex z-50 py-1" v-if="hoverLevel1 !== null"
         @mouseleave="hoverLevel1 = null; hoverLevel2 = null; hoverSub = null">
         <!-- 一级分类 -->
         <ul class="text-sm w-60">
@@ -120,7 +120,7 @@ const navigate = (link: string) => {
       </NuxtLink>
 
       <!-- 浮出菜单（不写在一级按钮内部） -->
-      <div class="absolute top-full left-0 top-full bg-white shadow-2xl rounded z-50 py-1 flex"
+      <div class="absolute top-full left-0 top-full bg-white shadow-2xl  z-50 py-1 flex"
         v-if="hoverRecommend === index && category.children && category.children.length > 0">
         <!-- 二级分类 -->
         <ul class="text-sm w-60">
