@@ -71,10 +71,10 @@ const navigate = (link: string) => {
 
       <!-- 菜单弹出层 -->
       <div class="absolute top-full left-0 bg-white shadow-2xl flex z-50 rounded py-1" v-if="hoverLevel1 !== null"
-        @mouseenter="hoverLevel1 = 0" @mouseleave="hoverLevel1 = null; hoverLevel2 = null; hoverSub = null">
+        @mouseleave="hoverLevel1 = null; hoverLevel2 = null; hoverSub = null">
         <!-- 一级分类 -->
         <ul class="text-sm w-60">
-          <li v-for="(item, i) in menuData" :key="i" class="group pr-4" @mouseenter="hoverLevel2 = i; hoverSub = null">
+          <li v-for="(item, i) in menuData" :key="i" class="group" @mouseenter="hoverLevel2 = i; hoverSub = null">
             <NuxtLink :to="`/${item.catalogEnName}-${item.catalogId}`"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap w-full">
               <span>{{ item.catalogEnName || item.catalogName }}</span>
@@ -86,7 +86,7 @@ const navigate = (link: string) => {
 
         <!-- 二级分类 -->
         <ul v-if="hoverLevel2 !== null && menuData[hoverLevel2]?.children" class="text-sm w-60">
-          <li v-for="(sub, j) in menuData[hoverLevel2].children" :key="j" class="group pr-4" @mouseenter="hoverSub = j">
+          <li v-for="(sub, j) in menuData[hoverLevel2].children" :key="j" class="group" @mouseenter="hoverSub = j">
             <NuxtLink :to="`/${sub.catalogEnName}-${sub.catalogId}`"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap">
               <span>{{ sub.catalogEnName || sub.catalogName }}</span>
@@ -99,8 +99,7 @@ const navigate = (link: string) => {
         <!-- 三级分类 -->
         <ul v-if="hoverLevel2 !== null && hoverSub !== null && menuData[hoverLevel2]?.children?.[hoverSub]?.children"
           class="text-sm w-60">
-          <li v-for="child in menuData[hoverLevel2].children[hoverSub].children" :key="child.catalogEnName"
-            class="pr-4">
+          <li v-for="child in menuData[hoverLevel2].children[hoverSub].children" :key="child.catalogEnName">
             <NuxtLink :to="`/${child.catalogEnName}-${child.catalogId}`"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] cursor-pointer whitespace-nowrap">
               {{ child.catalogEnName || child.catalogName }}
@@ -125,7 +124,7 @@ const navigate = (link: string) => {
         v-if="hoverRecommend === index && category.children && category.children.length > 0">
         <!-- 二级分类 -->
         <ul class="text-sm w-60">
-          <li v-for="(sub, j) in category.children" :key="j" class="group pr-4" @mouseenter="hoverRecommendSub = j">
+          <li v-for="(sub, j) in category.children" :key="j" class="group" @mouseenter="hoverRecommendSub = j">
             <NuxtLink :to="`/${sub.catalogEnName}-${sub.catalogId}`"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap">
               <span>{{ sub.catalogEnName || sub.catalogName }}</span>
@@ -138,7 +137,7 @@ const navigate = (link: string) => {
 
         <!-- 三级分类 -->
         <ul v-if="hoverRecommendSub !== null && category.children?.[hoverRecommendSub]?.children" class="text-sm w-60">
-          <li v-for="child in category.children[hoverRecommendSub].children" :key="child.catalogEnName" class="pr-4">
+          <li v-for="child in category.children[hoverRecommendSub].children" :key="child.catalogEnName">
             <NuxtLink :to="`/${child.catalogEnName}-${child.catalogId}`"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] cursor-pointer whitespace-nowrap">
               {{ child.catalogEnName || child.catalogName }}
