@@ -22,7 +22,7 @@ useOgImage()
     <div class="min-h-screen flex flex-col dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50">
 
       <NavBar />
-      <main class="mt-[122px] md:mt-[122px]">
+      <main class="mt-[108px] md:mt-[108px]">
         <slot />
       </main>
       <TheFooter />

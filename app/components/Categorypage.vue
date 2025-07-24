@@ -5,9 +5,9 @@
         <div class="grid sm:grid-cols-1 md:grid-cols-2 gap-6">
             <div v-for="(item, index) in items" :key="index" @click="checklist(item.title)"
                 class="relative h-[220px] rounded-lg overflow-hidden group cursor-pointer transition-shadow duration-300">
-                <img :src="item.image"
+                <NuxtImg :src="item.image"
                     class="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                    alt="">
+                    format="webp" alt="InCustom" preload />
                 <div class="absolute inset-0  flex items-center">
                     <div class=" flex flex-col gap-3 text-white left-12 absolute">
                         <h2

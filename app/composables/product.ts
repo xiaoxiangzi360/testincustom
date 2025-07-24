@@ -122,5 +122,18 @@ export const ProductAuth = () => {
       throw error
     }
   }
-  return { getProductById, randomRecommendationProductByCatalogId, getUserProductRollPage, getmapProductByProductSkuList, customizedProductPriceTrialCalculation, erpTryToCreateSku, trialPriceCalculationBySpuV2, getproductSearch, productSearchRecommendation }
+
+  const getlistOnlineCatalogTree = async () => {
+    try {
+      const response = await $api(`/product/product/listOnlineCatalogTree`, {
+        method: 'GET',
+      })
+
+      return response
+    } catch (error) {
+
+      throw error
+    }
+  }
+  return { getProductById, randomRecommendationProductByCatalogId, getUserProductRollPage, getmapProductByProductSkuList, customizedProductPriceTrialCalculation, erpTryToCreateSku, trialPriceCalculationBySpuV2, getproductSearch, productSearchRecommendation, getlistOnlineCatalogTree }
 }
