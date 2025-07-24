@@ -149,35 +149,6 @@ const navigate = (link: string) => {
         </ul>
       </div>
     </div>
-
-
-    <!-- Collections 弹出层 -->
-    <UPopover color="white" v-model:open="menuOpen" mode="hover" :ui="{
-      base: 'overflow-visible border-none shadow-2xl bg-white rounded-md focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow'
-    }" :popper="{ placement: 'bottom' }">
-      <template #default>
-        <NuxtLink class="text-base  duration-200 p-2 border border-transparent md:border-none">
-          Collections
-        </NuxtLink>
-      </template>
-
-      <template #panel>
-        <div class="flex items-center justify-center bg-gray-100 rounded">
-          <div class="w-full mb-4 md:mb-0">
-            <div class="bg-white rounded px-6 py-8">
-              <h2 class="text-base font-semibold mb-3 text-title">Special Collections</h2>
-              <UList>
-                <UListItem @click="Gotocollection(category.title)" v-for="category in collectionlist"
-                  :key="category.title"
-                  class="text-base block w-full py-2 cursor-pointer hover:text-primary hover:bg-[#F8F8F8] rounded transition text-center md:text-left text-title pl-2">
-                  {{ category.title }}
-                </UListItem>
-              </UList>
-            </div>
-          </div>
-        </div>
-      </template>
-    </UPopover>
   </div>
 </template>
 
