@@ -3,7 +3,7 @@
         <div class="max-row">
             <!-- 标题 -->
             <h1
-                class="text-2xl md:text-5xl mb-6 md:mb-8 bg-clip-text font-normal text-blackcolor text-center dark:text-white">
+                class="text-2xl md:text-[40px] mb-6 md:mb-8 bg-clip-text font-normal text-blackcolor text-center dark:text-white">
                 Most Popular Products
             </h1>
 

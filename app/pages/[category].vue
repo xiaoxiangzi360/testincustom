@@ -95,9 +95,9 @@ const getlistlist = async () => {
   loading.value = true
   try {
     const parmes = {
-      catalogId: cateid,
+      catalogIdPath: cateid,
       pageNum: 1,
-      pageSize: 12,
+      pageSize: 24,
       fields: "id,erpProduct.productEnglishName,erpProduct.customPrice,erpProduct.mainPic",
     }
     if (selectedsort.value) {
