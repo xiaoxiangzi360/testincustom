@@ -63,7 +63,7 @@ const navigate = (link: string) => {
   <div class="relative flex flex-wrap gap-3 md:flex-nowrap md:flex-row md:gap-6">
     <!-- All Products Hover 多级分类 -->
     <div class="relative group" @mouseleave="hoverLevel1 = null">
-      <NuxtLink to="products">
+      <NuxtLink to="/products">
         <div class="flex items-center p-2 cursor-pointer" @mouseenter="hoverLevel1 = 0">
           <NuxtImg src="cell.png" width="24" class="mr-2" />
           All Products
@@ -117,7 +117,7 @@ const navigate = (link: string) => {
     <div v-for="(category, index) in recommendData" :key="index"
       class="relative flex items-center p-2 cursor-pointer whitespace-nowrap" @mouseenter="hoverRecommend = index"
       @mouseleave="hoverRecommend = null; hoverRecommendSub = null">
-      <NuxtLink :to="category.link"
+      <NuxtLink :to="`/${category.catalogEnName}-${category.catalogId}`"
         class="text-base duration-200 border border-transparent md:border-none leading-none">
         {{ category.catalogEnName }}
       </NuxtLink>
@@ -156,7 +156,7 @@ const navigate = (link: string) => {
       base: 'overflow-visible border-none shadow-2xl bg-white rounded-md focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow'
     }" :popper="{ placement: 'bottom' }">
       <template #default>
-        <NuxtLink class="text-base hover:text-primary duration-200 p-2 border border-transparent md:border-none">
+        <NuxtLink class="text-base  duration-200 p-2 border border-transparent md:border-none">
           Collections
         </NuxtLink>
       </template>
