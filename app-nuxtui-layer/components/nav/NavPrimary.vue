@@ -59,7 +59,7 @@ const navigate = (link: string) => {
 </script>
 
 <template>
-  <div class="relative flex flex-wrap gap-2 md:flex-nowrap md:flex-row md:gap-2">
+  <div class="relative flex flex-wrap whitespace-nowrap gap-2 md:flex-nowrap md:flex-row md:gap-2">
     <!-- All Products Hover 多级分类 -->
     <div class="relative group" @mouseleave="hoverLevel1 = null">
       <NuxtLink to="/products">
