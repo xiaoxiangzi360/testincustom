@@ -64,7 +64,7 @@ const navigate = (link: string) => {
     <!-- All Products Hover 多级分类 -->
     <div class="relative group" @mouseleave="hoverLevel1 = null">
       <NuxtLink to="/products">
-        <div class="flex items-center p-2 cursor-pointer" @mouseenter="hoverLevel1 = 0">
+        <div class="flex items-center p-2 pl-0 cursor-pointer" @mouseenter="hoverLevel1 = 0">
           <NuxtImg src="cell.png" width="24" class="mr-2" />
           All Products
         </div>
