@@ -52,9 +52,11 @@
           <p class="font-medium text-lg mb-6">Feature requests</p>
           <NuxtLink to="/article/faq" class="block hover:text-primary mt-4 font-normal text-white/80">FAQS</NuxtLink>
           <NuxtLink class="block hover:text-primary mt-4 font-normal text-white/80">Track My Order</NuxtLink>
-          <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">Shipping & Delivery
+          <NuxtLink to="/article/shipping-delivery" class="block hover:text-primary mt-4 font-normal text-white/80">
+            Shipping & Delivery
           </NuxtLink>
-          <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">Returns & Exchanges
+          <NuxtLink to="/article/returns-exchanges" class="block hover:text-primary mt-4 font-normal text-white/80">
+            Returns & Exchanges
           </NuxtLink>
           <NuxtLink to="/article/warranty-policy" class="block hover:text-primary mt-4 font-normal text-white/80">
             Warranty Policy</NuxtLink>

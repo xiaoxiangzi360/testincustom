@@ -17,7 +17,6 @@ const getcatelist = async () => {
       catemenu.value = cate.children;
       menuData.value = cate.children;
       recommendData.value = cate.children.filter(item => item.recommend === true);
-      console.log(recommendData.value);
     }
   } catch (error) {
     console.error('Error fetching products:', error);
@@ -78,20 +77,19 @@ const navigate = (link: string) => {
           <li v-for="(item, i) in menuData" :key="i" class="group pr-4" @mouseenter="hoverLevel2 = i; hoverSub = null">
             <NuxtLink :to="`/${item.catalogEnName}-${item.catalogId}`"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap w-full">
-              <span>{{ item.catalogEnName }}</span>
+              <span>{{ item.catalogEnName || item.catalogName }}</span>
               <UIcon v-if="hoverLevel2 === i && item.children" name="i-material-symbols:chevron-right"
                 class="w-5 h-5 text-gray-400 transition-opacity duration-200" />
             </NuxtLink>
           </li>
         </ul>
 
-
         <!-- 二级分类 -->
         <ul v-if="hoverLevel2 !== null && menuData[hoverLevel2]?.children" class="text-sm w-60">
           <li v-for="(sub, j) in menuData[hoverLevel2].children" :key="j" class="group pr-4" @mouseenter="hoverSub = j">
             <NuxtLink :to="`/${sub.catalogEnName}-${sub.catalogId}`"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap">
-              <span>{{ sub.catalogEnName }}</span>
+              <span>{{ sub.catalogEnName || sub.catalogName }}</span>
               <UIcon v-if="hoverSub === j && sub.children" name="i-material-symbols:chevron-right"
                 class="w-5 h-5 text-gray-400 transition-opacity duration-200" />
             </NuxtLink>
@@ -105,7 +103,7 @@ const navigate = (link: string) => {
             class="pr-4">
             <NuxtLink :to="`/${child.catalogEnName}-${child.catalogId}`"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] cursor-pointer whitespace-nowrap">
-              {{ child.catalogEnName }}
+              {{ child.catalogEnName || child.catalogName }}
             </NuxtLink>
           </li>
         </ul>
@@ -119,18 +117,18 @@ const navigate = (link: string) => {
       @mouseleave="hoverRecommend = null; hoverRecommendSub = null">
       <NuxtLink :to="`/${category.catalogEnName}-${category.catalogId}`"
         class="text-base duration-200 border border-transparent md:border-none leading-none">
-        {{ category.catalogEnName }}
+        {{ category.catalogEnName || category.catalogName }}
       </NuxtLink>
 
       <!-- 浮出菜单（不写在一级按钮内部） -->
       <div class="absolute top-full left-0 top-full bg-white shadow-2xl rounded z-50 py-1 flex"
-        v-if="hoverRecommend === index">
+        v-if="hoverRecommend === index && category.children && category.children.length > 0">
         <!-- 二级分类 -->
         <ul class="text-sm w-60">
           <li v-for="(sub, j) in category.children" :key="j" class="group pr-4" @mouseenter="hoverRecommendSub = j">
             <NuxtLink :to="`/${sub.catalogEnName}-${sub.catalogId}`"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap">
-              <span>{{ sub.catalogEnName }}</span>
+              <span>{{ sub.catalogEnName || sub.catalogName }}</span>
               <UIcon v-if="hoverRecommendSub === j && sub.children" name="i-material-symbols:chevron-right"
                 class="w-5 h-5 text-gray-400 transition-opacity duration-200" />
             </NuxtLink>
@@ -143,7 +141,7 @@ const navigate = (link: string) => {
           <li v-for="child in category.children[hoverRecommendSub].children" :key="child.catalogEnName" class="pr-4">
             <NuxtLink :to="`/${child.catalogEnName}-${child.catalogId}`"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] cursor-pointer whitespace-nowrap">
-              {{ child.catalogEnName }}
+              {{ child.catalogEnName || child.catalogName }}
             </NuxtLink>
           </li>
         </ul>

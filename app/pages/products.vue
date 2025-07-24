@@ -84,7 +84,7 @@ const router = useRouter()
 
 const breadcrumbLinks = [
     { label: 'Home', to: '/', title: 'Home' },
-    { label: catename, to: '/' + catename + '-' + cateid, title: catename },
+    { label: 'All Product', to: '/products', title: 'All Product' },
 ]
 
 const handleChange = (value) => {
