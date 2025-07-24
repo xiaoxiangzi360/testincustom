@@ -41,7 +41,8 @@
           <p class="font-medium text-lg mb-6">Feature</p>
           <NuxtLink to="/article/about-us" class="block hover:text-primary mt-4 font-normal text-white/80">About Us
           </NuxtLink>
-          <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">Our Mission</NuxtLink>
+          <NuxtLink to="/article/our-mission" class="block hover:text-primary mt-4 font-normal text-white/80">Our
+            Mission</NuxtLink>
           <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">Sustainability & Materials
           </NuxtLink>
           <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">Blog / Shade Tips</NuxtLink>

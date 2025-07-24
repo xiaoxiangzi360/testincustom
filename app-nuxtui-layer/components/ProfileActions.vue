@@ -138,7 +138,7 @@ const getlocation = async () => {
 
   try {
     if (locationinfo.value) {
-      console.log(locationinfo.value)
+
       nowCountry.value = {
         countryCode: locationinfo.value.countryCode,
         countryName: locationinfo.value.countryName,
