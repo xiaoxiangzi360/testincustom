@@ -140,7 +140,7 @@
                                             </UButton>
                                             <UButton color="white"
                                                 class="w-auto px-4 md:w-28 flex justify-center items-center"
-                                                variant="solid" v-if="order.status <= 1000"
+                                                variant="solid" v-if="order.status <= 1200"
                                                 @click="setCancleOrder(order.id)">Cancel
                                             </UButton>
                                             <UButton class="w-auto px-4 md:w-28 flex justify-center items-center"
@@ -294,6 +294,8 @@ function getOrderStatus(status) {
         case 500:
             return 'Unpaid';
         case 1000:
+            return 'Pending Confirm';
+        case 1200:
             return 'Pending Confirm';
         case 1500:
             return 'Awaiting Shipment';
