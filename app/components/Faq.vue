@@ -13,7 +13,7 @@
                         class="text-arialblack w-full flex justify-between items-center text-lg dark:text-white"
                         :ui="{ rounded: 'rounded-none', padding: { sm: 'px-5 py-4' } }">
                         <span class="truncate text-blackcolor text-left dark:text-white">{{ index + 1 }}. {{ item.label
-                        }}</span>
+                            }}</span>
                         <UIcon name="i-heroicons-chevron-down-20-solid"
                             class="w-5 h-5 transition-transform duration-200" :class="[open ? 'rotate-180' : '']" />
                     </UButton>
@@ -33,43 +33,43 @@
 <script setup>
 const faqItems = [
     {
-        label: "How long does it take to ship a custom order?",
+        label: "Are you a brand or manufacturer?",
         content:
-            "Depending on the complexity and production schedule, custom orders are usually completed within 2–5 business days."
+            "We are a customization brand with our own factory. All products are handcrafted and shipped directly from our facility worldwide."
     },
     {
-        label: "What payment methods are accepted?",
-        content: "We currently accept payments via PayPal only."
+        label: "How long does it take to produce and ship an custom order?",
+        content: "Custom orders usually take 2–5 business days to produce. Shipping times vary by country, typically 7–15 days. If you choose the Expedited Shipping, you will get the package within 7-10 days after it shipped."
     },
     {
-        label: "Is the “in stock” status shown on the product page accurate?",
+        label: "Can I print my own design or logo on the product?",
         content:
-            "If the product can be added to your cart, it means it is currently in stock and ready for purchase."
+            "Yes, we offer pattern and logo printing services—ideal for homes, businesses, and events."
+    },
+    {
+        label: "What if I don’t know how to measure the size?",
+        content:
+            "We offer detailed measurement guides and online customer support to help you choose the size."
+    },
+    {
+        label: "Can I see the status of my order after placing it?",
+        content:
+            "Yes! After you place an order, we’ll verify your details → start production → ship → deliver. You’ll get email updates or can track progress in your account—we keep you informed at every step."
+    },
+    {
+        label: "Are your materials eco-friendly and certified?",
+        content:
+            "Yes, we use eco-friendly HDPE and other high-performance fabrics with UV resistance and certified sustainability."
     },
     {
         label: "Do your products come with a warranty?",
         content:
-            "Yes, we offer basic after-sales support. If you encounter any quality issues during normal use, we will assist in resolving them. For detailed warranty coverage and terms, please refer to the product page or contact our customer service team."
+            "Yes — we offer a 1-year limited warranty covering material defects and manufacturing issues under normal use. If there’s a problem, just contact us — we’ll make it right."
     },
     {
-        label: "Will I need to pay import taxes or additional fees after placing an order?",
+        label: "Can I return a custom product if I’m not satisfied?",
         content:
-            "No, you won’t. We offer Delivered Duty Paid (DDP) service—customs duties and all taxes are included in the shipping cost. You will receive your package without any extra charges."
-    },
-    {
-        label: "What should I know about product maintenance and cleaning?",
-        content:
-            "Different materials require different care. For example, mesh fabric products should be cleaned with a soft brush and mild detergent—avoid prolonged soaking. Metal parts should be wiped dry regularly to prevent rust. For more details, you can download our Care & Maintenance Manual."
-    },
-    {
-        label: "Do you offer a referral or rewards program?",
-        content:
-            "Yes! We offer a referral rewards program—share your personal invitation link, and once your friend completes a purchase, you’ll receive shopping credits or points as a reward. Please refer to the 'Referral Rewards' page for more information."
-    },
-    {
-        label: "What if the product dimensions are slightly off?",
-        content:
-            "All of our standard products are manufactured with a tolerance of ±2cm, which is considered normal. If the size of the item you receive exceeds this range, please contact customer service with photos, and we will arrange a replacement or compensation."
+            "All items are made-to-order and non-returnable, unless there’s a quality issue or major error. If your item arrives damaged or incorrect, contact us within 7 days — we’ll remake or refund it."
     }
 ];
 
