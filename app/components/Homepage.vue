@@ -63,9 +63,10 @@ import 'swiper/css/effect-fade';
 
 // 定义背景图片数组
 const backgroundImages = [
-  '/images/homebg.webp',
-  '/images/homebg.webp',
-  // '/images/homebg.webp',
+  '/images/banner1.webp',
+  '/images/banner2.webp',
+  '/images/banner3.webp',
+  '/images/banner4.webp',
 ];
 const features = [
   { icon: '/images/service1.png', title: 'Delivery within 48-72 hours' },
