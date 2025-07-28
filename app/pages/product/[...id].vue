@@ -244,19 +244,55 @@
                               <input type="radio" v-model="property.chooseindex" :value="needindex + 2"
                                 @change="changeinputvalue(property, needindex + 2, index)" />
                               <span class="font-semibold text-sm">{{ needinput.detailName
-                              }}</span>
+                                }}</span>
                             </label>
 
                           </div>
-                          <div class="mt-4" v-for="(inputitem, pindex) in needinput.inputList">
+                          <div class="mt-4" v-for="(inputitem, pindex) in needinput.inputList" :key="pindex">
                             <div class="flex items-center space-x-4 mt-2">
-                              <label class="text-sm">{{ inputitem }}</label>
+                              <label class="text-sm min-w-[52px]">{{ inputitem }}</label>
 
-                              <input type="number" v-model="needinput.inputvalue[pindex]"
-                                @change="changeinputvalue(property, needindex + 2, index)"
-                                class="rounded p-1 text-sm w-28" :min="0" :max="100" step="1" />
+                              <!-- 有 customDetailList 才走增强逻辑 -->
+                              <template v-if="needinput.customDetailList && needinput.customDetailList[pindex]">
+                                <!-- 输入框逻辑（viewType = 10） -->
+                                <template v-if="needinput.customDetailList[pindex].viewType === 10">
+                                  <InputNumber v-model:value="needinput.inputvalue[pindex]"
+                                    @change="changeinputvalue(property, needindex + 2, index)"
+                                    class="rounded text-sm w-28 px-2 focus:outline-none focus:ring-0"
+                                    style="height: 28px" :min="needinput.customDetailList[pindex].inputStart || 0"
+                                    :max="needinput.customDetailList[pindex].inputEnd || 999" step="1" />
+                                  <span v-if="hasRange(needinput.customDetailList[pindex])"
+                                    class="text-xs text-gray-500 ml-1">
+                                    ({{ needinput.customDetailList[pindex].inputStart }} - {{
+                                      needinput.customDetailList[pindex].inputEnd }} {{
+                                      needinput.customDetailList[pindex].unit || '' }})
+                                  </span>
+
+                                </template>
+
+                                <!-- 下拉框逻辑（viewType = 50） -->
+                                <template v-else-if="needinput.customDetailList[pindex].viewType === 50">
+                                  <Select v-model:value="needinput.inputvalue[pindex]" :options="needinput.customDetailList[pindex].ruleList.map(rule => ({
+                                    label: rule.start,
+                                    value: rule.start
+                                  }))" size="middle" style="width: 112px; height: 28px; line-height: 28px"
+                                    :dropdownStyle="{ lineHeight: '28px' }" class="custom-select" placeholder="Select"
+                                    @change="() => changeinputvalue(property, needindex + 2, index)" />
+
+
+                                </template>
+                              </template>
+
+
+                              <!-- 没有 customDetailList，使用旧逻辑 -->
+                              <template v-else>
+                                <input type="number" v-model="needinput.inputvalue[pindex]"
+                                  @change="changeinputvalue(property, needindex + 2, index)"
+                                  class="rounded p-1 text-sm w-28" :min="0" :max="100" step="1" />
+                              </template>
                             </div>
                           </div>
+
                           <div class="text-red-500 text-sm mt-2">{{ errorsize }}</div>
                         </div>
                         <div v-if="property.noneedinputlist.length > 0"
@@ -405,7 +441,7 @@
             </div>
             <div class="mt-2">
               <h3 class="text-base font-normal mb-2 line-clamp-2">{{ product.erpProduct.productEnglishName
-                }}</h3>
+              }}</h3>
               <p class="text-xl font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}
               </p>
             </div>
@@ -452,10 +488,10 @@ import 'swiper/css/navigation';
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation } from 'swiper/modules';
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
-import { message, Tooltip, Select } from 'ant-design-vue';
+import { message, Tooltip, Select, InputNumber } from 'ant-design-vue';
 import { useCartStore } from '@/stores/cart';
 import { useRouter, useRoute } from 'vue-router';
-const { getProductById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV2, erpTryToCreateSku, getmapProductByProductSkuList } = ProductAuth();
+const { getProductById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV3, erpTryToCreateSku, getmapProductByProductSkuList } = ProductAuth();
 const { createCart } = cartAuth();
 const route = useRoute();
 const router = useRouter();
@@ -497,17 +533,6 @@ const isSwiperAtEnd = computed(() => mainImageIndex.value === productinfo.value.
 let specList = [];
 let joinsku = [];
 const designimage = ref('');
-// const productinfo = ref({
-//   erpProduct: {
-//     customPrice: 0,
-//     photoList: [],
-//     propertyList: [],
-//     catalogId: 0,
-//     mainPic: ''
-//   },
-//   printPropertyList: [],
-//   normalPropertyList: []
-// });
 const mainImage = ref('');
 
 const productinfo = ref(serverProductData.value?.result ?? {});
@@ -1141,12 +1166,14 @@ const onChange = (val, property, index) => {
 const changeinputvalue = (element, index, propertyindex) => {
   element.chooseindex = index;
   let strresult = '';
+  let detailName = '';
   if (element.isneedinput) {
     let needinputlist = element.needinputlist.filter(item => item.isactive);
 
     let inputvalue = [];
     needinputlist.forEach((item, zindex) => {
       if (zindex + 2 == element.chooseindex) {
+        detailName = item.detailName
         inputvalue = item.inputvalue;
         strresult = inputvalue.join("*");
       }
@@ -1155,6 +1182,7 @@ const changeinputvalue = (element, index, propertyindex) => {
       element.selectedproperty = {};
     }
     element.selectedproperty.inputvalue = strresult;
+    element.selectedproperty.detailName = detailName;
     selectproperty(propertyindex, element.selectedproperty)
     // let hasEmpty = inputvalue.some(item => item === "");
     // if (!hasEmpty) {
@@ -1163,32 +1191,67 @@ const changeinputvalue = (element, index, propertyindex) => {
   }
 };
 
-const getcustomprice = async (inputvalue) => {
+const getcustomprice = async () => {
+  const propList = [];
+  const sideMap = {};
 
-  const targetProperty = productinfo.value.normalPropertyList.find(item => item.propertyNameShop === 'Shape');
-  let detailName = ''
-  if (targetProperty && targetProperty.selectedproperty) {
-    detailName = targetProperty.selectedproperty.detailName;
-  }
+  const shapeProperty = productinfo.value.normalPropertyList.find(p => p.propertyNameShop === 'Shape');
+  const shape = shapeProperty?.selectedproperty?.detailName || '';
 
-  let parmes = { spu: productinfo.value.erpProduct.productStyle, shape: detailName };
-  for (let i = 0; i < inputvalue.length; i++) {
-    parmes[`side${i + 1}`] = inputvalue[i] || 0;
-  }
+  productinfo.value.normalPropertyList.forEach((property, index) => {
+    if (!property.selectedproperty) return;
+
+    const isCustomInput = property.isneedinput && property.chooseindex === 2;
+
+    let detailName = property.selectedproperty.detailName;
+
+    const propItem = {
+      propertyNameShop: property.propertyNameShop,
+      detailName
+    };
+
+    if (isCustomInput && property.selectedproperty.inputvalue) {
+      const inputArr = Array.isArray(property.selectedproperty.inputvalue)
+        ? property.selectedproperty.inputvalue
+        : String(property.selectedproperty.inputvalue).split('*');
+
+      propItem.inputList = inputArr.map((val, idx) => {
+        sideMap[`side${idx + 1}`] = val;
+        return {
+          input: property.inputList?.[idx] || `Side ${idx + 1}`,
+          customPropValue: val
+        };
+      });
+    }
+
+    propList.push(propItem);
+  });
+
+  const params = {
+    spu: productinfo.value.erpProduct.productStyle,
+    shape,
+    ...sideMap,
+    propList
+  };
+
   try {
-    let res = await trialPriceCalculationBySpuV2(parmes);
-    let customizedprice = res.result.sellingPrice;
-    skuprice.value = customizedprice;
+    const res = await trialPriceCalculationBySpuV3(params);
+    skuprice.value = res.result.sellingPrice;
     errorsize.value = '';
-
   } catch (error) {
-    let errormsg = JSON.parse(error.message);
-    errorsize.value = errormsg.enDesc;
+    const errormsg = JSON.parse(error.message || '{}');
+    errorsize.value = errormsg.enDesc || 'Invalid input';
   }
-
 };
-
-
+const hasRange = (item) => {
+  return (
+    item.inputStart !== null &&
+    item.inputEnd !== null &&
+    item.inputStart !== undefined &&
+    item.inputEnd !== undefined &&
+    (item.inputStart !== 0 || item.inputEnd !== 0)
+  );
+};
 
 
 // Antd 默认 filterOption 使用 label 和 value 字段，如果你想自定义筛选逻辑，可以用这个：
@@ -1226,24 +1289,8 @@ const handleScroll = () => {
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll);
-  // handleGetProudct().then(() => {
-  //   if (swiperInstance.value && productinfo.value.erpProduct.photoList.length > 0) {
-  //     const initialIndex = productinfo.value.erpProduct.photoList.findIndex(
-  //       (item) => item.url === mainImage.value
-  //     );
-  //     if (initialIndex !== -1) {
-  //       swiperInstance.value.slideTo(initialIndex);
-  //     }
-  //     mainImageIndex.value = initialIndex !== -1 ? initialIndex : 0;
-  //   }
-  // });
 
-  // if (productinfo.value.erpProduct?.mainPic) {
-
-  //   mainImage.value = productinfo.value.erpProduct.mainPic;
-  // }
-
-  // handleGetrelated();
+  handleGetrelated();
 });
 
 watch(() => route.query, () => {
@@ -1262,11 +1309,6 @@ onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
 });
 </script>
-<style>
-/* .swiper .swiper-wrapper {
-  display: flex !important;
-} */
-</style>
 <style scoped>
 .swiper .swiper-wrapper {
   display: flex !important;
@@ -1398,5 +1440,24 @@ input[type="radio"]:checked:hover {
   /* 替换为你想要的颜色 */
   box-shadow: 0 0 0 2px rgba(0, 193, 106, 0.2);
   /* 可选，添加聚焦时的阴影效果 */
+}
+
+/* 仅针对 custom-select 类设置高度 */
+:deep(.custom-select.ant-select-single .ant-select-selector) {
+  height: 28px !important;
+  min-height: 28px !important;
+}
+
+/* 调整内部元素 */
+:deep(.custom-select.ant-select-single .ant-select-selection-item),
+:deep(.custom-select.ant-select-single .ant-select-selection-placeholder) {
+  line-height: 28px !important;
+  display: flex;
+  align-items: center;
+}
+
+::v-deep(.ant-input-number-input) {
+  outline: none !important;
+  box-shadow: none !important;
 }
 </style>

@@ -1,151 +1,119 @@
 <template>
-  <div class="relative w-full h-[420px] sm:h-[480px]">
-    <!-- Swiper 轮播 -->
-    <Swiper :slides-per-view="1" :loop="true" :autoplay="{ delay: 3000, disableOnInteraction: false }" :effect="'fade'"
-      :fade-effect="{ crossFade: true }" class="w-full h-full" @slideChange="onSlideChange">
-      <SwiperSlide v-for="(image, index) in backgroundImages" :key="index">
-        <div class="relative w-full h-full">
-          <!-- 使用 NuxtImg 加载背景图，并开启预加载 -->
-          <NuxtImg :src="image" format="webp" alt="Home background" class="absolute inset-0 w-full h-full object-cover"
-            preload fetchpriority="high" :width="1440" :height="swiperHeight" />
+  <div class="relative w-full">
+    <!-- ✅ SSR 阶段展示的占位图：用 aspect-ratio 撑开 -->
+    <div v-if="!ready" class="w-full h-[420px] md:aspect-[15/4] md:h-auto bg-gray-100">
+      <NuxtImg src="/images/banner1.webp" format="webp" alt="Loading banner" class="w-full h-full object-cover" />
+    </div>
 
-          <!-- 遮罩层 -->
-          <div class="absolute inset-0 bg-black bg-opacity-30 z-10"></div>
-
-          <!-- 内容层 -->
-          <div
-            class="relative z-20 flex flex-col items-start justify-center w-full h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 max-row">
-            <!-- 标题 -->
-            <div class="text-3xl sm:text-5xl lg:text-6xl text-white mb-10 leading-normal"
-              style="text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);">
-              No Limits No Rules<br />Just Your Design
-            </div>
-
-            <!-- 描述 -->
-            <p class="text-lg sm:text-4xl text-white mb-10" style="text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);">
-              Where Creativity Meets Customization
-            </p>
-
-            <!-- 特性列表 -->
-            <div class="flex flex-col items-start md:flex-row md:items-center md:space-x-6 text-lg text-primary"
-              style="text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);">
-              <span class="flex items-center">
-                <UIcon name="i-material-symbols-check-circle" class="w-5 h-5 mr-2 text-white" />
-                <span class="text-white">100% Free to use</span>
-              </span>
-              <span class="flex items-center">
-                <UIcon name="i-material-symbols-check-circle" class="w-5 h-5 mr-2" />
-                <span class="text-white">No minimum order</span>
-              </span>
-              <span class="flex items-center">
-                <UIcon name="i-material-symbols-check-circle" class="w-5 h-5 mr-2" />
-                <span class="text-white">Inventory-Free</span>
-              </span>
-            </div>
+    <!-- ✅ Swiper 主体：保持高度一致 -->
+    <div v-if="ready" class="swiper-container w-full h-[420px] md:aspect-[15/4] md:h-auto relative">
+      <Swiper :modules="[Autoplay, Pagination]" :slides-per-view="1" :loop="true"
+        :autoplay="{ delay: 3000, disableOnInteraction: false }" :speed="800" class="w-full h-full">
+        <SwiperSlide v-for="(image, index) in backgroundImages" :key="index" class="w-full h-full">
+          <div class="relative w-full h-full">
+            <NuxtImg :src="image" format="webp" alt="Home background"
+              class="absolute inset-0 w-full h-full object-cover" preload fetchpriority="high" sizes="100vw" />
+            <div class="absolute inset-0 bg-black bg-opacity-30 z-10" />
           </div>
+        </SwiperSlide>
+      </Swiper>
+    </div>
+
+    <!-- ✅ 固定文案层 -->
+    <div class="absolute z-20 top-0 left-0 w-full h-full flex justify-center pointer-events-none">
+      <div
+        class="flex flex-col items-start justify-center h-full w-full max-row px-4 sm:px-6 lg:px-8 pointer-events-auto text-center sm:text-left">
+        <div class="text-3xl sm:text-5xl lg:text-6xl text-white mb-10 leading-normal"
+          style="text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);">
+          No Limits No Rules<br />Just Your Design
         </div>
-      </SwiperSlide>
-    </Swiper>
+        <p class="text-lg sm:text-4xl text-white mb-10" style="text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);">
+          Where Creativity Meets Customization
+        </p>
+        <div class="flex flex-col items-start md:flex-row md:items-center md:space-x-6 text-lg text-primary"
+          style="text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);">
+          <span class="flex items-center">
+            <UIcon name="i-material-symbols-check-circle" class="w-5 h-5 mr-2 text-white" />
+            <span class="text-white">100% Free to use</span>
+          </span>
+          <span class="flex items-center mt-2 md:mt-0">
+            <UIcon name="i-material-symbols-check-circle" class="w-5 h-5 mr-2 text-white" />
+            <span class="text-white">No minimum order</span>
+          </span>
+          <span class="flex items-center mt-2 md:mt-0">
+            <UIcon name="i-material-symbols-check-circle" class="w-5 h-5 mr-2 text-white" />
+            <span class="text-white">Inventory-Free</span>
+          </span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
-
 <script setup>
-import { Swiper, SwiperSlide } from 'swiper/vue';
-import { Autoplay, Pagination, Navigation, EffectFade } from 'swiper/modules';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted } from 'vue'
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import { Autoplay, Pagination } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/pagination'
 
-// 导入 Swiper 样式
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/navigation';
-import 'swiper/css/effect-fade';
-
-// 定义背景图片数组
 const backgroundImages = [
   '/images/banner1.webp',
   '/images/banner2.webp',
   '/images/banner3.webp',
   '/images/banner4.webp',
-];
-const features = [
-  { icon: '/images/service1.png', title: 'Delivery within 48-72 hours' },
-  { icon: '/images/service2.png', title: 'From manufacturer to consumer' },
-  { icon: '/images/service3.png', title: 'Assistance with project design' },
-  { icon: '/images/service4.png', title: '24/7 After-sale service' }
-];
+]
 
-const containerWidth = 1440;
+const ready = ref(typeof window === 'undefined' ? true : false)
 
-// 动态高度
-const swiperHeight = ref(0);
-const imageAspectRatios = ref([]); // 存储所有图片的宽高比
-
-// 加载图片并获取宽高比
-const loadImageDimensions = (url) => {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.src = url;
-    img.onload = () => {
-      const aspectRatio = img.height / img.width; // 宽高比 = 高度 / 宽度
-      resolve(aspectRatio);
-    };
-    img.onerror = () => {
-      resolve(0); // 如果图片加载失败，返回 0
-    };
-  });
-};
-
-// 在组件挂载时加载所有图片的宽高比
-onMounted(async () => {
-  imageAspectRatios.value = await Promise.all(
-    backgroundImages.map((url) => loadImageDimensions(url))
-  );
-  // 计算初始高度：高度 = 宽高比 * 容器宽度
-  swiperHeight.value = imageAspectRatios.value[0]
-    ? Math.round(imageAspectRatios.value[0] * containerWidth)
-    : 600; // 默认高度 600px
-});
-
-// 切换滑块时更新高度
-const onSlideChange = (swiper) => {
-  const activeIndex = swiper.realIndex;
-  const aspectRatio = imageAspectRatios.value[activeIndex] || 0;
-  swiperHeight.value = aspectRatio ? Math.round(aspectRatio * containerWidth) : 600;
-};
-
-
+onMounted(() => {
+  ready.value = true
+})
 </script>
 
 <style scoped>
-/* 自定义 Swiper 样式 */
-.swiper {
-  width: 100%;
-}
-
+/* 强制让 Swiper 自身继承高度 */
+.swiper,
+.swiper-wrapper,
 .swiper-slide {
-  width: 100%;
+  height: 100% !important;
 }
 
-/* 自定义分页样式 */
-:deep(.swiper-pagination-bullet) {
-  background: #fff;
-  opacity: 0.5;
+.swiper-pagination {
+  position: absolute;
+  bottom: 10px;
+  text-align: center;
+  z-index: 20;
 }
 
-:deep(.swiper-pagination-bullet-active) {
+.swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  opacity: 0.7;
+  margin: 0 4px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.swiper-pagination-bullet-active {
+  background: #ffffff;
   opacity: 1;
+  transform: scale(1.2);
 }
 
-/* 自定义导航按钮样式 */
-:deep(.swiper-button-next),
-:deep(.swiper-button-prev) {
-  color: #fff;
-  opacity: 0.8;
-}
+/* ✅ 移动端字体适配 */
+@media (max-width: 768px) {
 
-:deep(.swiper-button-next:hover),
-:deep(.swiper-button-prev:hover) {
-  opacity: 1;
+  .text-3xl,
+  .text-5xl,
+  .text-6xl {
+    font-size: 1.5rem !important;
+  }
+
+  .text-lg,
+  .text-4xl {
+    font-size: 1rem !important;
+  }
 }
 </style>
