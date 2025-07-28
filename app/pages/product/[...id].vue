@@ -1459,5 +1459,6 @@ input[type="radio"]:checked:hover {
 ::v-deep(.ant-input-number-input) {
   outline: none !important;
   box-shadow: none !important;
+  height: 28px !important;
 }
 </style>
