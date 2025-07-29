@@ -1125,6 +1125,13 @@ const organizeproduct = () => {
         item.label = item.detailName
         if (item.inputList) {
           let inputvalue = [];
+          if (item.customDetailList) {
+            let sortedCustomDetailList = item.inputList.map(inputName =>
+              item.customDetailList.find(item => item.input === inputName)
+            );
+            item.customDetailList = sortedCustomDetailList
+          }
+
           item.inputList.forEach(element => {
             inputvalue.push('');
           });
