@@ -257,7 +257,7 @@
                                 <!-- 输入框逻辑（viewType = 10） -->
                                 <template v-if="needinput.customDetailList[pindex].viewType === 10">
                                   <InputNumber v-model:value="needinput.inputvalue[pindex]"
-                                    @change="changeinputvalue(property, needindex + 2, index)"
+                                    @blur="changeinputvalue(property, needindex + 2, index)"
                                     class="rounded text-sm w-28 px-2 focus:outline-none focus:ring-0"
                                     style="height: 28px" :min="needinput.customDetailList[pindex].inputStart || 0"
                                     :max="needinput.customDetailList[pindex].inputEnd || 999" step="1" />
@@ -279,7 +279,10 @@
                                     :dropdownStyle="{ lineHeight: '28px' }" class="custom-select" placeholder="Select"
                                     @change="() => changeinputvalue(property, needindex + 2, index)" />
 
-
+                                  <span v-if="needinput.customDetailList[pindex].unit"
+                                    class="text-xs text-gray-500 ml-1">
+                                    ({{ needinput.customDetailList[pindex].unit }})
+                                  </span>
                                 </template>
                               </template>
 
@@ -1167,6 +1170,7 @@ const changeinputvalue = (element, index, propertyindex) => {
   element.chooseindex = index;
   let strresult = '';
   let detailName = '';
+  let inputList = [];
   if (element.isneedinput) {
     let needinputlist = element.needinputlist.filter(item => item.isactive);
 
@@ -1175,6 +1179,7 @@ const changeinputvalue = (element, index, propertyindex) => {
       if (zindex + 2 == element.chooseindex) {
         detailName = item.detailName
         inputvalue = item.inputvalue;
+        inputList = item.inputList;
         strresult = inputvalue.join("*");
       }
     });
@@ -1183,6 +1188,7 @@ const changeinputvalue = (element, index, propertyindex) => {
     }
     element.selectedproperty.inputvalue = strresult;
     element.selectedproperty.detailName = detailName;
+    element.selectedproperty.inputList = inputList;
     selectproperty(propertyindex, element.selectedproperty)
     // let hasEmpty = inputvalue.some(item => item === "");
     // if (!hasEmpty) {
@@ -1216,13 +1222,15 @@ const getcustomprice = async () => {
         : String(property.selectedproperty.inputvalue).split('*');
 
       propItem.inputList = inputArr.map((val, idx) => {
+        const inputKey = property.selectedproperty?.inputList?.[idx] || `side${idx + 1}`;
         sideMap[`side${idx + 1}`] = val;
         return {
-          input: property.inputList?.[idx] || `Side ${idx + 1}`,
+          input: inputKey,
           customPropValue: val
         };
       });
     }
+
 
     propList.push(propItem);
   });
