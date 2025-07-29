@@ -19,8 +19,7 @@
             <div class="sticky top-[124px]">
               <div class="w-full aspect-square bg-gray-200 rounded-xl animate-pulse mb-4"></div>
               <div class="flex gap-2">
-                <div v-for="i in 4" :key="i" class="w-20 h-20 bg-gray-200 rounded-xl animate-pulse">
-                </div>
+                <div v-for="i in 4" :key="i" class="h-20 w-20 bg-gray-200 rounded-xl animate-pulse"></div>
               </div>
             </div>
           </div>
@@ -37,8 +36,7 @@
                 <div class="h-5 w-5 bg-gray-200 rounded-full animate-pulse"></div>
               </div>
               <div class="grid grid-cols-6 gap-4 mt-4">
-                <div v-for="j in 6" :key="j" class="h-24 w-full bg-gray-200 rounded-xl animate-pulse">
-                </div>
+                <div v-for="j in 6" :key="j" class="h-24 w-full bg-gray-200 rounded-xl animate-pulse"></div>
               </div>
             </div>
 
@@ -82,7 +80,8 @@
             <div class="sticky top-[124px] overflow-hidden">
               <div class="w-full aspect-square overflow-hidden mb-4 relative" v-if="mainImage">
                 <NuxtImg format="webp" :src="mainImage" @load="onMainImageLoaded" alt="Shade sail"
-                  class="rounded-xl shadow-lg w-full transition-all duration-300 w-full h-full object-cover" />
+                  class="rounded-xl shadow-lg w-full h-full object-cover transition-all duration-300 cursor-pointer"
+                  @click="openImageModal(mainImage, 'image')" />
                 <!-- Main image navigation buttons -->
                 <!-- 左箭头 -->
                 <div class="main-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
@@ -99,15 +98,12 @@
                     <UIcon name="i-raphael:arrowright2" class="text-primary w-6 h-6" />
                   </div>
                 </div>
-
               </div>
               <ClientOnly>
-                <Swiper :modules="[Navigation]" ref="swiperRefThumb" :navigation="{
-                  nextEl: '.custom-button-next',
-                  prevEl: '.custom-button-prev'
-                }" :space-between="10" class="w-full" :breakpoints="{
-                  0: { slidesPerView: 5, slidesPerGroup: 5 },
-                }" @swiper="onSwiper" @slideChange="onSlideChange" :watchSlidesProgress="true">
+                <Swiper :modules="[Navigation]" ref="swiperRefThumb"
+                  :navigation="{ nextEl: '.custom-button-next', prevEl: '.custom-button-prev' }" :space-between="10"
+                  class="w-full" :breakpoints="{ 0: { slidesPerView: 5, slidesPerGroup: 5 } }" @swiper="onSwiper"
+                  @slideChange="onSlideChange" :watchSlidesProgress="true">
                   <SwiperSlide v-for="item in productinfo.erpProduct.photoList" :key="item.url">
                     <NuxtImg width="80" height="80" loading="eager" :src="item.url" alt="thumbnail"
                       class="w-full object-cover rounded-xl cursor-pointer hover:opacity-80"
@@ -134,7 +130,6 @@
                       <UIcon name="i-raphael:arrowright2" class="text-primary w-4 h-4" />
                     </div>
                   </div>
-
                 </Swiper>
               </ClientOnly>
             </div>
@@ -148,9 +143,7 @@
               </h1>
             </div>
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 mt-7">
-              <div class="text-xl sm:text-xl font-medium text-primary">
-                ${{ skuprice }}
-              </div>
+              <div class="text-xl sm:text-xl font-medium text-primary">${{ skuprice }}</div>
             </div>
             <!-- Section 1: THE TYPE -->
             <div v-if="productinfo.normalPropertyList" class="mt-12">
@@ -166,7 +159,6 @@
                       v-if="property.desc" :title="property.desc"
                       :overlayStyle="{ maxWidth: '330px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
                       <img src="/question.png" class="w-6 h-6 ml-2">
-
                     </Tooltip>
                   </h2>
                   <div class="flex items-center">
@@ -240,21 +232,16 @@
                           v-for="(needinput, needindex) in property.needinputlist.filter(item => !item.disabled)">
                           <div class="flex items-center">
                             <label class="flex items-center space-x-2 cursor-pointer">
-
                               <input type="radio" v-model="property.chooseindex" :value="needindex + 2"
                                 @change="changeinputvalue(property, needindex + 2, index)" />
                               <span class="font-semibold text-sm">{{ needinput.detailName
                                 }}</span>
                             </label>
-
                           </div>
                           <div class="mt-4" v-for="(inputitem, pindex) in needinput.inputList" :key="pindex">
                             <div class="flex items-center space-x-4 mt-2">
                               <label class="text-sm min-w-[52px]">{{ inputitem }}</label>
-
-                              <!-- 有 customDetailList 才走增强逻辑 -->
                               <template v-if="needinput.customDetailList && needinput.customDetailList[pindex]">
-                                <!-- 输入框逻辑（viewType = 10） -->
                                 <template v-if="needinput.customDetailList[pindex].viewType === 10">
                                   <InputNumber v-model:value="needinput.inputvalue[pindex]"
                                     @blur="changeinputvalue(property, needindex + 2, index)"
@@ -267,10 +254,7 @@
                                       needinput.customDetailList[pindex].inputEnd }} {{
                                       needinput.customDetailList[pindex].unit || '' }})
                                   </span>
-
                                 </template>
-
-                                <!-- 下拉框逻辑（viewType = 50） -->
                                 <template v-else-if="needinput.customDetailList[pindex].viewType === 50">
                                   <Select v-model:value="needinput.inputvalue[pindex]" :options="needinput.customDetailList[pindex].ruleList.map(rule => ({
                                     label: rule.start,
@@ -278,16 +262,12 @@
                                   }))" size="middle" style="width: 112px; height: 28px; line-height: 28px"
                                     :dropdownStyle="{ lineHeight: '28px' }" class="custom-select" placeholder="Select"
                                     @change="() => changeinputvalue(property, needindex + 2, index)" />
-
                                   <span v-if="needinput.customDetailList[pindex].unit"
                                     class="text-xs text-gray-500 ml-1">
                                     ({{ needinput.customDetailList[pindex].unit }})
                                   </span>
                                 </template>
                               </template>
-
-
-                              <!-- 没有 customDetailList，使用旧逻辑 -->
                               <template v-else>
                                 <input type="number" v-model="needinput.inputvalue[pindex]"
                                   @change="changeinputvalue(property, needindex + 2, index)"
@@ -295,7 +275,6 @@
                               </template>
                             </div>
                           </div>
-
                           <div class="text-red-500 text-sm mt-2">{{ errorsize }}</div>
                         </div>
                         <div v-if="property.noneedinputlist.length > 0"
@@ -318,7 +297,6 @@
                             </template>
                           </Select>
                         </div>
-
                       </div>
                     </div>
                   </div>
@@ -376,12 +354,10 @@
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-6 sm:mt-8">
                   <span class="font-semibold text-base sm:text-lg">Total price</span>
                   <div class="flex items-center flex-wrap gap-2">
-                    <span class="text-base sm:text-lg font-bold text-primary">${{
-                      totalPrice.toFixed(2) }}</span>
+                    <span class="text-base sm:text-lg font-bold text-primary">${{ totalPrice.toFixed(2) }}</span>
                   </div>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-4 mt-6 sm:mt-8">
-
                   <UButton class="w-full sm:flex-1 flex items-center justify-center rounded-md text-white font-normal"
                     color="primary" variant="solid" size="xl" :loading="orderloding" @click="createorder">
                     Order Now
@@ -415,17 +391,119 @@
                   Print Information
                 </div>
               </div>
+              <div class="w-auto" v-if="reviews.length > 0">
+                <div class="inline-block p-4 rounded-xl rounded-b-none cursor-pointer text-center text-sm sm:text-base"
+                  :class="{ 'border-b-2 border-black font-semibold': tabindex === 3 }" @click="changetab(3)">
+                  Reviews
+                </div>
+              </div>
             </div>
           </div>
 
           <!-- Content Area -->
-          <div v-show="tabindex == 1 && productinfo.erpProduct.remarks" class="mx-auto max-row p-6 rounded p-2">
-            <div class="overflow-hidden" v-html="productinfo.erpProduct.remarks"></div>
-          </div>
-          <div v-show="tabindex == 2 && productinfo.printPropertyList > 0"
-            class="mx-auto max-row p-6 grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-y-6 gap-x-8 text-gray-800 bg-[#F8F8F8] py-16 rounded p-2">
-            <div class="flex justify-between" v-for="Propertyitem in productinfo.printPropertyList">
-              <span class="text-sm sm:text-base">{{ Propertyitem.value }}</span>
+          <div class="mx-auto  p-6 px-0 rounded p-2 grid grid-cols-1 gap-6 bg-white">
+            <div v-show="tabindex === 1 && productinfo.erpProduct.remarks" class="overflow-hidden lg:col-span-3"
+              v-html="productinfo.erpProduct.remarks"></div>
+            <div v-show="tabindex === 2 && productinfo.printPropertyList.length > 0"
+              class="lg:col-span-3 mx-auto max-row p-6 grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-y-6 gap-x-8 text-gray-800 bg-[#F8F8F8] py-16 rounded p-2">
+              <div class="flex justify-between" v-for="Propertyitem in productinfo.printPropertyList">
+                <span class="text-sm sm:text-base">{{ Propertyitem.value }}</span>
+              </div>
+            </div>
+            <div v-show="tabindex === 3" class="w-full">
+              <!-- Reviews Statistics -->
+              <h3 class="text-xl font-semibold mb-6 text-gray-900">Customer Reviews</h3>
+
+              <div class="flex flex-col lg:flex-row gap-6 mb-8 border-b pb-6 border-gray-300">
+                <!-- Left: Star Distribution -->
+                <div class="w-full lg:w-1/2">
+                  <div class="space-y-3">
+                    <div v-for="stars in 5" :key="stars" class="flex items-center gap-4">
+                      <span class="w-12 text-sm text-[#FFD359]">{{ 6 - stars }} star</span>
+                      <div class="flex-1 bg-primary-100 h-5 rounded overflow-hidden">
+                        <div :style="{ width: `${starPercentages[6 - stars]}%` }"
+                          class="h-full bg-[#FFD359] transition-all duration-300"></div>
+                      </div>
+                      <span class="w-12 text-sm text-right text-[#FFD359]">{{ starPercentages[6 - stars] }}%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right: Summary -->
+                <div class="w-full lg:w-1/2 flex items-center justify-end bg-gray-100 p-4 bg-primary-100 rounded-lg">
+                  <div class="text-center w-full">
+                    <p class="text-3xl font-bold text-gray-900">
+                      <span>{{ averageRating.toFixed(1) }}</span>
+                    </p>
+                    <div class="my-2 flex justify-center">
+                      <span v-for="star in 5" :key="star" class="text-2xl text-[#FFD359]">
+                        <UIcon v-if="getStarStatus(star) === 'full'" name="i-mdi:star" class="text-[#FFD359]" />
+                        <UIcon v-else-if="getStarStatus(star) === 'half'" name="i-mdi:star-half-full"
+                          class="text-[#FFD359]" />
+                        <UIcon v-else name="i-mdi:star-outline" class="text-gray-300" />
+                      </span>
+                    </div>
+                    <p class="text-lg text-gray-300">{{ totalReviews }} global ratings</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Individual Reviews -->
+              <div class="space-y-6">
+                <div v-if="reviews.length === 0" class="text-center text-gray-500 py-4">
+                  No reviews yet.
+                </div>
+                <div v-for="review in reviews" :key="review.date" class="bg-white p-4 border-b border-gray-100">
+                  <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3">
+                      <img src="/reviewer.png" class="w-11 h-11" />
+                    </div>
+                    <div>
+                      <p class="text-lg font-semibold text-black">{{ review.name }}</p>
+                      <p class="text-sm text-gray-300 mt-2">{{ review.date }}</p>
+                    </div>
+                    <div class="ml-auto flex">
+                      <span v-for="star in 5" :key="star" class="text-xl text-[#FFD359]">
+                        <UIcon v-if="star <= review.rating" name="i-mdi:star" class="text-[#FFD359]" />
+                        <UIcon v-else name="i-mdi:star-outline" class="text-gray-300" />
+                      </span>
+                    </div>
+                  </div>
+                  <p class="text-sm text-gray-400 my-4">{{ review.text }}</p>
+                  <div class="flex gap-2 flex-wrap" v-if="review.pictureUrlList?.length || review.videoUrlList?.length">
+                    <!-- Render Images -->
+                    <div v-for="(image, index) in review.pictureUrlList?.slice(0, 5)" :key="'image-' + index"
+                      class="w-16 h-16 rounded overflow-hidden shadow-md cursor-pointer relative"
+                      @click="openImageModal(image, 'image')">
+                      <NuxtImg :src="image" alt="Review image" class="w-full h-full object-cover"
+                        @error="onImageError(index, review)" />
+                    </div>
+                    <!-- Render Videos -->
+                    <div v-for="(video, index) in review.videoUrlList?.slice(0, 5)" :key="'video-' + index"
+                      class="w-16 h-16 rounded overflow-hidden shadow-md cursor-pointer relative"
+                      @click="openImageModal(video, 'video')">
+                      <video class="w-full h-full object-cover" :src="video" muted @error="onVideoError(index, review)">
+                      </video>
+                      <!-- Play button overlay -->
+                      <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-10">
+                        <UIcon name="i-mdi:play-circle" class="text-white w-8 h-8" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pagination -->
+              <div class="flex justify-between mt-6 items-center">
+                <UButton :disabled="currentPage === 1" @click="prevPage" color="gray" variant="outline"
+                  :ui="{ rounded: 'rounded' }">
+                  Previous
+                </UButton>
+                <UButton :disabled="currentPage === totalPages" @click="nextPage" color="gray" variant="outline"
+                  :ui="{ rounded: 'rounded' }">
+                  Next
+                </UButton>
+              </div>
             </div>
           </div>
         </div>
@@ -438,18 +516,39 @@
           <div v-for="(product, index) in products" :key="index"
             @click="checkdetail(product.id, product.erpProduct.productEnglishName)"
             class="product-card rounded-lg transition-transform duration-300 ease-in-out hover:scale-105 cursor-pointer">
-            <div class="relative  overflow-hidden">
+            <div class="relative overflow-hidden">
               <img :src="product.erpProduct.mainPic ?? '/images/empty.jpg'" :alt="product.erpProduct.productEnglishName"
                 class="w-full h-full object-cover object-top rounded-sm">
             </div>
             <div class="mt-2">
               <h3 class="text-base font-normal mb-2 line-clamp-2">{{ product.erpProduct.productEnglishName
-              }}</h3>
+                }}</h3>
               <p class="text-xl font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}
               </p>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Replace the existing modal section -->
+    <!-- Media Modal -->
+    <div v-if="isImageModalOpen" class="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center"
+      @click.self="closeImageModal">
+      <div class="relative bg-transparent p-0 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
+        <!-- Image Content -->
+        <NuxtImg v-if="selectedMediaType === 'image'" :src="selectedImage" alt="Zoomed product image"
+          class="w-full max-h-[80vh] object-contain relative" />
+        <!-- Video Content -->
+        <video v-else-if="selectedMediaType === 'video'" :src="selectedImage" controls autoplay
+          class="w-full max-h-[80vh] object-contain relative">
+          Your browser does not support the video tag.
+        </video>
+        <button
+          class="absolute top-0 right-4 text-gray-500 w-8 h-8 flex items-center justify-center bg-transparent text-white"
+          @click="closeImageModal">
+          <UIcon name="i-mdi:close" width="32" height="32" class="w-8 h-8 text-white" />
+        </button>
       </div>
     </div>
 
@@ -480,34 +579,35 @@
     </div>
   </div>
   <Faq />
-
 </template>
 
 <script setup>
-
 import 'swiper/css';
 import 'swiper/css/navigation';
 
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation } from 'swiper/modules';
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
 import { message, Tooltip, Select, InputNumber } from 'ant-design-vue';
 import { useCartStore } from '@/stores/cart';
 import { useRouter, useRoute } from 'vue-router';
 const { getProductById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV3, erpTryToCreateSku, getmapProductByProductSkuList } = ProductAuth();
 const { createCart } = cartAuth();
+const { getspuCommentProductRollPage, getgroupComment } = CommentAuth();
 const route = useRoute();
 const router = useRouter();
 const lastpage = router.options.history.state.back;
 const cart = useCartStore();
-const swiperRefThumb = ref()
+const swiperRefThumb = ref();
+import { formatShanghaiToLocalDate } from '~/utils/format';
+
 // 新增loading状态
 const isLoading = computed(() => pending.value);
 const onMainImageLoaded = () => {
   nextTick(() => {
-    swiperRefThumb.value?.swiper?.update()
-  })
-}
+    swiperRefThumb.value?.swiper?.update();
+  });
+};
 
 // Swiper instance
 const swiperInstance = ref(null);
@@ -532,7 +632,6 @@ const mainImageIndex = ref(0);
 const isSwiperAtStart = computed(() => mainImageIndex.value === 0);
 const isSwiperAtEnd = computed(() => mainImageIndex.value === productinfo.value.erpProduct.photoList.length - 1);
 
-
 let specList = [];
 let joinsku = [];
 const designimage = ref('');
@@ -540,17 +639,29 @@ const mainImage = ref('');
 
 const productinfo = ref(serverProductData.value?.result ?? {});
 if (productinfo.value.erpProduct?.mainPic) {
-
   mainImage.value = productinfo.value.erpProduct.mainPic;
 }
 const skuprice = ref(productinfo.value?.erpProduct.customPrice ?? {});
 const relatedList = [];
 
-
 const quantity = ref(1);
 const totalPrice = computed(() => quantity.value * skuprice.value);
 const tabindex = ref(1);
-const errorsize = ref('')
+const errorsize = ref('');
+const averageRating = ref(0); // 初始化为 0，动态获取
+const totalReviews = ref(0); // 初始化为 0，动态获取
+const starPercentages = ref({ 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }); // 初始化为 0，动态获取
+const reviews = ref([]); // 初始化为空，动态获取
+const currentPage = ref(1);
+const pageSize = ref(5); // 每页显示 5 条评论，可调整
+const totalPages = ref(1); // 总页数，动态计算
+const currentPageInput = ref(1);
+const sortOption = ref('latest');
+
+// Image modal state
+const isImageModalOpen = ref(false);
+const selectedImage = ref('');
+
 // Store the Swiper instance
 const onSwiper = (swiper) => {
   swiperInstance.value = swiper;
@@ -574,7 +685,6 @@ const onSlideChange = () => {
   }
 };
 
-
 // Navigate to previous main image
 const prevMainImage = () => {
   if (mainImageIndex.value > 0) {
@@ -589,7 +699,6 @@ const nextMainImage = () => {
   }
 };
 
-
 const changetab = (index) => {
   tabindex.value = index;
 };
@@ -601,6 +710,7 @@ const increment = () => {
 const decrement = () => {
   if (quantity.value > 1) quantity.value--;
 };
+
 const handleGetrelated = async () => {
   try {
     let parmes = {
@@ -613,39 +723,34 @@ const handleGetrelated = async () => {
     console.error(error);
   }
 };
-const selectproperty = (index, type) => {
 
+const selectproperty = (index, type) => {
   if (type.disabled) {
-    return
+    return;
   }
   productinfo.value.normalPropertyList.forEach((element, index1) => {
-
     if (index1 < index) {
       if (isUndefinedOrEmptyObject(element.selectedproperty)) {
         joinsku = joinsku.filter(item => element.selectedproperty.skuList.includes(item));
       }
     }
     if (index == 0) {
-      joinsku = type.skuList
+      joinsku = type.skuList;
     }
   });
   if (!joinsku) {
-    joinsku = []
+    joinsku = [];
   }
   if (productinfo.value.normalPropertyList[index + 1] && type.skuList) {
-
     let curskulist = joinsku.length > 0 ? joinsku.filter(item => type.skuList.includes(item)) : type.skuList || [];
-    // let curskulist = type.skuList ? type.skuList : [];
     let nextProperty = productinfo.value.normalPropertyList[index + 1];
-    let nextselectedproperty = nextProperty['selectedproperty']
-    let nextselectedid = '-1'
+    let nextselectedproperty = nextProperty['selectedproperty'];
+    let nextselectedid = '-1';
     if (nextselectedproperty) {
-      nextselectedid = nextselectedproperty.propertyDetailId
+      nextselectedid = nextselectedproperty.propertyDetailId;
     }
     if (nextProperty.isneedinput) {
-
       let nextdetailList = productinfo.value.normalPropertyList[index + 1].noneedinputlist;
-
       nextdetailList.forEach(element => {
         let skulist = element.skuList;
         let hasIntersection = skulist && skulist.some(item => curskulist.includes(item));
@@ -653,10 +758,8 @@ const selectproperty = (index, type) => {
         element.disabled = !hasIntersection;
         if (nextselectedid == element.propertyDetailId && element.disabled) {
           productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {};
-
         }
       });
-
       let nextdetailList1 = productinfo.value.normalPropertyList[index + 1].needinputlist;
       nextdetailList1.forEach(element1 => {
         let skulist = element1.skuList;
@@ -665,15 +768,14 @@ const selectproperty = (index, type) => {
         element1.disabled = !hasIntersection;
         if (nextselectedid == element1.propertyDetailId && element1.disabled) {
           productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {};
-
         }
       });
     } else {
       let nextdetailList = productinfo.value.normalPropertyList[index + 1].detailList;
-      let nextselectedproperty = productinfo.value.normalPropertyList[index + 1]['selectedproperty']
-      let nextselectedid = '-1'
+      let nextselectedproperty = productinfo.value.normalPropertyList[index + 1]['selectedproperty'];
+      let nextselectedid = '-1';
       if (nextselectedproperty) {
-        nextselectedid = nextselectedproperty.propertyDetailId
+        nextselectedid = nextselectedproperty.propertyDetailId;
       }
       nextdetailList.forEach(element => {
         let skulist = element.skuList;
@@ -682,16 +784,12 @@ const selectproperty = (index, type) => {
         element.disabled = !hasIntersection;
         if (nextselectedid == element.propertyDetailId && element.disabled) {
           productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {};
-
         }
       });
     }
   }
   productinfo.value.normalPropertyList[index]['selectedproperty'] = type;
 
-  // if (productinfo.value.normalPropertyList[index + 1] && type.skuList) {
-  //   productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {};
-  // }
   let inputvalue = [];
   let hasEmpty = false;
   let needinputproperty;
@@ -703,7 +801,6 @@ const selectproperty = (index, type) => {
     }
     if (element.isneedinput && element.chooseindex == 2) {
       let needinputlist = element.needinputlist.filter(item => item.isactive);
-
       needinputlist.forEach(item => {
         inputvalue = item.inputvalue;
         hasEmpty = inputvalue.some(item => item === "");
@@ -712,44 +809,37 @@ const selectproperty = (index, type) => {
     }
   });
   if (needinputproperty) {
-
-    //如果有需要填的，而且输入框都填了，去试算价格
     if (ischoose && !hasEmpty) {
-      getcustomprice(inputvalue)
+      getcustomprice(inputvalue);
     }
   } else {
-    //选到最后一个，去请求sku价格
     if (ischoose) {
       const skuLists = productinfo.value.normalPropertyList
         .map(property => property.selectedproperty?.skuList)
         .filter(list => Array.isArray(list) && list.length > 0);
-
       if (skuLists.length === 0) return;
       let innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)));
       let firstsku = innersku[0];
       if (firstsku) {
-        console.log('getskuprice');
         getskuprice(firstsku);
       }
     }
-
   }
-
 };
-const getskuprice = async (sku) => {
 
+const getskuprice = async (sku) => {
   try {
     let params = {
       skuList: [sku]
-    }
+    };
     let res = await getmapProductByProductSkuList(params);
     let lists = res.result;
     let skuinfo = lists[sku];
     skuprice.value = skuinfo.skuSpec.customPrice;
   } catch (error) {
-
   }
-}
+};
+
 const products = ref([]);
 
 const opencartloding = () => {
@@ -785,7 +875,6 @@ const addtocart = async () => {
       }
       if (element.isneedinput && element.chooseindex == 2) {
         let needinputlist = element.needinputlist.filter(item => item.isactive);
-
         needinputlist.forEach(item => {
           inputvalue = item.inputvalue;
           hasEmpty = inputvalue.some(item => item === "");
@@ -827,8 +916,7 @@ const addtocart = async () => {
       }
       let variationList = productinfo.value.erpProduct.variationList;
       const targetProperty = productinfo.value.normalPropertyList.find(item => item.propertyNameShop === 'Shape');
-
-      let detailName = ''
+      let detailName = '';
       if (targetProperty && targetProperty.selectedproperty) {
         detailName = targetProperty.selectedproperty.detailName;
       }
@@ -842,7 +930,6 @@ const addtocart = async () => {
       for (let i = 0; i < inputvalue.length; i++) {
         createData[`edge${i + 1}`] = inputvalue[i] || 0;
       }
-
       try {
         openorderloding();
         let res = await erpTryToCreateSku(createData);
@@ -851,9 +938,8 @@ const addtocart = async () => {
         closeorderloding();
         const errormsg = JSON.parse(e.message || '{}');
         message.error(errormsg.enDesc || 'Create SKU failed');
-        return; // 终止后续流程
+        return;
       }
-
     } else {
       const skuLists = productinfo.value.normalPropertyList
         .map(property => property.selectedproperty?.skuList)
@@ -888,6 +974,7 @@ const onQuantityInput = (e) => {
   if (val > 999) val = 999;
   quantity.value = val;
 };
+
 function isUndefinedOrEmptyObject(val) {
   return (
     val === undefined ||
@@ -915,7 +1002,6 @@ const createorder = async () => {
       }
       if (element.isneedinput && element.chooseindex == 2) {
         let needinputlist = element.needinputlist.filter(item => item.isactive);
-
         needinputlist.forEach(item => {
           inputvalue = item.inputvalue;
           hasEmpty = inputvalue.some(item => item === "");
@@ -957,8 +1043,7 @@ const createorder = async () => {
       }
       let variationList = productinfo.value.erpProduct.variationList;
       const targetProperty = productinfo.value.normalPropertyList.find(item => item.propertyNameShop === 'Shape');
-
-      let detailName = ''
+      let detailName = '';
       if (targetProperty && targetProperty.selectedproperty) {
         detailName = targetProperty.selectedproperty.detailName;
       }
@@ -980,9 +1065,8 @@ const createorder = async () => {
         closeorderloding();
         const errormsg = JSON.parse(e.message || '{}');
         message.error(errormsg.enDesc || 'Create SKU failed');
-        return; // 终止后续流程
+        return;
       }
-
     } else {
       const skuLists = productinfo.value.normalPropertyList
         .map(property => property.selectedproperty?.skuList)
@@ -999,79 +1083,68 @@ const createorder = async () => {
     closeorderloding();
     router.push('/checkout?from=detail&sku=' + selectsku + '&number=' + quantity.value);
   } catch (error) {
-    console.log(error)
+    console.log(error);
     let errormsg = JSON.parse(error.message);
     closeorderloding();
     message.error(errormsg.enDesc || 'Failed');
   }
 };
 
-let lastLabel = null
-let lastTo = null
+let lastLabel = null;
+let lastTo = null;
 const breadcrumbLinks = ref([
   { label: 'Home', to: '/', title: 'Home' }
-])
+]);
 if (lastpage) {
-  const decodedPath = decodeURIComponent(lastpage)
-
-  // 1. 分类页匹配：/Shade Sail-689 或 /Outdoor Covers-123
-  const categoryMatch = decodedPath.match(/^\/(.+?)-(\d+)(\/)?$/)
+  const decodedPath = decodeURIComponent(lastpage);
+  const categoryMatch = decodedPath.match(/^\/(.+?)-(\d+)(\/)?$/);
   if (categoryMatch) {
-    lastLabel = categoryMatch[1] // "Shade Sail"
-    lastTo = lastpage
+    lastLabel = categoryMatch[1];
+    lastTo = lastpage;
   }
-
-  // 2. 集合页匹配：/collections/Summer Deals
-  const collectionMatch = decodedPath.match(/^\/collections\/([^/?#]+)/)
+  const collectionMatch = decodedPath.match(/^\/collections\/[^/?#]+/);
   if (collectionMatch) {
-    lastLabel = collectionMatch[1] // "Summer Deals"
-    lastTo = lastpage
+    lastLabel = collectionMatch[1];
+    lastTo = lastpage;
   }
-
-  // ✅ 如果成功匹配，加入面包屑
   if (lastLabel && lastTo) {
     breadcrumbLinks.value.push({
       label: lastLabel,
       to: lastTo,
       title: lastLabel
-    })
+    });
   }
 }
 
 const updateBreadcrumbProduct = (productName) => {
-  const productPath = `/product/${productid.value}/${productName}`
-  // 检查最后一项是否已经是产品详情
-  const lastIndex = breadcrumbLinks.value.length - 1
-  const lastItem = breadcrumbLinks.value[lastIndex]
-
+  const productPath = `/product/${productid.value}/${productName}`;
+  const lastIndex = breadcrumbLinks.value.length - 1;
+  const lastItem = breadcrumbLinks.value[lastIndex];
   if (lastItem && lastItem.to?.startsWith('/product')) {
-    // ✅ 替换最后一项
     breadcrumbLinks.value[lastIndex] = {
       label: productName,
       to: productPath,
       title: productName
-    }
+    };
   } else {
-    // ✅ 第一次进详情页，正常添加
     breadcrumbLinks.value.push({
       label: productName,
       to: productPath,
       title: productName
-    })
+    });
   }
-}
+};
 
 const handleGetProudct = async () => {
   try {
-    isLoading.value = true; // 开始加载
+    isLoading.value = true;
     let parmes = {
-      id: productid.value, needPropData: true,
+      id: productid.value,
+      needPropData: true,
       excludeUserCustomProp: true
     };
     let res = await getProductById(parmes);
-    updateBreadcrumbProduct(res.result.erpProduct.productEnglishName)
-
-
+    updateBreadcrumbProduct(res.result.erpProduct.productEnglishName);
     orginproductinfo.value = res.result;
     productinfo.value = res.result;
     skuprice.value = res.result.erpProduct.customPrice;
@@ -1081,7 +1154,7 @@ const handleGetProudct = async () => {
       let needinputlist = ref([]);
       element.detailList.forEach(item => {
         item.isactive = true;
-        item.label = item.detailName
+        item.label = item.detailName;
         if (item.inputList) {
           let inputvalue = [];
           item.inputList.forEach(element => {
@@ -1103,35 +1176,33 @@ const handleGetProudct = async () => {
     });
     productinfo.value.normalPropertyList[0].showType = true;
     mainImage.value = productinfo.value.erpProduct.mainPic;
+    await fetchComments(); // 加载评论数据
   } catch (error) {
     message.error('Failed to load product data');
   } finally {
-    isLoading.value = false; // 加载完成
+    isLoading.value = false;
     handleGetrelated();
-
   }
 };
+
 const organizeproduct = () => {
   try {
-
-    updateBreadcrumbProduct(productinfo.value.erpProduct.productEnglishName)
-
+    updateBreadcrumbProduct(productinfo.value.erpProduct.productEnglishName);
     specList = productinfo.value.erpProduct.specList;
     productinfo.value.normalPropertyList.forEach(element => {
       let noneedinputlist = ref([]);
       let needinputlist = ref([]);
       element.detailList.forEach(item => {
         item.isactive = true;
-        item.label = item.detailName
+        item.label = item.detailName;
         if (item.inputList) {
           let inputvalue = [];
           if (item.customDetailList) {
             let sortedCustomDetailList = item.inputList.map(inputName =>
               item.customDetailList.find(item => item.input === inputName)
             );
-            item.customDetailList = sortedCustomDetailList
+            item.customDetailList = sortedCustomDetailList;
           }
-
           item.inputList.forEach(element => {
             inputvalue.push('');
           });
@@ -1154,23 +1225,21 @@ const organizeproduct = () => {
     console.log(error);
     message.error('Failed to load product data');
   } finally {
-    isLoading.value = false; // 加载完成
-
+    isLoading.value = false;
   }
 };
-organizeproduct()
+organizeproduct();
 
 const handleSelectChange = (propertyIndex, selected) => {
   if (selected && selected.propertyDetailId) {
     selectproperty(propertyIndex, selected);
   }
 };
+
 const onChange = (val, property, index) => {
-  property.chooseindex = '1'
+  property.chooseindex = '1';
   let selectvalue = property.detailList.find(item => item.propertyDetailId === val);
   selectproperty(index, selectvalue);
-
-  // property.selectedproperty = property.noneedinputlist.find(item => item.propertyDetailId === val);
 };
 
 const changeinputvalue = (element, index, propertyindex) => {
@@ -1180,11 +1249,10 @@ const changeinputvalue = (element, index, propertyindex) => {
   let inputList = [];
   if (element.isneedinput) {
     let needinputlist = element.needinputlist.filter(item => item.isactive);
-
     let inputvalue = [];
     needinputlist.forEach((item, zindex) => {
       if (zindex + 2 == element.chooseindex) {
-        detailName = item.detailName
+        detailName = item.detailName;
         inputvalue = item.inputvalue;
         inputList = item.inputList;
         strresult = inputvalue.join("*");
@@ -1196,38 +1264,27 @@ const changeinputvalue = (element, index, propertyindex) => {
     element.selectedproperty.inputvalue = strresult;
     element.selectedproperty.detailName = detailName;
     element.selectedproperty.inputList = inputList;
-    selectproperty(propertyindex, element.selectedproperty)
-    // let hasEmpty = inputvalue.some(item => item === "");
-    // if (!hasEmpty) {
-    //     getcustomprice(inputvalue);
-    // }
+    selectproperty(propertyindex, element.selectedproperty);
   }
 };
 
 const getcustomprice = async () => {
   const propList = [];
   const sideMap = {};
-
   const shapeProperty = productinfo.value.normalPropertyList.find(p => p.propertyNameShop === 'Shape');
   const shape = shapeProperty?.selectedproperty?.detailName || '';
-
   productinfo.value.normalPropertyList.forEach((property, index) => {
     if (!property.selectedproperty) return;
-
     const isCustomInput = property.isneedinput && property.chooseindex === 2;
-
     let detailName = property.selectedproperty.detailName;
-
     const propItem = {
       propertyNameShop: property.propertyNameShop,
       detailName
     };
-
     if (isCustomInput && property.selectedproperty.inputvalue) {
       const inputArr = Array.isArray(property.selectedproperty.inputvalue)
         ? property.selectedproperty.inputvalue
         : String(property.selectedproperty.inputvalue).split('*');
-
       propItem.inputList = inputArr.map((val, idx) => {
         const inputKey = property.selectedproperty?.inputList?.[idx] || `side${idx + 1}`;
         sideMap[`side${idx + 1}`] = val;
@@ -1237,18 +1294,14 @@ const getcustomprice = async () => {
         };
       });
     }
-
-
     propList.push(propItem);
   });
-
   const params = {
     spu: productinfo.value.erpProduct.productStyle,
     shape,
     ...sideMap,
     propList
   };
-
   try {
     const res = await trialPriceCalculationBySpuV3(params);
     skuprice.value = res.result.sellingPrice;
@@ -1258,6 +1311,7 @@ const getcustomprice = async () => {
     errorsize.value = errormsg.enDesc || 'Invalid input';
   }
 };
+
 const hasRange = (item) => {
   return (
     item.inputStart !== null &&
@@ -1268,12 +1322,9 @@ const hasRange = (item) => {
   );
 };
 
-
-// Antd 默认 filterOption 使用 label 和 value 字段，如果你想自定义筛选逻辑，可以用这个：
 const customFilter = (input, option) => {
   return option.detailName?.toLowerCase().includes(input.toLowerCase());
 };
-
 
 const checkdetail = (id, name) => {
   router.push(`/product/${id}/${name}`);
@@ -1291,7 +1342,7 @@ const bottomBarRef = ref(null);
 const isshow = ref(true);
 
 const handleScroll = () => {
-  if (bottomBarRef.value) {
+  if (bottomBarRef.value && detailSectionRef.value) {
     const rect1 = detailSectionRef.value.getBoundingClientRect();
     const rect2 = bottomBarRef.value.getBoundingClientRect();
     if (rect2.top < 800 || rect1.top > 0) {
@@ -1302,15 +1353,119 @@ const handleScroll = () => {
   }
 };
 
-onMounted(() => {
-  window.addEventListener('scroll', handleScroll);
+const getStarStatus = (starIndex) => {
+  if (!averageRating.value && averageRating.value !== 0) return 'empty'; // 防止 undefined
+  const fullStars = Math.floor(averageRating.value);
+  const decimalPart = averageRating.value - fullStars;
+  if (starIndex <= fullStars) return 'full';
+  if (starIndex === fullStars + 1 && decimalPart >= 0.25 && decimalPart <= 0.75) return 'half';
+  if (starIndex === fullStars + 1 && decimalPart > 0.75) return 'full';
+  return 'empty';
+};
 
-  handleGetrelated();
-});
+const fetchComments = async () => {
+  try {
 
+    const groupRes = await getgroupComment({ productSpu: productinfo.value.erpProduct.productStyle });
+    const result = groupRes.result;
+
+    averageRating.value = result.averageRank || 0;
+    totalReviews.value = result.total || 0;
+    starPercentages.value = {
+      5: result.groupList.find(g => g.group === 5)?.percentage || 0,
+      4: result.groupList.find(g => g.group === 4)?.percentage || 0,
+      3: result.groupList.find(g => g.group === 3)?.percentage || 0,
+      2: result.groupList.find(g => g.group === 2)?.percentage || 0,
+      1: result.groupList.find(g => g.group === 1)?.percentage || 0
+    };
+    totalPages.value = Math.ceil(totalReviews.value / pageSize.value);
+
+    const rollRes = await getspuCommentProductRollPage({
+      pageNum: currentPage.value,
+      pageSize: pageSize.value,
+      productSpu: productinfo.value.erpProduct.productStyle,
+      needCount: true
+    });
+    reviews.value = rollRes.result.list.map(review => ({
+      name: review.fullName || 'Anonymous',
+      date: formatShanghaiToLocalDate(review.commentDate),
+      text: review.content || 'No content',
+      pictureUrlList: review.pictureUrlList || [],
+      videoUrlList: review.videoUrlList || [],
+      rating: review.rank || 1
+    }));
+    totalPages.value = Math.ceil((rollRes.result.total > 0 ? rollRes.result.total : reviews.value.length) / pageSize.value);
+    if (
+      (!productinfo.value.erpProduct.remarks || productinfo.value.erpProduct.remarks.trim() === '') &&
+      productinfo.value.printPropertyList.length === 0 &&
+      reviews.value.length > 0
+    ) {
+      tabindex.value = 3; // Switch to Reviews tab
+    } else if (reviews.value.length === 0 && tabindex.value === 3) {
+      tabindex.value = 1; // Reset to Basic Information if no reviews
+    }
+    sortReviews();
+  } catch (error) {
+    message.error('Failed to load comments');
+    console.error(error);
+  } finally {
+    message.destroy();
+  }
+};
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+    fetchComments();
+  }
+};
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+    fetchComments();
+  }
+};
+
+const sortReviews = () => {
+  reviews.value.sort((a, b) => {
+    if (sortOption.value === 'rating') {
+      return b.rating - a.rating;
+    } else {
+      return new Date(b.date) - new Date(a.date);
+    }
+  });
+};
+const selectedMediaType = ref('image');
+const openImageModal = (media, type) => {
+  selectedImage.value = media;
+  selectedMediaType.value = type;
+  isImageModalOpen.value = true;
+};
+
+// Update closeImageModal to reset media type
+const closeImageModal = () => {
+  isImageModalOpen.value = false;
+  selectedImage.value = '';
+  selectedMediaType.value = 'image'; // Reset to default
+};
+
+
+const onImageError = (index, review) => {
+  console.warn(`Image failed to load at index ${index} for review by ${review.name}`);
+  if (review.pictureUrlList) {
+    review.pictureUrlList[index] = '/placeholder-image.jpg'; // Replace with a fallback image URL
+  }
+};
+const onVideoError = (index, review) => {
+  console.warn(`Video failed to load at index ${index} for review by ${review.name}`);
+  if (review.videoUrlList) {
+    review.videoUrlList[index] = '/placeholder-video.mp4'; // Replace with a fallback video URL or remove
+  }
+};
 watch(() => route.query, () => {
-  handleGetProudct()
-}, { deep: true })
+  handleGetProudct();
+}, { deep: true });
 
 watch(mainImageIndex, (newVal) => {
   const list = productinfo.value.erpProduct.photoList;
@@ -1320,10 +1475,21 @@ watch(mainImageIndex, (newVal) => {
 });
 
 
+watch(sortOption, () => {
+  sortReviews();
+});
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll);
+  handleGetrelated();
+  fetchComments();
+});
+
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
 });
 </script>
+
 <style scoped>
 .swiper .swiper-wrapper {
   display: flex !important;
@@ -1452,9 +1618,7 @@ input[type="radio"]:checked:hover {
 /* 修改 Select 组件激活时的边框颜色 */
 .ant-select-focused .ant-select-selector {
   border-color: #00c16a !important;
-  /* 替换为你想要的颜色 */
   box-shadow: 0 0 0 2px rgba(0, 193, 106, 0.2);
-  /* 可选，添加聚焦时的阴影效果 */
 }
 
 /* 仅针对 custom-select 类设置高度 */
@@ -1475,5 +1639,61 @@ input[type="radio"]:checked:hover {
   outline: none !important;
   box-shadow: none !important;
   height: 28px !important;
+}
+
+/* 调试图标 */
+.icon-debug {
+  border: 1px solid red;
+  display: inline-block !important;
+}
+
+/* 响应式调整 */
+@media (max-width: 1024px) {
+  .reviews-stats {
+    flex-direction: column;
+  }
+
+  .summary {
+    text-align: left;
+  }
+}
+
+.video-thumbnail {
+  position: relative;
+  width: 64px;
+  /* Matches w-16 */
+  height: 64px;
+  /* Matches h-16 */
+}
+
+/* Ensure play button is centered and visible */
+.video-thumbnail .play-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+/* Modal video styling */
+.modal-video {
+  width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+}
+
+/* Ensure modal content is centered */
+.modal-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .video-thumbnail {
+    width: 48px;
+    height: 48px;
+  }
 }
 </style>
