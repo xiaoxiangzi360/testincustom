@@ -80,8 +80,7 @@
             <div class="sticky top-[124px] overflow-hidden">
               <div class="w-full aspect-square overflow-hidden mb-4 relative" v-if="mainImage">
                 <NuxtImg format="webp" :src="mainImage" @load="onMainImageLoaded" alt="Shade sail"
-                  class="rounded-xl shadow-lg w-full h-full object-cover transition-all duration-300 cursor-pointer"
-                  @click="openImageModal(mainImage, 'image')" />
+                  class="rounded-xl shadow-lg w-full h-full object-cover transition-all duration-300 cursor-pointer" />
                 <!-- Main image navigation buttons -->
                 <!-- 左箭头 -->
                 <div class="main-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
@@ -235,7 +234,7 @@
                               <input type="radio" v-model="property.chooseindex" :value="needindex + 2"
                                 @change="changeinputvalue(property, needindex + 2, index)" />
                               <span class="font-semibold text-sm">{{ needinput.detailName
-                                }}</span>
+                              }}</span>
                             </label>
                           </div>
                           <div class="mt-4" v-for="(inputitem, pindex) in needinput.inputList" :key="pindex">
@@ -485,8 +484,8 @@
                       <video class="w-full h-full object-cover" :src="video" muted @error="onVideoError(index, review)">
                       </video>
                       <!-- Play button overlay -->
-                      <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-10">
-                        <UIcon name="i-mdi:play-circle" class="text-white w-8 h-8" />
+                      <div class="absolute inset-0 flex items-center justify-center bg-primary bg-opacity-10">
+                        <UIcon name="i-mdi:play-circle" width="32" height="32" class="text-white w-8 h-8" />
                       </div>
                     </div>
                   </div>
@@ -522,7 +521,7 @@
             </div>
             <div class="mt-2">
               <h3 class="text-base font-normal mb-2 line-clamp-2">{{ product.erpProduct.productEnglishName
-                }}</h3>
+              }}</h3>
               <p class="text-xl font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}
               </p>
             </div>

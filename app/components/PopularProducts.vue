@@ -68,7 +68,7 @@
                                     <span class="text-customblack font-medium text-sm sm:text-lg dark:text-primary">
                                         $ {{ product.erpProduct.customPrice }}
                                     </span>
-                                    <span class="text-[#4A4A4A] text-sm">{{ product.thirtyDaysSales }} sold</span>
+                                    <!-- <span class="text-[#4A4A4A] text-sm">{{ product.thirtyDaysSales }} sold</span> -->
                                 </div>
                             </div>
                         </ULink>
