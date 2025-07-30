@@ -1260,7 +1260,7 @@ const getcustomprice = async (inputvalue) => {
         sideMap[`side${idx + 1}`] = val;
         return {
           input: inputKey,
-          custom: val
+          customPropValue: val
         };
       });
     }
