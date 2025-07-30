@@ -24,7 +24,7 @@
             </div>
           </div>
 
-          <!-- 右侧内容区域骨架 -->
+          <!-- 内容区域骨架 -->
           <div class="md:col-span-7">
             <div class="h-8 w-3/4 bg-gray-200 rounded animate-pulse mb-4"></div>
             <div class="h-6 w-1/4 bg-gray-200 rounded animate-pulse mb-4"></div>
@@ -40,7 +40,7 @@
               </div>
             </div>
 
-            <!-- 数量和价格骨架 -->
+            <!-- 数量和按钮骨架 -->
             <div class="border-b border-gray-200 pb-6">
               <div class="flex flex-col gap-4">
                 <div class="flex justify-between">
@@ -69,7 +69,7 @@
         li: 'text-sm font-normal text-gray-400',
         active: 'text-customblack dark:text-primary-400 no-underline hover:no-underline',
         divider: {
-          base: 'px-2 text-text-gray-400 no-underline'
+          base: 'px-2 text-gray-400 no-underline'
         }
       }" />
       <!-- 产品详情部分 -->
@@ -82,15 +82,12 @@
                 <NuxtImg format="webp" :src="mainImage" @load="onMainImageLoaded" alt="Shade sail"
                   class="rounded-xl shadow-lg w-full h-full object-cover transition-all duration-300 cursor-pointer" />
                 <!-- Main image navigation buttons -->
-                <!-- 左箭头 -->
                 <div class="main-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
                   :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }" @click="prevMainImage">
                   <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
                     <UIcon name="i-raphael:arrowleft2" class="text-primary w-6 h-6" />
                   </div>
                 </div>
-
-                <!-- 右箭头 -->
                 <div class="main-button-next absolute right-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
                   :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }" @click="nextMainImage">
                   <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
@@ -115,14 +112,12 @@
                       </video>
                     </div>
                   </SwiperSlide>
-
                   <div class="custom-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
                     :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }">
                     <div class="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow text-primary">
                       <UIcon name="i-raphael:arrowleft2" class="text-primary w-4 h-4" />
                     </div>
                   </div>
-
                   <div class="custom-button-next absolute right-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
                     :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }">
                     <div class="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow text-primary">
@@ -147,12 +142,11 @@
             <!-- Section 1: THE TYPE -->
             <div v-if="productinfo.normalPropertyList" class="mt-12">
               <div class="mb-4 border-b border-b-[#C8C8C8] pb-4"
-                v-for="(property, index) in productinfo.normalPropertyList">
+                v-for="(property, index) in productinfo.normalPropertyList" :key="index">
                 <div class="flex justify-between items-center cursor-pointer" @click="changeshow(index)">
                   <h2 class="font-bold text-lg flex items-center mb-0">
                     <UBadge color="black" variant="solid" class="mr-3 w-6 h-6"
-                      :ui="{ color: { black: { solid: 'dark:bg-gray-900 dark:text-white' } } }">{{ index + 1 }}
-                    </UBadge>
+                      :ui="{ color: { black: { solid: 'dark:bg-gray-900 dark:text-white' } } }">{{ index + 1 }}</UBadge>
                     <span class="truncate-1-lines">{{ property.propertyNameShop }}</span>
                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" placement="topLeft"
                       v-if="property.desc" :title="property.desc"
@@ -161,11 +155,9 @@
                     </Tooltip>
                   </h2>
                   <div class="flex items-center">
-                    <span class="mr-4 truncate-1-lines" v-if="property.selectedproperty">{{
-                      property.isneedinput && property.chooseindex == 2 ?
-                        property.selectedproperty.inputvalue :
-                        property.selectedproperty.detailName
-                    }}</span>
+                    <span class="mr-4 truncate-1-lines" v-if="property.selectedproperty">{{ property.isneedinput &&
+                      property.chooseindex == 2 ? property.selectedproperty.inputvalue :
+                      property.selectedproperty.detailName }}</span>
                     <UIcon :name="property.showType ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
                       class="w-5 h-5 text-gray-500 font-medium transition-all duration-300" />
                   </div>
@@ -177,46 +169,42 @@
                   !property.isneedinput && property.productPropertyDetailType != 'text' ? 'grid-cols-5 sm:grid-cols-6' : ''
                 ]">
                   <div v-if="!property.isneedinput && property.productPropertyDetailType != 'text'"
-                    v-for="(type, propertyindex) in property.detailList" :key="type"
+                    v-for="(type, propertyindex) in property.detailList" :key="type.propertyDetailId"
                     @click="selectproperty(index, type)" :class="[
-                      'p-1 rounded-xl flex flex-col items-center transition-all',
+                      'p-1 pt-0 rounded-xl flex flex-col items-center transition-all',
                       type.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                     ]">
                     <div :class="[
                       'w-full aspect-square overflow-hidden',
-                      property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId
-                        ? 'border border-primary' : ''
+                      property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'border border-primary' : ''
                     ]" v-if="type.imageLink">
                       <img :src="type.imageLink" class="w-full h-full object-contain" />
                     </div>
-                    <div class="py-2 w-full text-sm" :class="[
-                      'py-2 w-full',
+                    <div :class="[
+                      'py-2 w-full text-sm',
                       !type.imageLink ? 'border border-customblack w-full rounded-md' : '',
-                      !type.imageLink && property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId
-                        ? 'border border-primary w-full' : '',
+                      !type.imageLink && property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'border border-primary w-full' : '',
                     ]">
                       <div class="truncate-2-lines text-center">{{ type.detailName }}</div>
                     </div>
                   </div>
                   <div class="w-full flex flex-wrap max-h-[160px] overflow-y-auto"
                     v-if="!property.isneedinput && property.productPropertyDetailType == 'text'">
-                    <div v-for="(type, propertyindex) in property.detailList" :key="type"
+                    <div v-for="(type, propertyindex) in property.detailList" :key="type.propertyDetailId"
                       @click="selectproperty(index, type)" :class="[
                         'p-2 rounded-xl flex flex-col items-center transition-all max-w-[33.3333%] min-w-[20%]',
                         type.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                       ]">
                       <div :class="[
                         'w-full aspect-square overflow-hidden',
-                        property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId
-                          ? 'border border-primary' : ''
+                        property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'border border-primary' : ''
                       ]" v-if="type.imageLink">
                         <img :src="type.imageLink" class="w-full h-full object-cover" />
                       </div>
-                      <div class="p-2 w-full text-sm" :class="[
-                        'py-2 w-full',
+                      <div :class="[
+                        'p-2 w-full text-sm',
                         !type.imageLink ? 'border border-customblack w-full rounded-md' : '',
-                        !type.imageLink && property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId
-                          ? 'border border-primary w-full' : '',
+                        !type.imageLink && property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'border border-primary w-full' : '',
                       ]">
                         <div class="truncate-1-lines text-center">{{ type.detailName }}</div>
                       </div>
@@ -233,8 +221,7 @@
                             <label class="flex items-center space-x-2 cursor-pointer">
                               <input type="radio" v-model="property.chooseindex" :value="needindex + 2"
                                 @change="changeinputvalue(property, needindex + 2, index)" />
-                              <span class="font-semibold text-sm">{{ needinput.detailName
-                              }}</span>
+                              <span class="font-semibold text-sm">{{ needinput.detailName }}</span>
                             </label>
                           </div>
                           <div class="mt-4" v-for="(inputitem, pindex) in needinput.inputList" :key="pindex">
@@ -250,8 +237,8 @@
                                   <span v-if="hasRange(needinput.customDetailList[pindex])"
                                     class="text-xs text-gray-500 ml-1">
                                     ({{ needinput.customDetailList[pindex].inputStart }} - {{
-                                      needinput.customDetailList[pindex].inputEnd }} {{
-                                      needinput.customDetailList[pindex].unit || '' }})
+                                      needinput.customDetailList[pindex].inputEnd }}) {{
+                                      needinput.customDetailList[pindex].unit || '' }}
                                   </span>
                                 </template>
                                 <template v-else-if="needinput.customDetailList[pindex].viewType === 50">
@@ -263,7 +250,7 @@
                                     @change="() => changeinputvalue(property, needindex + 2, index)" />
                                   <span v-if="needinput.customDetailList[pindex].unit"
                                     class="text-xs text-gray-500 ml-1">
-                                    ({{ needinput.customDetailList[pindex].unit }})
+                                    {{ needinput.customDetailList[pindex].unit }}
                                   </span>
                                 </template>
                               </template>
@@ -307,27 +294,24 @@
               v-show="productinfo.printPropertyList && productinfo.printPropertyList.length > 0">
               <div class="flex justify-between items-center cursor-pointer" @click="showDimensions = !showDimensions">
                 <h2 class="font-bold text-lg flex items-center mb-0">
-                  <UBadge color="black" variant="solid" class="mr-3">{{
-                    productinfo.normalPropertyList.length + 1 }}
+                  <UBadge color="black" variant="solid" class="mr-3">{{ productinfo.normalPropertyList.length + 1 }}
                   </UBadge>
                   PRINT ON DEMAND
                 </h2>
                 <UIcon :name="showDimensions ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
                   class="w-5 h-5 text-gray-500 transition-all duration-300" />
               </div>
-              <div :class="[
-                'overflow-hidden transition-all duration-300 ease-in-out grid gap-4',
-                showDimensions ? 'max-h-[500px] mt-4' : 'max-h-0'
-              ]">
+              <div
+                :class="['overflow-hidden transition-all duration-300 ease-in-out grid gap-4', showDimensions ? 'max-h-[500px] mt-4' : 'max-h-0']">
                 <div class="flex flex-col md:flex-row md:items-start gap-12 relative justify-between">
                   <div class="flex-1 space-y-4">
                     <p class="font-semibold text-sm">
-                      <span v-for="(item, index) in productinfo.printPropertyList">
-                        {{ item.value }}{{ index < productinfo.printPropertyList.length ? ',' : '' }}</span>
+                      <span v-for="(item, index) in productinfo.printPropertyList" :key="index">
+                        {{ item.value }}{{ index < productinfo.printPropertyList.length - 1 ? ',' : '' }} </span>
                     </p>
                     <div class="text-primary border-b-2 w-fit border-primary py-1 font-semibold cursor-pointer">
-                      Design
-                      Now</div>
+                      Design Now
+                    </div>
                   </div>
                   <div class="w-full md:w-40 shrink-0 self-center">
                     <img v-show="designimage" :src="designimage" alt="Dimension guide" class="rounded-xl border" />
@@ -400,21 +384,20 @@
           </div>
 
           <!-- Content Area -->
-          <div class="mx-auto  p-6 px-0 rounded p-2 grid grid-cols-1 gap-6 bg-white">
+          <div class="mx-auto p-6 px-0 rounded p-2 grid grid-cols-1 gap-6 bg-white">
             <div v-show="tabindex === 1 && productinfo.erpProduct.remarks" class="overflow-hidden lg:col-span-3"
               v-html="productinfo.erpProduct.remarks"></div>
             <div v-show="tabindex === 2 && productinfo.printPropertyList.length > 0"
               class="lg:col-span-3 mx-auto max-row p-6 grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-y-6 gap-x-8 text-gray-800 bg-[#F8F8F8] py-16 rounded p-2">
-              <div class="flex justify-between" v-for="Propertyitem in productinfo.printPropertyList">
+              <div class="flex justify-between" v-for="Propertyitem in productinfo.printPropertyList"
+                :key="Propertyitem.value">
                 <span class="text-sm sm:text-base">{{ Propertyitem.value }}</span>
               </div>
             </div>
             <div v-show="tabindex === 3" class="w-full">
               <!-- Reviews Statistics -->
               <h3 class="text-xl font-semibold mb-6 text-gray-900">Customer Reviews</h3>
-
               <div class="flex flex-col lg:flex-row gap-6 mb-8 border-b pb-6 border-gray-300">
-                <!-- Left: Star Distribution -->
                 <div class="w-full lg:w-1/2">
                   <div class="space-y-3">
                     <div v-for="stars in 5" :key="stars" class="flex items-center gap-4">
@@ -427,8 +410,6 @@
                     </div>
                   </div>
                 </div>
-
-                <!-- Right: Summary -->
                 <div class="w-full lg:w-1/2 flex items-center justify-end bg-gray-100 p-4 bg-primary-100 rounded-lg">
                   <div class="text-center w-full">
                     <p class="text-3xl font-bold text-gray-900">
@@ -448,11 +429,11 @@
               </div>
 
               <!-- Individual Reviews -->
-              <div class="space-y-6">
+              <div>
                 <div v-if="reviews.length === 0" class="text-center text-gray-500 py-4">
                   No reviews yet.
                 </div>
-                <div v-for="review in reviews" :key="review.date" class="bg-white p-4 border-b border-gray-100">
+                <div v-for="review in reviews" :key="review.date" class="bg-white p-4 border-b border-gray-100 mt-4">
                   <div class="flex items-center">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3">
                       <img src="/reviewer.png" class="w-11 h-11" />
@@ -470,20 +451,34 @@
                   </div>
                   <p class="text-sm text-gray-400 my-4">{{ review.text }}</p>
                   <div class="flex gap-2 flex-wrap" v-if="review.pictureUrlList?.length || review.videoUrlList?.length">
-                    <!-- Render Images -->
-                    <div v-for="(image, index) in review.pictureUrlList?.slice(0, 5)" :key="'image-' + index"
-                      class="w-16 h-16 rounded overflow-hidden shadow-md cursor-pointer relative"
-                      @click="openImageModal(image, 'image')">
-                      <NuxtImg :src="image" alt="Review image" class="w-full h-full object-cover"
-                        @error="onImageError(index, review)" />
-                    </div>
-                    <!-- Render Videos -->
+                    <!-- Images with Image.PreviewGroup -->
+                    <Image.PreviewGroup :preview="{
+                      visible: review.previewVisible,
+                      onVisibleChange: (visible) => {
+                        review.previewVisible = visible;
+                        if (!visible) {
+                          review.previewIndex = 0;
+                          selectedReview.value = null;
+                        }
+                      },
+                      current: review.previewIndex,
+                      onChange: (index) => {
+                        review.previewIndex = index;
+                        selectedMediaIndex.value = getMediaIndex(review, index, 'image');
+                      },
+                    }">
+                      <div class="flex gap-2 flex-wrap">
+                        <Image v-for="(image, index) in review.pictureUrlList?.slice(0, 5)" :key="'image-' + index"
+                          :src="image" :alt="'Review image ' + (index + 1)" class="w-16 h-16 rounded object-cover"
+                          @error="onImageError(index, review)" @click="selectReview(review, index, 'image')" />
+                      </div>
+                    </Image.PreviewGroup>
+                    <!-- Videos -->
                     <div v-for="(video, index) in review.videoUrlList?.slice(0, 5)" :key="'video-' + index"
-                      class="w-16 h-16 rounded overflow-hidden shadow-md cursor-pointer relative"
-                      @click="openImageModal(video, 'video')">
-                      <video class="w-full h-full object-cover" :src="video" muted @error="onVideoError(index, review)">
-                      </video>
-                      <!-- Play button overlay -->
+                      class="w-16 h-16 rounded overflow-hidden shadow-md cursor-pointer relative video-thumbnail"
+                      @click="openImageModal(video, 'video', review, index)">
+                      <video class="w-full h-full object-cover" :src="video" muted
+                        @error="onVideoError(index, review)"></video>
                       <div class="absolute inset-0 flex items-center justify-center bg-primary bg-opacity-10">
                         <UIcon name="i-mdi:play-circle" width="32" height="32" class="text-white w-8 h-8" />
                       </div>
@@ -517,34 +512,44 @@
             class="product-card rounded-lg transition-transform duration-300 ease-in-out hover:scale-105 cursor-pointer">
             <div class="relative overflow-hidden">
               <img :src="product.erpProduct.mainPic ?? '/images/empty.jpg'" :alt="product.erpProduct.productEnglishName"
-                class="w-full h-full object-cover object-top rounded-sm">
+                class="w-full h-full object-cover object-top">
             </div>
             <div class="mt-2">
-              <h3 class="text-base font-normal mb-2 line-clamp-2">{{ product.erpProduct.productEnglishName
-              }}</h3>
-              <p class="text-xl font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}
-              </p>
+              <h3 class="text-base font-normal mb-2 line-clamp-2">{{ product.erpProduct.productEnglishName }}</h3>
+              <p class="text-xl font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}</p>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Replace the existing modal section -->
-    <!-- Media Modal -->
-    <div v-if="isImageModalOpen" class="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center"
-      @click.self="closeImageModal">
+    <!-- Video Modal -->
+    <div v-if="isImageModalOpen && selectedMediaType === 'video'"
+      class="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center" @click.self="closeImageModal">
       <div class="relative bg-transparent p-0 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
-        <!-- Image Content -->
-        <NuxtImg v-if="selectedMediaType === 'image'" :src="selectedImage" alt="Zoomed product image"
-          class="w-full max-h-[80vh] object-contain relative" />
-        <!-- Video Content -->
-        <video v-else-if="selectedMediaType === 'video'" :src="selectedImage" controls autoplay
-          class="w-full max-h-[80vh] object-contain relative">
+        <video :src="selectedImage" controls autoplay class="w-full max-h-[80vh] object-contain relative modal-video">
           Your browser does not support the video tag.
         </video>
+
+        <!-- Previous Button -->
+        <button v-if="mediaList.length > 1" class="absolute left-4 top-1/2 -translate-y-1/2 z-10 cursor-pointer"
+          :class="{ 'opacity-30 pointer-events-none': selectedMediaIndex === 0 }" @click="prevMedia">
+          <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
+            <UIcon name="i-raphael:arrowleft2" class="text-primary w-6 h-6" />
+          </div>
+        </button>
+
+        <!-- Next Button -->
+        <button v-if="mediaList.length > 1" class="absolute right-4 top-1/2 -translate-y-1/2 z-10 cursor-pointer"
+          :class="{ 'opacity-30 pointer-events-none': selectedMediaIndex === mediaList.length - 1 }" @click="nextMedia">
+          <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
+            <UIcon name="i-raphael:arrowright2" class="text-primary w-6 h-6" />
+          </div>
+        </button>
+
+        <!-- Close Button -->
         <button
-          class="absolute top-0 right-4 text-gray-500 w-8 h-8 flex items-center justify-center bg-transparent text-white"
+          class="absolute top-4 right-4 text-gray-500 w-8 h-8 flex items-center justify-center bg-transparent text-white"
           @click="closeImageModal">
           <UIcon name="i-mdi:close" width="32" height="32" class="w-8 h-8 text-white" />
         </button>
@@ -553,13 +558,10 @@
 
     <div ref="bottomBarRef"
       class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4 px-8 bg-white rounded-md shadow-lg sticky bottom-0 transition-all duration-300 ease-in-out"
-      :class="{
-        'opacity-100 translate-y-0 pointer-events-auto': !isBottomBarHidden,
-        'opacity-0 translate-y-8 pointer-events-none': isBottomBarHidden
-      }" v-show="isshow && !isLoading">
+      :class="{ 'opacity-100 translate-y-0 pointer-events-auto': !isBottomBarHidden, 'opacity-0 translate-y-8 pointer-events-none': isBottomBarHidden }"
+      v-show="isshow && !isLoading">
       <div>
-        <h2 class="font-semibold text-base sm:text-lg text-gray-900">{{
-          productinfo.erpProduct.productEnglishName }}
+        <h2 class="font-semibold text-base sm:text-lg text-gray-900">{{ productinfo.erpProduct.productEnglishName }}
         </h2>
         <p class="text-sm text-gray-500">Ordinary type sail / Rectangle</p>
       </div>
@@ -581,9 +583,9 @@
 </template>
 
 <script setup>
+import { Image } from 'ant-design-vue';
 import 'swiper/css';
 import 'swiper/css/navigation';
-
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation } from 'swiper/modules';
 import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
@@ -595,27 +597,13 @@ const { createCart } = cartAuth();
 const { getspuCommentProductRollPage, getgroupComment } = CommentAuth();
 const route = useRoute();
 const router = useRouter();
-const lastpage = router.options.history.state.back;
 const cart = useCartStore();
+
 const swiperRefThumb = ref();
-import { formatShanghaiToLocalDate } from '~/utils/format';
-
-// 新增loading状态
-const isLoading = computed(() => pending.value);
-const onMainImageLoaded = () => {
-  nextTick(() => {
-    swiperRefThumb.value?.swiper?.update();
-  });
-};
-
-// Swiper instance
-const swiperInstance = ref(null);
-
-// 其他现有refs
+const lastpage = router.options.history.state.back;
 const cartloding = ref(false);
 const orderloding = ref(false);
 const orginproductinfo = ref({});
-
 const productid = computed(() => route.params.id[0] ?? '29201');
 const { data: serverProductData, pending, error } = await useAsyncData('product-detail', () => {
   return getProductById({
@@ -624,58 +612,63 @@ const { data: serverProductData, pending, error } = await useAsyncData('product-
     excludeUserCustomProp: true
   });
 });
-
 const showDimensions = ref(true);
 const mainImageIndex = ref(0);
-
 const isSwiperAtStart = computed(() => mainImageIndex.value === 0);
 const isSwiperAtEnd = computed(() => mainImageIndex.value === productinfo.value.erpProduct.photoList.length - 1);
-
 let specList = [];
 let joinsku = [];
 const designimage = ref('');
 const mainImage = ref('');
-
 const productinfo = ref(serverProductData.value?.result ?? {});
 if (productinfo.value.erpProduct?.mainPic) {
   mainImage.value = productinfo.value.erpProduct.mainPic;
 }
 const skuprice = ref(productinfo.value?.erpProduct.customPrice ?? {});
-const relatedList = [];
-
+const products = ref([]);
 const quantity = ref(1);
 const totalPrice = computed(() => quantity.value * skuprice.value);
 const tabindex = ref(1);
 const errorsize = ref('');
-const averageRating = ref(0); // 初始化为 0，动态获取
-const totalReviews = ref(0); // 初始化为 0，动态获取
-const starPercentages = ref({ 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }); // 初始化为 0，动态获取
-const reviews = ref([]); // 初始化为空，动态获取
+const averageRating = ref(0);
+const totalReviews = ref(0);
+const starPercentages = ref({ 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 });
+const reviews = ref([]);
 const currentPage = ref(1);
-const pageSize = ref(5); // 每页显示 5 条评论，可调整
-const totalPages = ref(1); // 总页数，动态计算
-const currentPageInput = ref(1);
+const pageSize = ref(5);
+const totalPages = ref(1);
 const sortOption = ref('latest');
-
-// Image modal state
 const isImageModalOpen = ref(false);
 const selectedImage = ref('');
+const selectedMediaType = ref('video');
+const mediaList = ref([]);
+const selectedMediaIndex = ref(0);
+const selectedReview = ref(null);
+const isLoading = computed(() => pending.value);
+const isBottomBarHidden = ref(true);
+const detailSectionRef = ref(null);
+const bottomBarRef = ref(null);
+const isshow = ref(true);
 
-// Store the Swiper instance
+const onMainImageLoaded = () => {
+  nextTick(() => {
+    swiperRefThumb.value?.swiper?.update();
+  });
+};
+
 const onSwiper = (swiper) => {
   swiperInstance.value = swiper;
 };
 
-// Handle slide change
+const swiperInstance = ref(null);
+
 const onSlideChange = () => {
   if (swiperInstance.value) {
     const swiper = swiperInstance.value;
     isSwiperAtStart.value = swiper.isBeginning;
     isSwiperAtEnd.value = swiper.isEnd;
-
     const activeIndex = swiper.activeIndex;
     const slides = productinfo.value.erpProduct.photoList;
-
     if (activeIndex < slides.length) {
       mainImage.value = slides[activeIndex].url;
     } else {
@@ -684,10 +677,10 @@ const onSlideChange = () => {
   }
 };
 
-// Navigate to previous main image
 const prevMainImage = () => {
   if (mainImageIndex.value > 0) {
     mainImageIndex.value--;
+    swiperRefThumb.value.swiper.slideTo(mainImageIndex.value);
   }
 };
 
@@ -695,6 +688,7 @@ const nextMainImage = () => {
   const max = productinfo.value.erpProduct.photoList.length - 1;
   if (mainImageIndex.value < max) {
     mainImageIndex.value++;
+    swiperRefThumb.value.swiper.slideTo(mainImageIndex.value);
   }
 };
 
@@ -724,22 +718,16 @@ const handleGetrelated = async () => {
 };
 
 const selectproperty = (index, type) => {
-  if (type.disabled) {
-    return;
-  }
+  if (type.disabled) return;
   productinfo.value.normalPropertyList.forEach((element, index1) => {
-    if (index1 < index) {
-      if (isUndefinedOrEmptyObject(element.selectedproperty)) {
-        joinsku = joinsku.filter(item => element.selectedproperty.skuList.includes(item));
-      }
+    if (index1 < index && isUndefinedOrEmptyObject(element.selectedproperty)) {
+      joinsku = joinsku.filter(item => element.selectedproperty.skuList.includes(item));
     }
-    if (index == 0) {
+    if (index === 0) {
       joinsku = type.skuList;
     }
   });
-  if (!joinsku) {
-    joinsku = [];
-  }
+  if (!joinsku) joinsku = [];
   if (productinfo.value.normalPropertyList[index + 1] && type.skuList) {
     let curskulist = joinsku.length > 0 ? joinsku.filter(item => type.skuList.includes(item)) : type.skuList || [];
     let nextProperty = productinfo.value.normalPropertyList[index + 1];
@@ -749,7 +737,7 @@ const selectproperty = (index, type) => {
       nextselectedid = nextselectedproperty.propertyDetailId;
     }
     if (nextProperty.isneedinput) {
-      let nextdetailList = productinfo.value.normalPropertyList[index + 1].noneedinputlist;
+      let nextdetailList = nextProperty.noneedinputlist;
       nextdetailList.forEach(element => {
         let skulist = element.skuList;
         let hasIntersection = skulist && skulist.some(item => curskulist.includes(item));
@@ -759,7 +747,7 @@ const selectproperty = (index, type) => {
           productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {};
         }
       });
-      let nextdetailList1 = productinfo.value.normalPropertyList[index + 1].needinputlist;
+      let nextdetailList1 = nextProperty.needinputlist;
       nextdetailList1.forEach(element1 => {
         let skulist = element1.skuList;
         let hasIntersection = skulist && skulist.some(item => curskulist.includes(item));
@@ -770,12 +758,7 @@ const selectproperty = (index, type) => {
         }
       });
     } else {
-      let nextdetailList = productinfo.value.normalPropertyList[index + 1].detailList;
-      let nextselectedproperty = productinfo.value.normalPropertyList[index + 1]['selectedproperty'];
-      let nextselectedid = '-1';
-      if (nextselectedproperty) {
-        nextselectedid = nextselectedproperty.propertyDetailId;
-      }
+      let nextdetailList = nextProperty.detailList;
       nextdetailList.forEach(element => {
         let skulist = element.skuList;
         let hasIntersection = skulist && skulist.some(item => curskulist.includes(item));
@@ -807,21 +790,17 @@ const selectproperty = (index, type) => {
       needinputproperty = element;
     }
   });
-  if (needinputproperty) {
-    if (ischoose && !hasEmpty) {
-      getcustomprice(inputvalue);
-    }
-  } else {
-    if (ischoose) {
-      const skuLists = productinfo.value.normalPropertyList
-        .map(property => property.selectedproperty?.skuList)
-        .filter(list => Array.isArray(list) && list.length > 0);
-      if (skuLists.length === 0) return;
-      let innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)));
-      let firstsku = innersku[0];
-      if (firstsku) {
-        getskuprice(firstsku);
-      }
+  if (needinputproperty && ischoose && !hasEmpty) {
+    getcustomprice(inputvalue);
+  } else if (ischoose) {
+    const skuLists = productinfo.value.normalPropertyList
+      .map(property => property.selectedproperty?.skuList)
+      .filter(list => Array.isArray(list) && list.length > 0);
+    if (skuLists.length === 0) return;
+    let innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)));
+    let firstsku = innersku[0];
+    if (firstsku) {
+      getskuprice(firstsku);
     }
   }
 };
@@ -836,10 +815,9 @@ const getskuprice = async (sku) => {
     let skuinfo = lists[sku];
     skuprice.value = skuinfo.skuSpec.customPrice;
   } catch (error) {
+    console.error(error);
   }
 };
-
-const products = ref([]);
 
 const opencartloding = () => {
   cartloding.value = true;
@@ -915,10 +893,7 @@ const addtocart = async () => {
       }
       let variationList = productinfo.value.erpProduct.variationList;
       const targetProperty = productinfo.value.normalPropertyList.find(item => item.propertyNameShop === 'Shape');
-      let detailName = '';
-      if (targetProperty && targetProperty.selectedproperty) {
-        detailName = targetProperty.selectedproperty.detailName;
-      }
+      let detailName = targetProperty?.selectedproperty?.detailName || '';
       let createData = {
         productId: productid.value,
         productStyle: productinfo.value.erpProduct.productStyle,
@@ -930,11 +905,11 @@ const addtocart = async () => {
         createData[`edge${i + 1}`] = inputvalue[i] || 0;
       }
       try {
-        openorderloding();
+        opencartloding();
         let res = await erpTryToCreateSku(createData);
         selectsku = res.result.skuSpec.sku;
       } catch (e) {
-        closeorderloding();
+        closecartloding();
         const errormsg = JSON.parse(e.message || '{}');
         message.error(errormsg.enDesc || 'Create SKU failed');
         return;
@@ -961,7 +936,7 @@ const addtocart = async () => {
     closecartloding();
     cart.refreshCart();
   } catch (error) {
-    let errormsg = JSON.parse(error.message);
+    let errormsg = JSON.parse(error.message || '{}');
     closecartloding();
     message.error(errormsg.enDesc || 'failed, please try again');
   }
@@ -1042,10 +1017,7 @@ const createorder = async () => {
       }
       let variationList = productinfo.value.erpProduct.variationList;
       const targetProperty = productinfo.value.normalPropertyList.find(item => item.propertyNameShop === 'Shape');
-      let detailName = '';
-      if (targetProperty && targetProperty.selectedproperty) {
-        detailName = targetProperty.selectedproperty.detailName;
-      }
+      let detailName = targetProperty?.selectedproperty?.detailName || '';
       let createData = {
         productId: productid.value,
         productStyle: productinfo.value.erpProduct.productStyle,
@@ -1082,8 +1054,7 @@ const createorder = async () => {
     closeorderloding();
     router.push('/checkout?from=detail&sku=' + selectsku + '&number=' + quantity.value);
   } catch (error) {
-    console.log(error);
-    let errormsg = JSON.parse(error.message);
+    let errormsg = JSON.parse(error.message || '{}');
     closeorderloding();
     message.error(errormsg.enDesc || 'Failed');
   }
@@ -1103,7 +1074,7 @@ if (lastpage) {
   }
   const collectionMatch = decodedPath.match(/^\/collections\/[^/?#]+/);
   if (collectionMatch) {
-    lastLabel = collectionMatch[1];
+    lastLabel = collectionMatch[0].split('/')[2];
     lastTo = lastpage;
   }
   if (lastLabel && lastTo) {
@@ -1156,7 +1127,7 @@ const handleGetProudct = async () => {
         item.label = item.detailName;
         if (item.inputList) {
           let inputvalue = [];
-          item.inputList.forEach(element => {
+          item.inputList.forEach(() => {
             inputvalue.push('');
           });
           item.inputvalue = inputvalue;
@@ -1175,9 +1146,10 @@ const handleGetProudct = async () => {
     });
     productinfo.value.normalPropertyList[0].showType = true;
     mainImage.value = productinfo.value.erpProduct.mainPic;
-    await fetchComments(); // 加载评论数据
+    await fetchComments();
   } catch (error) {
     message.error('Failed to load product data');
+    console.error(error);
   } finally {
     isLoading.value = false;
     handleGetrelated();
@@ -1202,7 +1174,7 @@ const organizeproduct = () => {
             );
             item.customDetailList = sortedCustomDetailList;
           }
-          item.inputList.forEach(element => {
+          item.inputList.forEach(() => {
             inputvalue.push('');
           });
           item.inputvalue = inputvalue;
@@ -1221,7 +1193,7 @@ const organizeproduct = () => {
     });
     productinfo.value.normalPropertyList[0].showType = true;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     message.error('Failed to load product data');
   } finally {
     isLoading.value = false;
@@ -1248,11 +1220,10 @@ const changeinputvalue = (element, index, propertyindex) => {
   let inputList = [];
   if (element.isneedinput) {
     let needinputlist = element.needinputlist.filter(item => item.isactive);
-    let inputvalue = [];
     needinputlist.forEach((item, zindex) => {
       if (zindex + 2 == element.chooseindex) {
         detailName = item.detailName;
-        inputvalue = item.inputvalue;
+        let inputvalue = item.inputvalue;
         inputList = item.inputList;
         strresult = inputvalue.join("*");
       }
@@ -1267,12 +1238,12 @@ const changeinputvalue = (element, index, propertyindex) => {
   }
 };
 
-const getcustomprice = async () => {
+const getcustomprice = async (inputvalue) => {
   const propList = [];
   const sideMap = {};
   const shapeProperty = productinfo.value.normalPropertyList.find(p => p.propertyNameShop === 'Shape');
   const shape = shapeProperty?.selectedproperty?.detailName || '';
-  productinfo.value.normalPropertyList.forEach((property, index) => {
+  productinfo.value.normalPropertyList.forEach((property) => {
     if (!property.selectedproperty) return;
     const isCustomInput = property.isneedinput && property.chooseindex === 2;
     let detailName = property.selectedproperty.detailName;
@@ -1289,7 +1260,7 @@ const getcustomprice = async () => {
         sideMap[`side${idx + 1}`] = val;
         return {
           input: inputKey,
-          customPropValue: val
+          custom: val
         };
       });
     }
@@ -1335,11 +1306,6 @@ const changeshow = (index) => {
   });
 };
 
-const isBottomBarHidden = ref(true);
-const detailSectionRef = ref(null);
-const bottomBarRef = ref(null);
-const isshow = ref(true);
-
 const handleScroll = () => {
   if (bottomBarRef.value && detailSectionRef.value) {
     const rect1 = detailSectionRef.value.getBoundingClientRect();
@@ -1353,7 +1319,7 @@ const handleScroll = () => {
 };
 
 const getStarStatus = (starIndex) => {
-  if (!averageRating.value && averageRating.value !== 0) return 'empty'; // 防止 undefined
+  if (!averageRating.value && averageRating.value !== 0) return 'empty';
   const fullStars = Math.floor(averageRating.value);
   const decimalPart = averageRating.value - fullStars;
   if (starIndex <= fullStars) return 'full';
@@ -1362,20 +1328,24 @@ const getStarStatus = (starIndex) => {
   return 'empty';
 };
 
+const formatShanghaiToLocalDate = (shanghaiDate) => {
+  const date = new Date(shanghaiDate);
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+};
+
 const fetchComments = async () => {
   try {
-
     const groupRes = await getgroupComment({ productSpu: productinfo.value.erpProduct.productStyle });
     const result = groupRes.result;
 
     averageRating.value = result.averageRank || 0;
     totalReviews.value = result.total || 0;
     starPercentages.value = {
-      5: result.groupList.find(g => g.group === 5)?.percentage || 0,
-      4: result.groupList.find(g => g.group === 4)?.percentage || 0,
-      3: result.groupList.find(g => g.group === 3)?.percentage || 0,
-      2: result.groupList.find(g => g.group === 2)?.percentage || 0,
-      1: result.groupList.find(g => g.group === 1)?.percentage || 0
+      5: result.groupList.find((g) => g.group === 5)?.percentage || 0,
+      4: result.groupList.find((g) => g.group === 4)?.percentage || 0,
+      3: result.groupList.find((g) => g.group === 3)?.percentage || 0,
+      2: result.groupList.find((g) => g.group === 2)?.percentage || 0,
+      1: result.groupList.find((g) => g.group === 1)?.percentage || 0,
     };
     totalPages.value = Math.ceil(totalReviews.value / pageSize.value);
 
@@ -1383,25 +1353,29 @@ const fetchComments = async () => {
       pageNum: currentPage.value,
       pageSize: pageSize.value,
       productSpu: productinfo.value.erpProduct.productStyle,
-      needCount: true
+      needCount: true,
     });
-    reviews.value = rollRes.result.list.map(review => ({
+    reviews.value = rollRes.result.list.map((review) => ({
       name: review.fullName || 'Anonymous',
       date: formatShanghaiToLocalDate(review.commentDate),
       text: review.content || 'No content',
       pictureUrlList: review.pictureUrlList || [],
       videoUrlList: review.videoUrlList || [],
-      rating: review.rank || 1
+      rating: review.rank || 1,
+      previewVisible: false,
+      previewIndex: 0,
     }));
-    totalPages.value = Math.ceil((rollRes.result.total > 0 ? rollRes.result.total : reviews.value.length) / pageSize.value);
+    totalPages.value = Math.ceil(
+      (rollRes.result.total > 0 ? rollRes.result.total : reviews.value.length) / pageSize.value
+    );
     if (
       (!productinfo.value.erpProduct.remarks || productinfo.value.erpProduct.remarks.trim() === '') &&
       productinfo.value.printPropertyList.length === 0 &&
       reviews.value.length > 0
     ) {
-      tabindex.value = 3; // Switch to Reviews tab
+      tabindex.value = 3;
     } else if (reviews.value.length === 0 && tabindex.value === 3) {
-      tabindex.value = 1; // Reset to Basic Information if no reviews
+      tabindex.value = 1;
     }
     sortReviews();
   } catch (error) {
@@ -1435,33 +1409,94 @@ const sortReviews = () => {
     }
   });
 };
-const selectedMediaType = ref('image');
-const openImageModal = (media, type) => {
-  selectedImage.value = media;
-  selectedMediaType.value = type;
-  isImageModalOpen.value = true;
+
+const getMediaIndex = (review, index, type) => {
+  const mediaList = [
+    ...(review.pictureUrlList || []).map((url) => ({ url, type: 'image' })),
+    ...(review.videoUrlList || []).map((url) => ({ url, type: 'video' })),
+  ];
+  return type === 'image' ? index : (review.pictureUrlList?.length || 0) + index;
 };
 
-// Update closeImageModal to reset media type
+const selectReview = (review, index, type) => {
+  selectedReview.value = review;
+  mediaList.value = [
+    ...(review.pictureUrlList || []).map((url) => ({ url, type: 'image' })),
+    ...(review.videoUrlList || []).map((url) => ({ url, type: 'video' })),
+  ];
+  selectedMediaIndex.value = getMediaIndex(review, index, type);
+};
+
+const openImageModal = (media, type, review, index) => {
+  if (type === 'video') {
+    selectReview(review, index, type);
+    selectedImage.value = media;
+    selectedMediaType.value = type;
+    isImageModalOpen.value = true;
+  } else {
+    selectReview(review, index, type);
+  }
+};
+
+const prevMedia = () => {
+  if (selectedMediaIndex.value > 0 && selectedReview.value) {
+    selectedMediaIndex.value--;
+    const media = mediaList.value[selectedMediaIndex.value];
+    if (media.type === 'image') {
+      selectedReview.value.previewVisible = true;
+      selectedReview.value.previewIndex = selectedMediaIndex.value;
+      isImageModalOpen.value = false;
+    } else {
+      selectedImage.value = media.url;
+      selectedMediaType.value = media.type;
+      isImageModalOpen.value = true;
+    }
+  }
+};
+
+const nextMedia = () => {
+  if (selectedMediaIndex.value < mediaList.value.length - 1 && selectedReview.value) {
+    selectedMediaIndex.value++;
+    const media = mediaList.value[selectedMediaIndex.value];
+    if (media.type === 'image') {
+      selectedReview.value.previewVisible = true;
+      selectedReview.value.previewIndex = selectedMediaIndex.value;
+      isImageModalOpen.value = false;
+    } else {
+      selectedImage.value = media.url;
+      selectedMediaType.value = media.type;
+      isImageModalOpen.value = true;
+    }
+  }
+};
+
 const closeImageModal = () => {
   isImageModalOpen.value = false;
   selectedImage.value = '';
-  selectedMediaType.value = 'image'; // Reset to default
+  selectedMediaType.value = 'video';
+  mediaList.value = [];
+  selectedMediaIndex.value = 0;
+  if (selectedReview.value) {
+    selectedReview.value.previewVisible = false;
+    selectedReview.value.previewIndex = 0;
+    selectedReview.value = null;
+  }
 };
-
 
 const onImageError = (index, review) => {
   console.warn(`Image failed to load at index ${index} for review by ${review.name}`);
   if (review.pictureUrlList) {
-    review.pictureUrlList[index] = '/placeholder-image.jpg'; // Replace with a fallback image URL
+    review.pictureUrlList[index] = '/placeholder-image.jpg';
   }
 };
+
 const onVideoError = (index, review) => {
   console.warn(`Video failed to load at index ${index} for review by ${review.name}`);
   if (review.videoUrlList) {
-    review.videoUrlList[index] = '/placeholder-video.mp4'; // Replace with a fallback video URL or remove
+    review.videoUrlList[index] = '/placeholder-video.mp4';
   }
 };
+
 watch(() => route.query, () => {
   handleGetProudct();
 }, { deep: true });
@@ -1472,7 +1507,6 @@ watch(mainImageIndex, (newVal) => {
     mainImage.value = list[newVal].url;
   }
 });
-
 
 watch(sortOption, () => {
   sortReviews();
@@ -1595,7 +1629,6 @@ input[type="radio"]:checked:hover {
   color: #333;
 }
 
-/* 骨架屏动画 */
 @keyframes pulse {
   0% {
     background-color: #f0f0f0;
@@ -1614,19 +1647,16 @@ input[type="radio"]:checked:hover {
   animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* 修改 Select 组件激活时的边框颜色 */
-.ant-select-focused .ant-select-selector {
+:deep(.ant-select-focused .ant-select-selector) {
   border-color: #00c16a !important;
   box-shadow: 0 0 0 2px rgba(0, 193, 106, 0.2);
 }
 
-/* 仅针对 custom-select 类设置高度 */
 :deep(.custom-select.ant-select-single .ant-select-selector) {
   height: 28px !important;
   min-height: 28px !important;
 }
 
-/* 调整内部元素 */
 :deep(.custom-select.ant-select-single .ant-select-selection-item),
 :deep(.custom-select.ant-select-single .ant-select-selection-placeholder) {
   line-height: 28px !important;
@@ -1634,65 +1664,26 @@ input[type="radio"]:checked:hover {
   align-items: center;
 }
 
-::v-deep(.ant-input-number-input) {
+:deep(.ant-input-number-input) {
   outline: none !important;
   box-shadow: none !important;
   height: 28px !important;
 }
 
-/* 调试图标 */
 .icon-debug {
   border: 1px solid red;
   display: inline-block !important;
 }
 
-/* 响应式调整 */
-@media (max-width: 1024px) {
-  .reviews-stats {
-    flex-direction: column;
-  }
-
-  .summary {
-    text-align: left;
-  }
+:deep(.ant-image) {
+  display: block;
 }
 
-.video-thumbnail {
-  position: relative;
+:deep(.ant-image-img) {
   width: 64px;
-  /* Matches w-16 */
   height: 64px;
-  /* Matches h-16 */
-}
-
-/* Ensure play button is centered and visible */
-.video-thumbnail .play-icon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
-}
-
-/* Modal video styling */
-.modal-video {
-  width: 100%;
-  max-height: 80vh;
-  object-fit: contain;
-}
-
-/* Ensure modal content is centered */
-.modal-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Responsive adjustments */
-@media (max-width: 640px) {
-  .video-thumbnail {
-    width: 48px;
-    height: 48px;
-  }
+  object-fit: cover;
+  border-radius: 4px;
+  cursor: pointer;
 }
 </style>
