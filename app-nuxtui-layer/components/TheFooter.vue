@@ -61,9 +61,11 @@
           </NuxtLink>
           <NuxtLink to="/article/warranty-policy" class="block hover:text-primary mt-4 font-normal text-white/80">
             Warranty Policy</NuxtLink>
-          <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">Installation Guides
+          <NuxtLink to="/article/installation-guides" class="block hover:text-primary mt-4 font-normal text-white/80">
+            Installation Guides
           </NuxtLink>
-          <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">How to Measure</NuxtLink>
+          <NuxtLink to="/article/how-to-measure" class="block hover:text-primary mt-4 font-normal text-white/80">How to
+            Measure</NuxtLink>
           <NuxtLink to="/article/contact-us" class="block hover:text-primary mt-4 font-normal text-white/80">Contact Us
           </NuxtLink>
           <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">Request a Quote</NuxtLink>

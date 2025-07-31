@@ -4,17 +4,11 @@
 
         <div class="space-y-6">
             <div class="border border-gray-200 rounded-md p-4">
-                <p class="font-medium text-gray-800 mb-1">Q: Do you accept returns or exchanges?</p>
+                <p class="font-medium text-gray-800 mb-1">Q:Do you accept returns or exchanges?</p>
                 <p class="text-gray-600 leading-relaxed">
-                    A: Customized orders are non-returnable and non-exchangeable unless there is a quality issue.
-                </p>
-            </div>
-
-            <div class="border border-gray-200 rounded-md p-4">
-                <p class="font-medium text-gray-800 mb-1">Q: How can I request a return or refund?</p>
-                <p class="text-gray-600 leading-relaxed">
-                    A: Please contact our customer service via email or phone within 7 days of receiving the product.
-                    Orders that meet the return criteria will be refunded after the return is confirmed.
+                    A:If there is any quality problem with the product, we will refund or exchange it for you.
+                    Otherwise,
+                    customized products are not refundable or exchangeable.
                 </p>
             </div>
 
@@ -27,6 +21,7 @@
                     interests are protected.
                 </p>
             </div>
+
         </div>
     </div>
 </template>

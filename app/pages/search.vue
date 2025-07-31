@@ -6,7 +6,7 @@
             <!-- Main Content -->
             <div class="container mx-auto px-6 mt-6">
                 <!-- Filters -->
-                <div class="sticky [top:122px] bg-white z-10 flex justify-between items-center mb-8 py-4">
+                <div class="sticky [top:108px] bg-white z-10 flex justify-between items-center mb-8 py-4">
                     <div class="flex gap-6">
 
                     </div>
