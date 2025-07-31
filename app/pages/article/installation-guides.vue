@@ -1,7 +1,7 @@
 <template>
     <div class="bg-white text-gray-800">
         <!-- 页面头部 -->
-        <section class="bg-gradient-to-r from-green-600 to-green-400 text-white py-12 px-6 text-center">
+        <section class="py-12 px-6 text-center">
             <h1 class="text-4xl font-bold mb-4">Installation Guides</h1>
             <p class="text-lg max-w-2xl mx-auto">
                 Learn how to easily and securely install your shade sail for maximum performance and durability.
@@ -13,7 +13,7 @@
             <!-- 1. Versatile Shade Sail Installation -->
             <div class="flex flex-col md:flex-row items-start gap-6">
                 <div
-                    class="flex-shrink-0 bg-green-100 text-green-600 rounded-lg h-12 w-12 flex items-center justify-center text-xl font-bold">
+                    class="flex-shrink-0 bg-primary-100 text-primary-600 rounded-lg h-12 w-12 flex items-center justify-center text-xl font-bold">
                     1</div>
                 <div>
                     <h2 class="text-2xl font-semibold mb-3">Versatile Shade Sail Installation for Any Space</h2>
@@ -28,7 +28,7 @@
             <!-- 2. Secure Anchoring Solutions -->
             <div class="flex flex-col md:flex-row items-start gap-6">
                 <div
-                    class="flex-shrink-0 bg-green-100 text-green-600 rounded-lg h-12 w-12 flex items-center justify-center text-xl font-bold">
+                    class="flex-shrink-0 bg-primary-100 text-primary-600 rounded-lg h-12 w-12 flex items-center justify-center text-xl font-bold">
                     2</div>
                 <div>
                     <h2 class="text-2xl font-semibold mb-3">Secure Anchoring Solutions</h2>
@@ -42,7 +42,7 @@
             <!-- 3. Critical Drainage Angle -->
             <div class="flex flex-col md:flex-row items-start gap-6">
                 <div
-                    class="flex-shrink-0 bg-green-100 text-green-600 rounded-lg h-12 w-12 flex items-center justify-center text-xl font-bold">
+                    class="flex-shrink-0 bg-primary-100 text-primary-600 rounded-lg h-12 w-12 flex items-center justify-center text-xl font-bold">
                     3</div>
                 <div>
                     <h2 class="text-2xl font-semibold mb-3">Critical Drainage Angle</h2>
@@ -56,7 +56,7 @@
             <!-- 4. Tension Matters -->
             <div class="flex flex-col md:flex-row items-start gap-6">
                 <div
-                    class="flex-shrink-0 bg-green-100 text-green-600 rounded-lg h-12 w-12 flex items-center justify-center text-xl font-bold">
+                    class="flex-shrink-0 bg-primary-100 text-primary-600 rounded-lg h-12 w-12 flex items-center justify-center text-xl font-bold">
                     4</div>
                 <div>
                     <h2 class="text-2xl font-semibold mb-3">Tension Matters</h2>
