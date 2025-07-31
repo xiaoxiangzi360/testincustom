@@ -120,8 +120,31 @@ export const useAuth = () => {
             if (response.code == 0) {
                 token.value = response.result.token
                 userinfo.value = JSON.stringify(response.result.user)
+                return response
+
+            } else {
+                navigateTo('/login')
             }
-            return response
+        } catch (error) {
+
+            throw error
+        }
+    }
+
+    const facebookLogin = async (params) => {
+        try {
+            const query = new URLSearchParams(params).toString()
+            const response = await $api(`/user/oauth/facebook/facebookLogin?${query}`, {
+                method: 'GET',
+            })
+            if (response.code == 0) {
+                token.value = response.result.token
+                userinfo.value = JSON.stringify(response.result.user)
+                return response
+
+            } else {
+                navigateTo('/login')
+            }
         } catch (error) {
 
             throw error
@@ -134,5 +157,5 @@ export const useAuth = () => {
         navigateTo('/login') // 跳转到登录页
     }
 
-    return { login, logout, register, sendrepassword, updatepassword, token, createContactUs, googleLogin }
+    return { login, logout, register, sendrepassword, updatepassword, token, createContactUs, googleLogin, facebookLogin }
 }

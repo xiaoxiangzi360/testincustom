@@ -16,6 +16,10 @@ definePageMeta({
   icon: 'i-mdi-home',
 })
 
+const categorybanner = ref('')
+const categorytitle = ref('')
+const categorydesc = ref('')
+const bannerLoading = ref(true)   // ✅ 背景图骨架屏状态
 const capitalize = (s) => (s && s[0].toUpperCase() + s.slice(1)) || ''
 
 useHead({
@@ -74,7 +78,7 @@ const selected = ref('')
 const products = ref([])
 const loading = ref(false)
 
-const { getUserProductRollPage } = ProductAuth()
+const { getUserProductRollPage, getProductCatalogById } = ProductAuth()
 const router = useRouter()
 
 const breadcrumbLinks = [
@@ -114,12 +118,43 @@ const getlistlist = async () => {
   }
 }
 
+const getcateinfo = async () => {
+  try {
+    const parmes = {
+      id: cateid,
+    }
+
+    const res = await getProductCatalogById(parmes)
+    let result = res.result
+    if (result) {
+      categorybanner.value = result.rootPictureUrl
+      categorytitle.value = result.rootPictureTitle
+      categorydesc.value = result.rootPictureContent
+    }
+  } catch (error) {
+    console.error('Load catenfo failed:', error)
+  }
+}
+
 getlistlist()
+getcateinfo()
+
+// ✅ 监听背景图加载
+watch(categorybanner, () => {
+  if (categorybanner.value) {
+    const img = new Image()
+    img.src = categorybanner.value
+    img.onload = () => {
+      bannerLoading.value = false
+    }
+  }
+})
 </script>
 
 <template>
   <div class="bg-white">
     <div class="max-row py-8">
+      <!-- 面包屑 -->
       <UBreadcrumb divider=">" :links="breadcrumbLinks"
         class="mb-6 text-blackcolor custom-breadcrumb text-lg sm:text-2xl" :ui="{
           base: 'hover:underline',
@@ -129,10 +164,13 @@ getlistlist()
         }" />
 
       <!-- Hero Section -->
-      <div class="relative h-[180px] sm:h-[300px] overflow-hidden">
+      <div class="relative h-[180px] sm:h-[300px] overflow-hidden rounded-lg">
+        <!-- ✅ 骨架屏统一样式 -->
+        <div v-if="bannerLoading" class="absolute inset-0 bg-gray-200 rounded-lg animate-pulse"></div>
+
         <!-- 背景图 -->
-        <div class="absolute inset-0">
-          <NuxtImg src="/images/shades.jpg" class="w-full h-full object-cover object-center sm:object-top"
+        <div v-else class="absolute inset-0">
+          <NuxtImg :src="categorybanner" class="w-full h-full object-cover object-center sm:object-top rounded-lg"
             alt="hero background" />
         </div>
 
@@ -141,14 +179,13 @@ getlistlist()
           class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 h-full flex flex-col justify-center items-center sm:items-start text-center sm:text-left"
           style="text-shadow: 0px 2px 4px rgba(34,34,34,0.6);">
           <h1 class="text-2xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 leading-snug">
-            Shade Solutions
+            {{ categorytitle }}
           </h1>
           <p class="text-sm sm:text-xl text-white max-w-md sm:max-w-none">
-            Transform Your Outdoor Space with Premium Sun Protection
+            {{ categorydesc }}
           </p>
         </div>
       </div>
-
 
       <!-- Main Content -->
       <div class="container mx-auto px-4 sm:px-6 mt-12">
@@ -181,12 +218,12 @@ getlistlist()
             <div class="text-gray-500 text-sm">Loading products...</div>
           </div>
 
-          <!-- Skeleton 卡片 -->
+          <!-- ✅ Skeleton 卡片统一样式 -->
           <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
             <div v-for="n in 4" :key="n" class="bg-white rounded-lg shadow p-4">
-              <div class="h-48 bg-gray-200 rounded w-full mb-4 animate-pulse"></div>
-              <div class="h-4 bg-gray-200 rounded w-3/4 mb-2 animate-pulse"></div>
-              <div class="h-3 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+              <div class="h-48 bg-gray-200 rounded-lg w-full mb-4 animate-pulse"></div>
+              <div class="h-4 bg-gray-200 rounded-lg w-3/4 mb-2 animate-pulse"></div>
+              <div class="h-3 bg-gray-200 rounded-lg w-1/2 animate-pulse"></div>
             </div>
           </div>
 

@@ -703,12 +703,23 @@ const increment = () => {
 const decrement = () => {
   if (quantity.value > 1) quantity.value--;
 };
+function getCatalogId(arr) {
+  if (!Array.isArray(arr) || arr.length === 0) return '';
 
+  if (arr.length >= 2) {
+    return arr[1]; // 取第二个值
+  } else {
+    return arr[0]; // 只有一个值时取第一个
+  }
+}
 const handleGetrelated = async () => {
   try {
+    let catalogIdPathList = productinfo.value.catalogIdPathList
+    let recommendcateid = getCatalogId(catalogIdPathList)
     let parmes = {
-      catalogId: productinfo.value.erpProduct.catalogId,
-      size: 5
+      catalogId: recommendcateid,
+      size: 5,
+      excludeProductId: productinfo.value.id
     };
     let res = await randomRecommendationProductByCatalogId(parmes);
     products.value = res.result;

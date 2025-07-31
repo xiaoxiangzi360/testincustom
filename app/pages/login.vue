@@ -32,7 +32,7 @@
                     <UInput :ui="{ base: 'dark:!bg-white dark:!text-gray-900' }" v-model="formState.email" size="xl"
                         placeholder="Your email address" type="email" @blur="validateEmail" />
                     <span v-if="formErrors.email" class="text-red-500 text-sm mb-2">{{ formErrors.email
-                    }}</span>
+                        }}</span>
                 </UFormGroup>
 
                 <UFormGroup name="password" required class="mb-4">
@@ -48,7 +48,7 @@
                         </template>
                     </UInput>
                     <span v-if="formErrors.password" class="text-red-500 text-sm mb-2">{{ formErrors.password
-                    }}</span>
+                        }}</span>
                 </UFormGroup>
 
                 <div class="flex items-center justify-between w-full mb-6 text-sm text-gray-600">
@@ -232,6 +232,12 @@ const socialLogin = (provider) => {
 
     if ('google' == provider) {
         window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=894615293806-08cs1bithgteb9acpa6v471ru0n2lrqk.apps.googleusercontent.com&redirect_uri=https://www.incustom.com/googleauthorize&response_type=code&scope=openid%20email%20profile'
+    }
+    if ('facebook' == provider) {
+        window.location.href = 'https://www.facebook.com/v23.0/dialog/oauth?client_id=946458614020677&redirect_uri=https://www.incustom.com/facebookauthorize&state=rockAyl&scope=public_profile%20email'
+    }
+    if ('apple' == provider) {
+        message.warning('Not supported yet')
     }
     // 这里可以添加实际的社交登录逻辑
 };

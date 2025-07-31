@@ -148,5 +148,19 @@ export const ProductAuth = () => {
       throw error
     }
   }
-  return { getProductById, randomRecommendationProductByCatalogId, getUserProductRollPage, getmapProductByProductSkuList, customizedProductPriceTrialCalculation, erpTryToCreateSku, trialPriceCalculationBySpuV2, getproductSearch, productSearchRecommendation, getlistOnlineCatalogTree, trialPriceCalculationBySpuV3 }
+
+  const getProductCatalogById = async (params) => {
+    try {
+      const query = new URLSearchParams(params).toString()
+      const response = await $api(`/product/product/getProductCatalogById?${query}`, {
+        method: 'GET',
+      })
+
+      return response
+    } catch (error) {
+
+      throw error
+    }
+  }
+  return { getProductById, randomRecommendationProductByCatalogId, getUserProductRollPage, getmapProductByProductSkuList, customizedProductPriceTrialCalculation, erpTryToCreateSku, trialPriceCalculationBySpuV2, getproductSearch, productSearchRecommendation, getlistOnlineCatalogTree, trialPriceCalculationBySpuV3, getProductCatalogById }
 }

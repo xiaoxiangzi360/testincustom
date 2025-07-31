@@ -4,14 +4,14 @@ import { useRouter, useRoute } from 'vue-router'
 
 definePageMeta({
     layout: 'blank',
-    title: 'googleauthorize',
-    description: 'Incustom googleauthorize',
+    title: 'facebookauthorize',
+    description: 'Incustom facebookauthorize',
     navOrder: 1,
     type: 'primary',
     icon: 'i-mdi-home',
 })
 
-const { googleLogin } = useAuth()
+const { facebookLogin } = useAuth()
 const router = useRouter()
 const route = useRoute()
 
@@ -19,13 +19,12 @@ onMounted(async () => {
     const code = route.query.code as string
 
     if (!code) {
-        router.replace('/login') // 如果没有 code，返回首页或登录页
+        router.replace('/login')
         return
     }
 
     try {
-        // 传递 code 给后端
-        const res = await googleLogin({ code })
+        const res = await facebookLogin({ code })
         navigateTo('/');
 
     } catch (error) {
@@ -45,6 +44,5 @@ onMounted(async () => {
         </div>
     </div>
 </template>
-
 
 <style scoped></style>
