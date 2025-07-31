@@ -27,15 +27,8 @@ onMounted(async () => {
     try {
         // 传递 code 给后端
         const res = await googleLogin({ code })
-        if (res && res.success) {
-            // 登录成功后处理，比如保存token或跳转首页
-            // 可根据返回值逻辑调整
-            navigateTo('/');
+        navigateTo('/');
 
-        } else {
-            console.error('Google 登录失败:', res?.message)
-            router.replace('/login')
-        }
     } catch (error) {
         console.error('Google 登录接口错误:', error)
         router.replace('/login')
