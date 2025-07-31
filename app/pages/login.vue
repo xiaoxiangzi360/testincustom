@@ -229,12 +229,10 @@ const handleLogin = async () => {
 
 // 处理社交登录（示例）
 const socialLogin = (provider) => {
-    toast.add({
-        title: 'Info',
-        description: `Logging in with ${provider}... (Not implemented)`,
-        color: 'blue',
-        timeout: 2000,
-    });
+
+    if ('google' == provider) {
+        window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=894615293806-08cs1bithgteb9acpa6v471ru0n2lrqk.apps.googleusercontent.com&redirect_uri=https://www.incustom.com/googleauthorize&response_type=code&scope=openid%20email%20profile'
+    }
     // 这里可以添加实际的社交登录逻辑
 };
 

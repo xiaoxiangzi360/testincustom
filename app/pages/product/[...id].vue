@@ -144,7 +144,7 @@
               <div class="mb-4 border-b border-b-[#C8C8C8] pb-4"
                 v-for="(property, index) in productinfo.normalPropertyList" :key="index">
                 <div class="flex justify-between items-center cursor-pointer" @click="changeshow(index)">
-                  <h2 class="font-bold text-lg flex items-center mb-0">
+                  <h2 class="font-normal text-base flex items-center mb-0">
                     <UBadge color="black" variant="solid" class="mr-3 w-6 h-6"
                       :ui="{ color: { black: { solid: 'dark:bg-gray-900 dark:text-white' } } }">{{ index + 1 }}</UBadge>
                     <span class="truncate-1-lines">{{ property.propertyNameShop }}</span>

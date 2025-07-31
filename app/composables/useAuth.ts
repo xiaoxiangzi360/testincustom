@@ -111,11 +111,28 @@ export const useAuth = () => {
         }
     }
 
+    const googleLogin = async (params) => {
+        try {
+            const query = new URLSearchParams(params).toString()
+            const response = await $api(`/user/oauth/google/googleLogin?${query}`, {
+                method: 'GET',
+            })
+            if (response.code == 0) {
+                token.value = response.result.token
+                userinfo.value = JSON.stringify(response.result.user)
+            }
+            return response
+        } catch (error) {
+
+            throw error
+        }
+    }
+
     // ✅ 退出登录
     const logout = () => {
         token.value = null // 清除 token
         navigateTo('/login') // 跳转到登录页
     }
 
-    return { login, logout, register, sendrepassword, updatepassword, token, createContactUs }
+    return { login, logout, register, sendrepassword, updatepassword, token, createContactUs, googleLogin }
 }
