@@ -146,7 +146,7 @@
                 v-for="(property, index) in productinfo.normalPropertyList" :key="index">
                 <div class="flex justify-between items-center cursor-pointer" @click="changeshow(index)">
                   <h2 class="font-normal text-base flex items-center mb-0">
-                    <UBadge color="black" variant="solid" class="mr-3 w-6 h-6"
+                    <UBadge color="black" variant="solid" class="mr-4 w-6 h-6"
                       :ui="{ color: { black: { solid: 'dark:bg-gray-900 dark:text-white' } } }">{{ index + 1 }}</UBadge>
                     <span class="truncate-1-lines">{{ property.propertyNameShop }}</span>
                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" placement="topLeft"
@@ -167,7 +167,7 @@
                 <div :class="[
                   'transition-all duration-300 ease-in-out grid gap-2',
                   property.showType ? 'max-h-[500px] mt-4' : 'overflow-hidden max-h-0',
-                  !property.isneedinput && property.productPropertyDetailType != 'text' ? 'grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12' : ''
+                  !property.isneedinput && property.productPropertyDetailType != 'text' ? 'grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10' : ''
                 ]">
                   <div v-if="!property.isneedinput && property.productPropertyDetailType != 'text'"
                     v-for="(type, propertyindex) in property.detailList" :key="type.propertyDetailId"
@@ -175,17 +175,26 @@
                       'p-1 pt-0 rounded-xl flex flex-col items-center transition-all',
                       type.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                     ]">
-
                     <Tooltip :title="type.detailName" placement="bottom">
                       <div :class="[
-                        'w-full aspect-square overflow-hidden',
-                        property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'border border-primary' : ''
+                        'w-full aspect-square overflow-hidden relative hover:border hover:border-primary p-1', // Added 'relative' for positioning the triangle
+                        property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'rounded border border-primary' : ''
                       ]" v-if="type.imageLink">
-                        <img :src="type.imageLink" class="w-full h-full object-contain" />
+                        <img :src="type.imageLink" class="w-full h-full object-contain rounded" />
+                        <!-- Add solid triangular checkmark when selected -->
+                        <div
+                          v-if="property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId"
+                          class="absolute bottom-0 right-0 w-6 h-6">
+                          <div class="absolute w-6 h-6 text-white"
+                            style="clip-path: polygon(100% 100%, 0 100%, 100% 0); background-color: #00B2E3;">
+                            <UIcon name="i-mdi:check" class="text-white w-4 h-4 absolute"
+                              style="bottom: 0px; right: 0px;" width="16" height="16" />
+                          </div>
+                        </div>
                       </div>
                     </Tooltip>
-
                   </div>
+
 
                   <div class="w-full flex flex-wrap max-h-[160px] overflow-y-auto"
                     v-if="!property.isneedinput && property.productPropertyDetailType == 'text'">
@@ -195,17 +204,37 @@
                         type.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                       ]">
                       <div :class="[
-                        'w-full aspect-square overflow-hidden',
-                        property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'border border-primary' : ''
+                        'w-full aspect-square overflow-hidden relative hover:border hover:border-primary', // Added 'relative' for positioning the triangle
+                        property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'bg-primary-50 border border-primary' : ''
                       ]" v-if="type.imageLink">
                         <img :src="type.imageLink" class="w-full h-full object-cover" />
+                        <!-- Add solid triangular checkmark when selected -->
+                        <div
+                          v-if="property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId"
+                          class="absolute bottom-0 right-0 w-6 h-6">
+                          <div class="absolute w-6 h-6"
+                            style="clip-path: polygon(100% 100%, 0 100%, 100% 0); background-color: #00B2E3;">
+                            <UIcon name="i-mdi:check" class="text-white w-4 h-4"
+                              style="position: absolute; bottom: 2px; right: 2px;" width="16" height="16" />
+                          </div>
+                        </div>
                       </div>
                       <div :class="[
-                        'p-2 w-full text-sm',
+                        'p-2 w-full text-sm relative hover:border hover:border-primary hover:text-primary', // Added 'relative' for positioning the triangle when no image
                         !type.imageLink ? 'border border-customblack w-full rounded-md' : '',
-                        !type.imageLink && property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'border border-primary w-full' : '',
-                      ]">
+                        !type.imageLink && property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'text-primary bg-primary-50 border border-primary w-full' : '',
+                      ]" v-if="!type.imageLink">
                         <div class="truncate-1-lines text-center">{{ type.detailName }}</div>
+                        <!-- Add solid triangular checkmark when selected and no image -->
+                        <div
+                          v-if="property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId"
+                          class="absolute bottom-0 right-0 w-6 h-6 text-white">
+                          <div class="absolute w-6 h-6"
+                            style="clip-path: polygon(100% 100%, 0 100%, 100% 0); background-color: #00B2E3;">
+                            <UIcon name="i-mdi:check" class="text-white w-4 h-4"
+                              style="position: absolute; bottom: 0px; right: 0px;" width="16" height="16" />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -256,7 +285,8 @@
                               <template v-else>
                                 <input type="number" v-model="needinput.inputvalue[pindex]"
                                   @change="changeinputvalue(property, needindex + 2, index)"
-                                  class="rounded p-1 text-sm w-28" :min="0" :max="100" step="1" />
+                                  class="rounded p-1 text-sm w-28 border-gray-300 focus:border-[#00B2E3] focus:ring-1 focus:ring-[#00B2E3]"
+                                  :min="0" :max="100" step="1" />
                               </template>
                             </div>
                           </div>
@@ -270,7 +300,7 @@
                             <span class="font-bold text-sm">Standard size:</span>
                           </label>
                           <Select :value="property.selectedproperty?.propertyDetailId" style="width: 200px"
-                            :options="property.noneedinputlist"
+                            class="myselect" :options="property.noneedinputlist"
                             :field-names="{ label: 'detailName', value: 'propertyDetailId' }"
                             placeholder="Please select attributes" show-search :filter-option="customFilter"
                             @change="val => onChange(val, property, index)" option-label-prop="label">
@@ -488,14 +518,12 @@
 
               <!-- Pagination -->
               <div class="flex justify-between mt-6 items-center">
-                <UButton :disabled="currentPage === 1" @click="prevPage" color="gray" variant="outline"
-                  :ui="{ rounded: 'rounded' }">
+                <Button :disabled="currentPage === 1" @click="prevPage" class="custom-btn">
                   Previous
-                </UButton>
-                <UButton :disabled="currentPage === totalPages" @click="nextPage" color="gray" variant="outline"
-                  :ui="{ rounded: 'rounded' }">
+                </Button>
+                <Button :disabled="currentPage === totalPages" @click="nextPage" class="custom-btn">
                   Next
-                </UButton>
+                </Button>
               </div>
             </div>
           </div>
@@ -588,7 +616,7 @@ import 'swiper/css/navigation';
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation } from 'swiper/modules';
 import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
-import { message, Tooltip, Select, InputNumber } from 'ant-design-vue';
+import { message, Tooltip, Select, InputNumber, Button } from 'ant-design-vue';
 import { useCartStore } from '@/stores/cart';
 import { useRouter, useRoute } from 'vue-router';
 const { getProductById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV3, erpTryToCreateSku, getmapProductByProductSkuList } = ProductAuth();
@@ -1582,8 +1610,8 @@ input[type="radio"] {
 }
 
 input[type="radio"]:checked {
-  background-color: #222;
-  border-color: #222;
+  background-color: #00B2E3;
+  border-color: #00B2E3;
 }
 
 input[type="radio"]:checked::after {
@@ -1599,20 +1627,26 @@ input[type="radio"]:checked::after {
 }
 
 input[type="radio"]:focus-visible {
-  outline: 2px solid #222;
-  background-color: #222;
+  outline: 2px solid #00B2E3;
+  background-color: #00B2E3;
   outline-offset: 2px;
 }
 
 input[type="radio"]:focus {
   outline: none;
   box-shadow: none;
-  background-color: #222;
+  background-color: #00B2E3;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  box-shadow: none;
+  background-color: #00B2E3;
 }
 
 input[type="radio"]:checked:focus,
 input[type="radio"]:checked:hover {
-  background-color: #222;
+  background-color: #00B2E3;
 }
 
 [type='text']:focus {
@@ -1695,5 +1729,61 @@ input[type="radio"]:checked:hover {
   object-fit: cover;
   border-radius: 4px;
   cursor: pointer;
+}
+
+:deep(.ant-btn-default.custom-btn:not(:disabled):hover) {
+  color: #00B2E3 !important;
+  /* 自定义文字颜色 */
+  border-color: #00B2E3 !important;
+  /* 自定义边框颜色 */
+}
+
+.triangle-checkmark {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background-color: #00B2E3;
+  clip-path: polygon(100% 100%, 0 100%, 100% 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:deep(select:focus),
+:deep(textarea:focus) {
+  outline: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+:deep(input[type='search']:focus) {
+  outline: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  -webkit-appearance: none !important;
+}
+
+:deep(.ant-input-affix-wrapper-focused) {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+:deep(.ant-select-focused:not(.ant-select-disabled):not(.ant-select-customize-input) .ant-select-selector) {
+  border-color: #00B2E3 !important;
+  box-shadow: 0 0 0 0px #00B2E3 !important;
+}
+
+.ant-select-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background-color: #ff6600 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+
+:deep(.ant-select-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled)) {
+  background-color: #ff6600 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
 }
 </style>
