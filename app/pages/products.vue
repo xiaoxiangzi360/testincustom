@@ -224,7 +224,7 @@ onUnmounted(() => {
                                     class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                                     style="aspect-ratio: 1 / 1;" />
                             </div>
-                            <div class="p-2 sm:p-4">
+                            <div>
                                 <h3 class="text-xs sm:text-sm mb-1 sm:mb-2 text-customblack mt-2 sm:mt-3 line-clamp-2 cursor-default font-normal"
                                     :title="product.erpProduct.productEnglishName">
                                     {{ product.erpProduct.productEnglishName }}

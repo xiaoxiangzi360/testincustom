@@ -136,11 +136,12 @@
                 {{ productinfo.erpProduct.productEnglishName }}
               </h1>
             </div>
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 mt-7">
+            <div
+              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 pb-4 mt-4 border-b border-b-[#C8C8C8]">
               <div class="text-xl sm:text-xl font-medium text-primary">${{ skuprice }}</div>
             </div>
             <!-- Section 1: THE TYPE -->
-            <div v-if="productinfo.normalPropertyList" class="mt-12">
+            <div v-if="productinfo.normalPropertyList">
               <div class="mb-4 border-b border-b-[#C8C8C8] pb-4"
                 v-for="(property, index) in productinfo.normalPropertyList" :key="index">
                 <div class="flex justify-between items-center cursor-pointer" @click="changeshow(index)">
@@ -164,9 +165,9 @@
                 </div>
 
                 <div :class="[
-                  'transition-all duration-300 ease-in-out grid gap-4',
+                  'transition-all duration-300 ease-in-out grid gap-2',
                   property.showType ? 'max-h-[500px] mt-4' : 'overflow-hidden max-h-0',
-                  !property.isneedinput && property.productPropertyDetailType != 'text' ? 'grid-cols-5 sm:grid-cols-6' : ''
+                  !property.isneedinput && property.productPropertyDetailType != 'text' ? 'grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12' : ''
                 ]">
                   <div v-if="!property.isneedinput && property.productPropertyDetailType != 'text'"
                     v-for="(type, propertyindex) in property.detailList" :key="type.propertyDetailId"
@@ -174,20 +175,18 @@
                       'p-1 pt-0 rounded-xl flex flex-col items-center transition-all',
                       type.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                     ]">
-                    <div :class="[
-                      'w-full aspect-square overflow-hidden',
-                      property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'border border-primary' : ''
-                    ]" v-if="type.imageLink">
-                      <img :src="type.imageLink" class="w-full h-full object-contain" />
-                    </div>
-                    <div :class="[
-                      'py-2 w-full text-sm',
-                      !type.imageLink ? 'border border-customblack w-full rounded-md' : '',
-                      !type.imageLink && property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'border border-primary w-full' : '',
-                    ]">
-                      <div class="truncate-2-lines text-center">{{ type.detailName }}</div>
-                    </div>
+
+                    <Tooltip :title="type.detailName" placement="bottom">
+                      <div :class="[
+                        'w-full aspect-square overflow-hidden',
+                        property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'border border-primary' : ''
+                      ]" v-if="type.imageLink">
+                        <img :src="type.imageLink" class="w-full h-full object-contain" />
+                      </div>
+                    </Tooltip>
+
                   </div>
+
                   <div class="w-full flex flex-wrap max-h-[160px] overflow-y-auto"
                     v-if="!property.isneedinput && property.productPropertyDetailType == 'text'">
                     <div v-for="(type, propertyindex) in property.detailList" :key="type.propertyDetailId"
@@ -320,8 +319,8 @@
               </div>
             </div>
 
-            <div class="border-b border-b-[#C8C8C8]">
-              <div class="w-full mx-auto bg-white py-6 sm:py-8 rounded-md">
+            <div>
+              <div class="w-full mx-auto bg-white rounded-md">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <span class="font-semibold text-base sm:text-lg">Quantity</span>
                   <div class="flex items-center rounded px-2">
@@ -334,13 +333,13 @@
                     <span class="ml-2 text-base sm:text-lg">Panels</span>
                   </div>
                 </div>
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-6 sm:mt-8">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4">
                   <span class="font-semibold text-base sm:text-lg">Total price</span>
                   <div class="flex items-center flex-wrap gap-2">
                     <span class="text-base sm:text-lg font-bold text-primary">${{ totalPrice.toFixed(2) }}</span>
                   </div>
                 </div>
-                <div class="flex flex-col sm:flex-row gap-4 mt-6 sm:mt-8">
+                <div class="flex flex-col sm:flex-row gap-4 mt-4">
                   <UButton class="w-full sm:flex-1 flex items-center justify-center rounded-md text-white font-normal"
                     color="primary" variant="solid" size="xl" :loading="orderloding" @click="createorder">
                     Order Now
@@ -505,7 +504,7 @@
 
       <!-- 推荐产品部分 -->
       <div class="mt-12 pb-4" v-if="products.length > 0">
-        <h1 class="text-lg font-normal mb-8">Recommended products</h1>
+        <h1 class="text-lg font-semibold mb-8">Recommended products</h1>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-12">
           <div v-for="(product, index) in products" :key="index"
             @click="checkdetail(product.id, product.erpProduct.productEnglishName)"
