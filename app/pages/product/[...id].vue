@@ -137,12 +137,12 @@
               </h1>
             </div>
             <div
-              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 pb-4 mt-4 border-b border-b-[#C8C8C8]">
+              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 pb-4 mt-4 border-b border-b-[#D1D1D1]">
               <div class="text-xl sm:text-xl font-medium text-primary">${{ skuprice }}</div>
             </div>
             <!-- Section 1: THE TYPE -->
             <div v-if="productinfo.normalPropertyList">
-              <div class="mb-4 border-b border-b-[#C8C8C8] pb-4"
+              <div class="mb-4 border-b border-b-[#D1D1D1] pb-4"
                 v-for="(property, index) in productinfo.normalPropertyList" :key="index">
                 <div class="flex justify-between items-center cursor-pointer" @click="changeshow(index)">
                   <h2 class="font-normal text-base flex items-center mb-0">
@@ -152,7 +152,7 @@
                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" placement="topLeft"
                       v-if="property.desc" :title="property.desc"
                       :overlayStyle="{ maxWidth: '330px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
-                      <img src="/question.png" class="w-6 h-6 ml-2">
+                      <img src="/question.png" class="w-4 h-4 ml-2">
                     </Tooltip>
                   </h2>
                   <div class="flex items-center">
@@ -184,11 +184,11 @@
                         <!-- Add solid triangular checkmark when selected -->
                         <div
                           v-if="property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId"
-                          class="absolute bottom-0 right-0 w-6 h-6">
-                          <div class="absolute w-6 h-6 text-white"
+                          class="absolute bottom-0 right-0 w-5 h-5">
+                          <div class="absolute w-5 h-5 text-white"
                             style="clip-path: polygon(100% 100%, 0 100%, 100% 0); background-color: #00B2E3;">
                             <UIcon name="i-mdi:check" class="text-white w-4 h-4 absolute"
-                              style="bottom: 0px; right: 0px;" width="16" height="16" />
+                              style="bottom: 0px; right: 0px;" width="12" height="12" />
                           </div>
                         </div>
                       </div>
@@ -200,7 +200,7 @@
                     v-if="!property.isneedinput && property.productPropertyDetailType == 'text'">
                     <div v-for="(type, propertyindex) in property.detailList" :key="type.propertyDetailId"
                       @click="selectproperty(index, type)" :class="[
-                        'p-2 rounded-xl flex flex-col items-center transition-all max-w-[33.3333%] min-w-[20%]',
+                        'p-2 rounded-xl flex flex-col items-center transition-all max-w-[33.3333%] min-w-[16.6%]',
                         type.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                       ]">
                       <div :class="[
@@ -214,8 +214,8 @@
                           class="absolute bottom-0 right-0 w-6 h-6">
                           <div class="absolute w-6 h-6"
                             style="clip-path: polygon(100% 100%, 0 100%, 100% 0); background-color: #00B2E3;">
-                            <UIcon name="i-mdi:check" class="text-white w-4 h-4"
-                              style="position: absolute; bottom: 2px; right: 2px;" width="16" height="16" />
+                            <UIcon name="i-mdi:check" class="text-white w-3 h-3"
+                              style="position: absolute; bottom: 2px; right: 2px;" width="12" height="12" />
                           </div>
                         </div>
                       </div>
@@ -228,11 +228,11 @@
                         <!-- Add solid triangular checkmark when selected and no image -->
                         <div
                           v-if="property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId"
-                          class="absolute bottom-0 right-0 w-6 h-6 text-white">
-                          <div class="absolute w-6 h-6"
+                          class="absolute bottom-0 right-0 w-5 h-5 text-white">
+                          <div class="absolute w-5 h-5"
                             style="clip-path: polygon(100% 100%, 0 100%, 100% 0); background-color: #00B2E3;">
                             <UIcon name="i-mdi:check" class="text-white w-4 h-4"
-                              style="position: absolute; bottom: 0px; right: 0px;" width="16" height="16" />
+                              style="position: absolute; bottom: 0px; right: 0px;" width="12" height="12" />
                           </div>
                         </div>
                       </div>
@@ -319,7 +319,7 @@
               </div>
             </div>
 
-            <div class="mb-4 border-b border-b-[#C8C8C8] pb-4"
+            <div class="mb-4 border-b border-b-[#D1D1D1] pb-4"
               v-show="productinfo.printPropertyList && productinfo.printPropertyList.length > 0">
               <div class="flex justify-between items-center cursor-pointer" @click="showDimensions = !showDimensions">
                 <h2 class="font-bold text-lg flex items-center mb-0">
@@ -352,19 +352,22 @@
             <div>
               <div class="w-full mx-auto bg-white rounded-md">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <span class="font-semibold text-base sm:text-lg">Quantity</span>
+                  <span class="text-base sm:text-lg">Quantity</span>
                   <div class="flex items-center rounded px-2">
-                    <div class="border flex items-center bg-[#F8F8F8] rounded">
-                      <button @click="decrement" class="text-gray-500 px-2 hover:text-black">−</button>
+                    <div class="flex items-center rounded">
+                      <button @click="decrement"
+                        class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center">−</button>
                       <input @input="onQuantityInput" v-model="quantity"
-                        class="w-12 text-center outline-none border-0 py-1 bg-[#F8F8F8]" />
-                      <button @click="increment" class="text-gray-500 px-2 hover:text-black">+</button>
+                        class="w-12 h-[26px] text-center outline-none border-0 py-1 bg-[#F8F8F8] mx-1" />
+                      <button @click="increment"
+                        class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center">+</button>
                     </div>
                     <span class="ml-2 text-base sm:text-lg">Panels</span>
                   </div>
                 </div>
+
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4">
-                  <span class="font-semibold text-base sm:text-lg">Total price</span>
+                  <span class="text-base sm:text-lg">Total price</span>
                   <div class="flex items-center flex-wrap gap-2">
                     <span class="text-base sm:text-lg font-bold text-primary">${{ totalPrice.toFixed(2) }}</span>
                   </div>
@@ -1757,6 +1760,8 @@ input[type="radio"]:checked:hover {
   border-color: transparent !important;
   box-shadow: none !important;
 }
+
+input:where(:not([type])):focus {}
 
 :deep(input[type='search']:focus) {
   outline: none !important;
