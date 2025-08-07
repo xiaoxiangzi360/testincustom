@@ -1,18 +1,18 @@
 <template>
     <div class="min-h-screen bg-[#F8F8F8]">
-        <div class="max-w-7xl mx-auto px-4 py-8">
-            <div class="rounded-lg shadow-sm">
-                <div class="flex flex-col lg:flex-row gap-8 items-stretch">
+        <div class="max-w-7xl mx-auto px-3 py-3 md:py-8">
+            <div class="rounded shadow-sm">
+                <div class="flex flex-col lg:flex-row gap-3 md:gap-8 items-stretch">
                     <!-- Cart Items -->
                     <div class="flex-1">
-                        <main class="flex-1 space-y-6">
-                            <section class="border border-blackcolor/10 rounded-lg bg-white"
+                        <main class="flex-1">
+                            <section class="border border-blackcolor/10 rounded bg-white mt-3"
                                 v-if="addressarr.length == 0">
-                                <div class="p-3 px-6 text-customblack font-semibold text-lg">Address
+                                <div class="p-2 px-6 text-customblack font-semibold text-lg">Address
                                     <span style="color: red;">*</span>
                                 </div>
                                 <div class="border-t border-t-blackcolor/10">
-                                    <div class="bg-white px-6 py-2 rounded-lg w-2/3">
+                                    <div class="bg-white px-6 py-2 rounded w-2/3">
                                         <Form layout="vertical">
 
                                             <FormItem name="country">
@@ -76,62 +76,73 @@
                                 </div>
                             </section>
                             <!-- Account Info -->
-                            <section class="border border-blackcolor/10 rounded-lg bg-white"
-                                v-if="addressarr.length > 0">
-                                <div class="p-3 px-4 sm:px-6 text-customblack font-semibold text-base sm:text-lg">
+                            <section class="rounded bg-white" v-if="addressarr.length > 0">
+                                <div
+                                    class="p-2 md:p-3 px-4 sm:px-6 text-customblack font-semibold text-base sm:text-lg">
                                     Address <span class="text-red-500">*</span>
                                 </div>
 
                                 <div
-                                    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-4 sm:gap-x-8 border-t border-t-blackcolor/10 p-4 sm:p-6">
-                                    <div>
-                                        <span class="text-blackcolor/50 text-sm mb-1 block">Full name</span>
-                                        <div class="font-medium text-sm sm:text-base">{{ addressinfo.firstName }}{{
-                                            addressinfo.lastName }}</div>
+                                    class="flex flex-col md:flex-row justify-between border-t border-t-blackcolor/10 p-3 sm:p-6 gap-3">
+                                    <!-- 左侧信息 -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 flex-1">
+                                        <div>
+                                            <span class="text-blackcolor/50 text-sm mb-1 block">Full name</span>
+                                            <div class="font-medium text-sm sm:text-base">
+                                                {{ addressinfo.firstName }} {{ addressinfo.lastName }}
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <span class="text-blackcolor/50 text-sm mb-1 block">Number</span>
+                                            <div class="font-medium text-sm sm:text-base">
+                                                ({{ addressinfo.numberCode }}) {{ addressinfo.number }}
+                                            </div>
+                                        </div>
+
+                                        <div class="col-span-2">
+                                            <span class="text-blackcolor/50 text-sm mb-1 block">Address detail</span>
+                                            <div class="font-medium text-sm sm:text-base">
+                                                {{ addressinfo.countryName }} {{ addressinfo.provinceName }} {{
+                                                    addressinfo.city }} {{ addressinfo.address }}
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div>
-                                        <span class="text-blackcolor/50 text-sm mb-1 block">Number</span>
-                                        <div class="font-medium text-sm sm:text-base">({{ addressinfo.numberCode }}) {{
-                                            addressinfo.number }}</div>
-                                    </div>
-
-                                    <div v-show="from != 'order'" class="space-y-1 sm:space-y-2">
+                                    <!-- 右侧按钮 -->
+                                    <div v-show="from != 'order'" class="flex flex-col min-w-[150px]">
                                         <div class="text-primary cursor-pointer text-sm sm:text-base"
                                             @click="changeaddress()">
                                             Change another address
                                         </div>
-                                        <div class="text-primary cursor-pointer text-sm sm:text-base"
+                                        <div class="text-primary cursor-pointer text-sm sm:text-base mt-3"
                                             @click="addnewaddress()">
                                             Add new address
                                         </div>
                                     </div>
                                 </div>
-
-                                <div class="px-4 sm:px-6 pb-4 sm:pb-6">
-                                    <span class="text-blackcolor/50 text-sm mb-1 block">Address detail</span>
-                                    <div class="font-medium text-sm sm:text-base">
-                                        {{ addressinfo.countryName }} {{ addressinfo.provinceName }} {{ addressinfo.city
-                                        }} {{ addressinfo.address }}
-                                    </div>
-                                </div>
                             </section>
 
-                            <section class="border border-blackcolor/10 rounded-lg bg-white">
-                                <div class="p-3 px-6 text-customblack font-semibold text-lg">Shipping methods <span
-                                        style="color: red;">*</span></div>
+
+                            <section class="rounded bg-white mt-3">
+                                <div
+                                    class="p-2 md:p-3 px-4 sm:px-6 text-customblack font-semibold text-base sm:text-lg">
+                                    Shipping
+                                    methods
+                                    <span style="color: red;">*</span>
+                                </div>
                                 <div class="border-t border-t-blackcolor/10 py-6 px-6">
                                     <!-- 引入 USelectMenu 和 UButton -->
                                     <USelectMenu v-model="templateid" :options="templates" option-attribute="label"
                                         value-attribute="feeId"
-                                        :ui="{ rounded: 'rounded-md', option: { padding: 'px-2 py-2', base: 'py-2' } }"
+                                        :ui="{ rounded: 'rounded', option: { padding: 'px-2 py-2', base: 'py-2' } }"
                                         :disabled="from == 'order' || templateid == '-1'">
                                         <template #default="{ open }">
                                             <UButton size="lg" color="white" variant="outline"
                                                 class="w-full justify-between h-10 rounded-md"
                                                 :class="{ 'ring-2 ring-primary': open }">
                                                 <!-- 当前选中项显示 -->
-                                                <span class="text-sm">
+                                                <span class="text-xs sm:text-sm text-left">
                                                     {{
                                                         templates.find(item => item.feeId === templateid)?.label ||
                                                         'Select Shipping Method'
@@ -146,9 +157,11 @@
 
                                 </div>
                             </section>
-                            <section class="border border-blackcolor/10 rounded-lg bg-white">
-                                <div class="p-3 px-6 text-customblack font-semibold text-lg">Payment methods <span
-                                        style="color: red;">*</span>
+                            <section class="rounded bg-white mt-3">
+                                <div
+                                    class="p-2 md:p-3 px-4 sm:px-6 text-customblack font-semibold text-base sm:text-lg">
+                                    Payment
+                                    methods <span style="color: red;">*</span>
                                 </div>
                                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 border-t border-t-blackcolor/10 p-6">
                                     <div v-for="option in options" :key="option.value"
@@ -161,19 +174,25 @@
                                     </div>
                                 </div>
                             </section>
-                            <section class="border border-blackcolor/10 rounded-lg bg-white">
-                                <div class="p-3 px-6 text-customblack font-semibold text-lg">Notes</div>
-                                <div class="border-t border-t-blackcolor/10 py-6 px-8">
+                            <section class="rounded bg-white mt-3">
+                                <div
+                                    class="p-2 md:p-3 px-4 sm:px-6 text-customblack font-semibold text-base sm:text-lg">
+                                    Notes</div>
+                                <div class="border-t border-t-blackcolor/10 py-2 md:py-6 px-2 md:px-8">
                                     <UTextarea v-model="notes" />
                                 </div>
                             </section>
                         </main>
                     </div>
                     <!-- Cart Summary -->
-                    <div class="sm:w-80 bg-white rounded-lg shadow-sm flex flex-col justify-between min-h-[200px]">
-                        <div class="p-6">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Selected {{ selectedQuantity }} items</span>
+                    <div class="sm:w-80 bg-white rounded shadow-sm  min-h-[200px]">
+                        <div
+                            class="py-2 md:p-3 px-4 sm:px-6 text-customblack font-semibold text-base sm:text-lg border-b border-b-blackcolor/10">
+                            Order Summary</div>
+                        <div class="p-3 md:p-6 ">
+
+                            <div class="flex justify-between ">
+                                <span class="text-gray-600 text-sm">Selected {{ selectedQuantity }} items</span>
                                 <span>${{ selectedTotal.toFixed(2) }}</span>
                             </div>
                             <div class="max-h-96 overflow-y-auto">
@@ -203,7 +222,7 @@
                                 </div>
                             </div>
                             <!-- Coupon Code Input -->
-                            <div class="mt-4">
+                            <div class="md:mt-4">
 
                                 <div class="flex gap-2 text-white">
                                     <Input v-model:value="couponCode" placeholder="Enter the coupon code"
@@ -234,16 +253,16 @@
                             </div>
 
                             <!-- Discount Display -->
-                            <div class="flex justify-between mt-4" v-if="discount > 0">
+                            <div class="flex justify-between mt-3" v-if="discount > 0">
                                 <span class="text-gray-600">Discount</span>
                                 <span class="text-green-600 font-semibold">- ${{ discount.toFixed(2) }}</span>
                             </div>
 
-                            <div class="flex justify-between mt-4">
-                                <span class="text-gray-600">Shipping</span>
+                            <div class="flex justify-between mt-3">
+                                <span class="text-gray-600 text-sm">Shipping</span>
                                 <span>${{ shipping.toFixed(2) }}</span>
                             </div>
-                            <div class="pt-4 flex justify-between font-bold mt-4">
+                            <div class="text-sm pt-3 md:pt-4 flex justify-between font-bold md:mt-4">
                                 <span>Total</span>
                                 <span>${{ ((selectedTotal || 0) + (shipping || 0) - discount).toFixed(2) }}</span>
                             </div>
@@ -257,9 +276,9 @@
 
         </div>
     </div>
-    <UModal v-model="showModal" width="w-full" :ui="{ width: 'sm:max-w-5xl' }">
-        <section class="border border-blackcolor/10 rounded-lg">
-            <div class="relative p-3 px-6 text-customblack font-semibold text-lg">
+    <UModal v-model="showModal" width="w-full" :ui="{ width: 'sm:max-w-5xl', rounded: 'rounded' }">
+        <section class="border border-blackcolor/10 rounded">
+            <div class="relative p-2 md:p-3 px-6 text-customblack font-semibold text-lg">
                 Address
                 <!-- 关闭按钮 -->
                 <button @click="showModal = false"
@@ -267,10 +286,11 @@
                     ✕
                 </button>
             </div>
-            <div class="grid grid-cols-3 gap-6 border-t border-t-blackcolor/10 p-6">
+            <div
+                class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 border-t border-t-blackcolor/10 p-3 md:p-6">
 
                 <div v-for="(item, idx) in addressarr" :key="idx"
-                    class="relative border border-blackcolor/10 rounded-lg p-4 hover:shadow cursor-pointer"
+                    class="relative border border-blackcolor/10 rounded p-4 hover:shadow cursor-pointer"
                     :class="{ 'border-primary-500 bg-primary-50': item.selected == 1 }" @click="selectaddress(idx)">
                     <div class="space-y-1">
                         <p><span class="text-gray-500">Full name:</span> {{ item.firstName }}{{ item.lastName }}</p>
@@ -556,6 +576,8 @@ const handleGetOrder = async () => {
             item.label = `${item.feeEnName}　　${item.daysFrom}–${item.daysTo} days　　$${item.calFee.toFixed(2)}`
         })
         templateid.value = result.shippingRule.feeId
+        activeCoupon.value = result.marketingActivityCouponCode || ''; // 应用优惠码
+        discount.value = result.marketingActivityDiscountAmount || 0; // 假设返回的折扣值
     } catch (error) {
 
     }
@@ -1141,6 +1163,6 @@ tbody tr {
 }
 
 .ant-form-item {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 </style>

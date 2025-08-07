@@ -1,13 +1,13 @@
 <template>
-    <div class="mt-16">
+    <div class="mt-[30px] sm:mt-16">
         <div class="max-row">
             <!-- 标题 -->
             <h1
-                class="text-2xl md:text-[40px] font-normal mb-6 md:mb-8 bg-clip-text text-blackcolor text-center dark:text-white">
+                class="text-xl md:text-[40px] font-normal mb-3 md:mb-8 bg-clip-text text-blackcolor text-center dark:text-white">
                 Customized to your needs
             </h1>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3  md:gap-6">
                 <!-- Product Category Card -->
                 <div class="relative rounded-lg overflow-hidden md:h-[150px] h-[150px] group cursor-pointer"
                     v-for="(need, index) in needs" :key="index">
@@ -16,7 +16,7 @@
                     <div class="absolute inset-0  transition-all duration-300  flex items-center justify-center">
                         <div class="text-white text-center">
                             <NuxtImg :src="need.icon" :alt="need.title" class="w-12 md:w-16 mx-auto mb-2" />
-                            <h3 class="text-xl font-medium">{{ need.title }}</h3>
+                            <h3 class="text-lg sm:text-xl font-medium">{{ need.title }}</h3>
                         </div>
                     </div>
                 </div>

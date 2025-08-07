@@ -1,15 +1,15 @@
 <template>
-  <footer class="bg-[#222222] text-white py-10">
-    <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between gap-10">
+  <footer class="bg-[#222222] text-white py-3 md:py-10">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between gap-4 md:gap-10">
       <!-- 左侧 Logo & 介绍 -->
       <div class="flex-1 flex flex-col items-start text-left">
-        <h2 class="text-2xl font-bold">
+        <h2 class="text-2xl font-bold my-3">
           <NuxtImg format="webp" alt="incustom" src="/images/footerlogo.png" class="h-8 md:h-12" />
         </h2>
-        <p class="text-sm mt-2">
+        <p class="text-sm md:mt-2">
           Fulfilling your ideas on demand
         </p>
-        <p class="text-xs mt-2">
+        <p class="text-xs md:mt-2">
           Trusted to deliver 99.8M items since 2024
         </p>
 
@@ -18,7 +18,7 @@
           <span>hello@incustom.com </span>
         </div>
         <!-- 社交图标 -->
-        <div class="flex flex-wrap justify-start gap-4 mt-4">
+        <div class="flex flex-wrap justify-start gap-2 md:gap-4 mt-1 md:mt-4">
 
           <NuxtLink :to="item.url" target="_blank" v-for="item in medialist">
             <NuxtImg format="webp" @mouseover="hovered = item.id" :alt="item.url" @mouseleave="hovered = null"
@@ -27,53 +27,48 @@
         </div>
       </div>
 
-      <!-- 右侧菜单 -->
-      <div class="flex-[2] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-left">
-        <div>
-          <p class="font-medium text-lg mb-6">Customizations</p>
-          <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">Size Customization</NuxtLink>
-          <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">Pattern Printing</NuxtLink>
-          <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">Material Options</NuxtLink>
-          <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">Fabric Swatch Request
-          </NuxtLink>
+      <div class="flex-[2]">
+        <!-- ✅ 移动端：UAccordion 手风琴 -->
+        <div class="block md:hidden">
+          <UAccordion :items="accordionItems" multiple="true"
+            class="bg-transparent border-0 no-bg-accordion text-white/80" :ui="{
+              container: 'border-b border-[#00000014] dark:border-white dark:text-white'
+            }">
+            <template #default="{ item, index, open }">
+              <div
+                class="w-full flex justify-between items-center text-base sm:text-lg dark:text-white font-noraml pl-2 py-2 border-t border-white/10">
+                <span class="text-white/80  text-left dark:text-white font-normal">{{
+                  item.label
+                }}</span>
+                <UIcon name="i-heroicons-chevron-down-20-solid" class="w-5 h-5 transition-transform duration-200"
+                  :class="[open ? 'rotate-180' : '']" />
+              </div>
+            </template>
+            <template #item="{ item }">
+              <div class="pl-2 pb-3 space-y-3">
+                <NuxtLink v-for="(link, i) in item.links" :key="i" :to="link.to"
+                  class="block hover:text-primary font-normal text-white/80 mb-3">
+                  {{ link.label }}
+                </NuxtLink>
+              </div>
+            </template>
+          </UAccordion>
         </div>
-        <div class="md:pl-4">
-          <p class="font-medium text-lg mb-6">Feature</p>
-          <NuxtLink to="/article/about-us" class="block hover:text-primary mt-4 font-normal text-white/80">About Us
-          </NuxtLink>
-          <NuxtLink to="/article/our-mission" class="block hover:text-primary mt-4 font-normal text-white/80">Our
-            Mission</NuxtLink>
-          <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">Sustainability & Materials
-          </NuxtLink>
-          <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">Blog / Shade Tips</NuxtLink>
-          <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">Affiliate / Influencer
-            Program</NuxtLink>
-        </div>
-        <div class="md:pl-4">
-          <p class="font-medium text-lg mb-6">Feature requests</p>
-          <NuxtLink to="/article/faq" class="block hover:text-primary mt-4 font-normal text-white/80">FAQS</NuxtLink>
-          <NuxtLink class="block hover:text-primary mt-4 font-normal text-white/80">Track My Order</NuxtLink>
-          <NuxtLink to="/article/shipping-delivery" class="block hover:text-primary mt-4 font-normal text-white/80">
-            Shipping & Delivery
-          </NuxtLink>
-          <NuxtLink to="/article/returns-exchanges" class="block hover:text-primary mt-4 font-normal text-white/80">
-            Returns & Exchanges
-          </NuxtLink>
-          <NuxtLink to="/article/warranty-policy" class="block hover:text-primary mt-4 font-normal text-white/80">
-            Warranty Policy</NuxtLink>
-          <NuxtLink to="/article/installation-guides" class="block hover:text-primary mt-4 font-normal text-white/80">
-            Installation Guides
-          </NuxtLink>
-          <NuxtLink to="/article/how-to-measure" class="block hover:text-primary mt-4 font-normal text-white/80">How to
-            Measure</NuxtLink>
-          <NuxtLink to="/article/contact-us" class="block hover:text-primary mt-4 font-normal text-white/80">Contact Us
-          </NuxtLink>
-          <NuxtLink to="/" class="block hover:text-primary mt-4 font-normal text-white/80">Request a Quote</NuxtLink>
+
+        <!-- ✅ 桌面端三列布局 -->
+        <div class="hidden md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-left">
+          <div v-for="(section, idx) in sections" :key="idx" class="md:pl-4">
+            <p class="font-medium text-lg mb-6">{{ section.title }}</p>
+            <NuxtLink v-for="(link, i) in section.links" :key="i" :to="link.to"
+              class="block hover:text-primary mt-4 font-normal text-white/80">
+              {{ link.label }}
+            </NuxtLink>
+          </div>
         </div>
       </div>
     </div>
     <div
-      class="max-w-7xl mt-10 mx-auto px-4 flex flex-wrap text-sm gap-10 items-center border-t border-white/10 pt-10 md:space-y-0 md:flex-nowrap font-normal text-white/60">
+      class="max-w-7xl mt-3 md:mt-10 mx-auto px-4 flex flex-wrap text-sm gap-3 md:gap-10 items-center border-t border-white/10 pt-3 md:pt-10 md:space-y-0 md:flex-nowrap font-normal text-white/60">
       <!-- 左侧链接 -->
       <div class="flex flex-wrap items-center gap-1">
         <NuxtLink to="/article/privacy-policy">Privacy</NuxtLink>
@@ -148,4 +143,64 @@ const medialist = ([
   },
 ])
 const hovered = ref(null)
+
+const sections = [
+  {
+    title: 'Customizations',
+    links: [
+      { label: 'Size Customization', to: '/' },
+      { label: 'Pattern Printing', to: '/' },
+      { label: 'Material Options', to: '/' },
+      { label: 'Fabric Swatch Request', to: '/' },
+    ],
+  },
+  {
+    title: 'Feature',
+    links: [
+      { label: 'About Us', to: '/article/about-us' },
+      { label: 'Our Mission', to: '/article/our-mission' },
+      { label: 'Sustainability & Materials', to: '/' },
+      { label: 'Blog / Shade Tips', to: '/' },
+      { label: 'Affiliate / Influencer Program', to: '/' },
+    ],
+  },
+  {
+    title: 'Feature requests',
+    links: [
+      { label: 'FAQS', to: '/article/faq' },
+      { label: 'Track My Order', to: '/' },
+      { label: 'Shipping & Delivery', to: '/article/shipping-delivery' },
+      { label: 'Returns & Exchanges', to: '/article/returns-exchanges' },
+      { label: 'Warranty Policy', to: '/article/warranty-policy' },
+      { label: 'Installation Guides', to: '/article/installation-guides' },
+      { label: 'How to Measure', to: '/article/how-to-measure' },
+      { label: 'Contact Us', to: '/article/contact-us' },
+      { label: 'Request a Quote', to: '/' },
+    ],
+  },
+]
+
+// 转换数据供 UAccordion 使用
+const accordionItems = sections.map(section => ({
+  label: section.title,
+  links: section.links,
+}))
+
 </script>
+<style scoped>
+/* 去掉默认背景、边框 */
+:deep(.u-accordion-item button) {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* 去掉 item 背景 */
+:deep(.u-accordion-item) {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+</style>

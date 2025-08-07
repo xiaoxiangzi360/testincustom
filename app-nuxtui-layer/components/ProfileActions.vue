@@ -132,7 +132,7 @@ function goShopping() {
 }
 const checkdetai = (id, sku, name) => {
 
-  router.push('/product/' + id + '/' + name + '?sku=' + sku)
+  router.push('/product/' + id + '/' + name.replace(/\s+/g, '-') + '?sku=' + sku)
 }
 const getlocation = async () => {
 

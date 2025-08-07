@@ -1,9 +1,9 @@
 <template>
-    <div class="mt-16">
+    <div class="mt-[30px] sm:mt-16">
         <div class="max-row">
             <!-- 标题 -->
             <h1
-                class="text-2xl md:text-[40px] mb-6 md:mb-8 bg-clip-text font-normal text-blackcolor text-center dark:text-white">
+                class="text-xl md:text-[40px] mb-3 md:mb-8 bg-clip-text font-normal text-blackcolor text-center dark:text-white">
                 Most Popular Products
             </h1>
 
@@ -14,7 +14,7 @@
                         <!-- 图片骨架 -->
                         <div class="relative w-full aspect-square bg-gray-200 animate-pulse"></div>
                         <!-- 内容骨架 -->
-                        <div class="p-4">
+                        <div class="py-4">
                             <div class="h-4 bg-gray-200 rounded w-3/4 mb-2 animate-pulse"></div>
                             <div class="h-4 bg-gray-200 rounded w-1/2 mb-2 animate-pulse"></div>
                             <div class="flex items-center justify-between">
@@ -50,7 +50,8 @@
                 }" :autoplay="{ delay: 5000, disableOnInteraction: false }" :loop="true"
                     :pagination="{ clickable: true }" :speed="1000" class="product-swiper">
                     <SwiperSlide v-for="(product, index) in products" :key="index">
-                        <ULink :to="`/product/${product.id}/${product.erpProduct.productEnglishName}`"
+                        <ULink
+                            :to="`/product/${product.id}/${product.erpProduct.productEnglishName.replace(/\s+/g, '-')}`"
                             class="rounded-lg overflow-hidden shadow-md bg-white transition-transform duration-300 hover:scale-[1.05] hover:-translate-y-1 hover:shadow-xl cursor-pointer">
                             <!-- 产品图片 -->
                             <div class="relative w-full aspect-square overflow-hidden">
@@ -61,7 +62,7 @@
                             </div>
 
                             <!-- 产品详情 -->
-                            <div class="p-4">
+                            <div class="py-3">
                                 <h3 class="text-sm sm:text-base font-normal mb-2 line-clamp-2 min-h-[3em]">{{
                                     product.erpProduct.productEnglishName }}</h3>
                                 <div class="flex items-center justify-between">
@@ -148,8 +149,8 @@ getpopularlist()
 
     .product-swiper :deep(.swiper-pagination-bullet),
     .product-swiper :deep(.swiper-pagination-bullet-active) {
-        width: 10px;
-        height: 10px;
+        width: 8px;
+        height: 8px;
     }
 
     .product-swiper :deep(.swiper-pagination) {
@@ -157,7 +158,7 @@ getpopularlist()
     }
 
     .product-swiper {
-        padding-bottom: 50px;
+        padding-bottom: 20px;
     }
 }
 

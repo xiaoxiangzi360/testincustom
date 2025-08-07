@@ -1,12 +1,12 @@
 <template>
     <div class="bg-white">
-        <div class="max-row py-6">
+        <div class="max-row md:py-6">
 
 
             <!-- Main Content -->
             <div class="container mx-auto px-6 mt-6">
                 <!-- Filters -->
-                <div class="sticky [top:108px] bg-white z-10 flex justify-between items-center mb-8 py-4">
+                <div class="sticky [top:96px] bg-white z-10 flex justify-between items-center mb-8 py-4">
                     <div class="flex gap-6">
 
                     </div>
@@ -39,8 +39,9 @@
                     </div>
 
                     <!-- Product List -->
-                    <div v-show="products.length > 0 && !loading" class="grid grid-cols-4 gap-6 mb-12">
-                        <div @click="checkdetail(product.id, product.productEnglishName)"
+                    <div v-show="products.length > 0 && !loading"
+                        class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
+                        <NuxtLink :to="`/product/${product.id}/${product.productEnglishName.replace(/\s+/g, '-')}`"
                             v-for="(product, index) in products" :key="index"
                             class="bg-white rounded-lg cursor-pointer group">
                             <div class="aspect-square overflow-hidden rounded-t-lg">
@@ -49,20 +50,19 @@
                                     class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                                     style="aspect-ratio: 1 / 1;" />
                             </div>
-                            <div>
-                                <h3 class="text-sm font-normal mb-2 text-customblack mt-3 line-clamp-2 cursor-default"
+                            <div class="py-2">
+                                <h3 class="text-sm sm:text-sm mb-1 sm:mb-2 text-customblack mt-2 sm:mt-3 line-clamp-2 cursor-default font-normal"
                                     :title="product.productEnglishName">
                                     {{ product.productEnglishName }}
                                 </h3>
-
-                                <p class="text-[#AEAEAE] mb-2 text-sm">{{ product.size }}</p>
+                                <p class="text-sm sm:text-sm text-[#AEAEAE] mb-1 sm:mb-2">{{ product.size }}</p>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-base font-semibold text-primary">
+                                    <span class="text-sm sm:text-base font-medium text-primary">
                                         ${{ product.customPriceStr }}
                                     </span>
                                 </div>
                             </div>
-                        </div>
+                        </NuxtLink>
                     </div>
                     <div class="my-12" v-show="products.length === 0 && !loading">
                         <div class="flex flex-col items-center text-center space-y-4 text-gray-200 text-sm">
@@ -220,7 +220,7 @@ getlistlist()
 
 const checkdetail = (id, productName) => {
 
-    router.push(`/product/${id}/${productName}`);
+    router.push(`/product/${id}/${productName.replace(/\s+/g, '-')}`);
 
 }
 </script>

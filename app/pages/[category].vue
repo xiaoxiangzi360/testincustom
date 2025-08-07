@@ -153,12 +153,12 @@ watch(categorybanner, () => {
 
 <template>
   <div class="bg-white">
-    <div class="max-row py-8">
+    <div class="max-row py-3 md:py-8">
       <!-- 面包屑 -->
       <UBreadcrumb divider=">" :links="breadcrumbLinks"
-        class="mb-6 text-blackcolor custom-breadcrumb text-lg sm:text-2xl" :ui="{
-          base: 'hover:underline',
-          li: 'text-xs sm:text-sm font-normal text-gray-400',
+        class="mb-3 text-blackcolor custom-breadcrumb text-lg sm:text-2xl" :ui="{
+          base: 'hover:underline font-normal',
+          li: 'text-sm sm:text-sm font-normal text-gray-400',
           active: 'text-customblack dark:text-primary-400 no-underline hover:no-underline',
           divider: { base: 'px-2 text-text-gray-400 no-underline' }
         }" />
@@ -175,10 +175,9 @@ watch(categorybanner, () => {
         </div>
 
         <!-- 文字层 -->
-        <div
-          class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 h-full flex flex-col justify-center items-center sm:items-start text-center sm:text-left"
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 h-full flex flex-col justify-center  sm:items-start "
           style="text-shadow: 0px 2px 4px rgba(34,34,34,0.6);">
-          <h1 class="text-2xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 leading-snug">
+          <h1 class="text-xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 leading-snug">
             {{ categorytitle }}
           </h1>
           <p class="text-sm sm:text-xl text-white max-w-md sm:max-w-none">
@@ -188,16 +187,17 @@ watch(categorybanner, () => {
       </div>
 
       <!-- Main Content -->
-      <div class="container mx-auto px-4 sm:px-6 mt-12">
+      <div class="container mx-auto px-4 sm:px-6 mt-3 md:mt-12">
         <!-- Filters -->
-        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8" v-show="products.length != 0">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-3 md:mb-8"
+          v-show="products.length != 0">
           <div class="flex flex-wrap gap-4">
             <UCheckbox :checked="selected === 'Hot Selling'" @change="handleChange('Hot Selling')" label="Hot Selling"
-              class="text-sm" />
+              class="text-sm" :ui="{ label: 'font-normal' }" />
             <UCheckbox :checked="selected === 'New Arrival'" @change="handleChange('New Arrival')" label="New Arrival"
-              class="text-sm" />
+              class="text-sm font-normal" :ui="{ label: 'font-normal' }" />
             <UCheckbox :checked="selected === 'Discount'" @change="handleChange('Discount')" label="Discount"
-              class="text-sm" />
+              class="text-sm font-normal" :ui="{ label: 'font-normal' }" />
           </div>
           <div class="flex items-center gap-2">
             <span class="text-sm">Sort</span>
@@ -219,7 +219,7 @@ watch(categorybanner, () => {
           </div>
 
           <!-- ✅ Skeleton 卡片统一样式 -->
-          <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
+          <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
             <div v-for="n in 4" :key="n" class="bg-white rounded-lg shadow p-4">
               <div class="h-48 bg-gray-200 rounded-lg w-full mb-4 animate-pulse"></div>
               <div class="h-4 bg-gray-200 rounded-lg w-3/4 mb-2 animate-pulse"></div>
@@ -229,8 +229,8 @@ watch(categorybanner, () => {
 
           <!-- Product List -->
           <div v-show="products.length > 0 && !loading"
-            class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
-            <NuxtLink :to="`/product/${product.id}/${product.erpProduct.productEnglishName}`"
+            class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
+            <NuxtLink :to="`/product/${product.id}/${product.erpProduct.productEnglishName.replace(/\s+/g, '-')}`"
               v-for="(product, index) in products" :key="index" class="bg-white rounded-lg cursor-pointer group">
               <div class="aspect-square overflow-hidden rounded-t-lg">
                 <img :src="product.erpProduct.mainPic ?? '/images/empty.jpg'"
@@ -238,13 +238,13 @@ watch(categorybanner, () => {
                   class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                   style="aspect-ratio: 1 / 1;" />
               </div>
-              <div class="p-2 sm:p-4">
+              <div class="py-2">
                 <h3
-                  class="text-xs sm:text-sm mb-1 sm:mb-2 text-customblack mt-2 sm:mt-3 line-clamp-2 cursor-default font-normal"
+                  class="text-sm sm:text-sm mb-1 sm:mb-2 text-customblack mt-2 sm:mt-3 line-clamp-2 cursor-default font-normal"
                   :title="product.erpProduct.productEnglishName">
                   {{ product.erpProduct.productEnglishName }}
                 </h3>
-                <p class="text-xs sm:text-sm text-[#AEAEAE] mb-1 sm:mb-2">{{ product.size }}</p>
+                <p class="text-sm sm:text-sm text-[#AEAEAE] mb-1 sm:mb-2">{{ product.size }}</p>
                 <div class="flex justify-between items-center">
                   <span class="text-sm sm:text-base font-medium text-primary">
                     ${{ product.erpProduct.customPrice }}

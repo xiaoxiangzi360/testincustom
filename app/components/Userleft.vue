@@ -36,19 +36,5 @@ const isActive = (path) => route.path === path
                 </NuxtLink>
             </div>
         </div>
-        <!-- <ul class="space-y-4">
-            <li>
-                <NuxtLink to="/myorders"
-                    :class="isActive('/myorders') ? 'text-primary-600 font-medium' : 'text-gray-600 hover:text-black'">
-                    Order
-                </NuxtLink>
-            </li>
-            <li>
-                <NuxtLink to="/userinfo"
-                    :class="isActive('/userinfo') ? 'text-primary-600 font-medium' : 'text-gray-600 hover:text-black'">
-                    Account Setting
-                </NuxtLink>
-            </li>
-        </ul> -->
     </aside>
 </template>

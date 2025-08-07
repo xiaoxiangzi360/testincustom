@@ -1,181 +1,240 @@
 <template>
     <div class="min-h-screen bg-[#F8F8F8]">
-        <div class="max-w-7xl mx-auto px-4 py-8">
-            <div class="text-lg mb-6 font-bold dark:text-black">Shopping Cart</div>
-            <div class="rounded-lg shadow-sm ">
-                <div class="flex flex-col lg:flex-row gap-8 items-stretch">
+        <div class="max-w-7xl mx-auto p-3 md:py-8">
+            <div class="mb-3 md:mb-6 font-medium dark:text-black text-base">Shopping Cart</div>
+            <div class="rounded-lg shadow-sm">
+                <div class="flex flex-col gap-8 md:flex-row items-stretch">
                     <!-- Cart Items -->
                     <div class="flex-1">
                         <table class="w-full bg-white rounded">
-                            <thead class="shadow-sm">
+                            <thead v-if="isDesktop" class="shadow-sm">
                                 <tr class="p-6">
-                                    <th class="pb-4 text-left p-6 w-8">
+                                    <th class="pb-3 text-left p-6 w-8">
                                         <input type="checkbox" v-model="selectAll" @change="toggleSelectAll"
-                                            class="rounded">
+                                            class="rounded" />
                                     </th>
-                                    <th class="pb-4 text-left font-bold text-gray-600 p-6 w-80 bg-blue">Product
-                                    </th>
-                                    <th class="pb-4 text-center font-bold text-gray-600 p-6">Price($)</th>
-                                    <th class="pb-4 text-center font-bold text-gray-600 p-6 w-28">Qty</th>
-                                    <th class="pb-4 text-center font-bold text-gray-600 p-6">Subtotal($)</th>
-                                    <th class="pb-4 text-center font-bold text-gray-600 p-6">Action</th>
+                                    <th class="pb-4 text-left font-medium text-gray-600 p-6 w-80 bg-blue text-sm">
+                                        Product</th>
+                                    <th class="pb-4 text-center font-medium text-gray-600 p-6 text-sm">Price($)</th>
+                                    <th class="pb-4 text-center font-medium text-gray-600 p-6 w-28 text-sm">Qty</th>
+                                    <th class="pb-4 text-center font-medium text-gray-600 p-6 text-sm">Subtotal($)</th>
+                                    <th class="pb-4 text-center font-medium text-gray-600 p-6 text-sm">Action</th>
                                 </tr>
                             </thead>
-                        </table>
-                        <div class="max-h-[75vh] md:overflow-y-auto mt-4">
-                            <table class="w-full bg-white rounded">
-                                <tbody class="block">
-                                    <tr v-for="(item, index) in cart.itemList" :key="item.id" :class="[
-                                        'p-6 border-solid border-[#F8F8F8]',
-                                        index !== cart.itemList.length - 1 ? 'border-b' : ''
-                                    ]">
-                                        <td class="py-4 p-6 w-8 bg-blue">
-                                            <input type="checkbox" v-model="item.selected" @change="updateSelection"
-                                                class="rounded">
-                                        </td>
-                                        <td class="py-4 w-80">
-                                            <div class="flex items-center gap-4 ">
-                                                <div class="w-24 h-24 overflow-hidden rounded-lg">
+                            <tbody class="block">
+                                <!-- Mobile Card Layout -->
+                                <tr v-for="(item, index) in cart.itemList" :key="item.id" :class="[
+                                    'p-6 border-solid border-[#F8F8F8] md:table-row',
+                                    index !== cart.itemList.length - 1 ? 'border-b' : '',
+                                ]">
+                                    <!-- Mobile View -->
+                                    <td colspan="6" class="md:hidden p-4">
+                                        <div class="bg-white rounded-lg flex flex-col gap-4">
+                                            <div class="flex items-center gap-4">
+                                                <input type="checkbox" v-model="item.selected" @change="updateSelection"
+                                                    class="rounded w-4 h-4" />
+                                                <div class="w-16 h-16 overflow-hidden rounded-lg">
                                                     <img :src="item.product.erpProduct.mainPic"
                                                         @click="checkdetai(item.product.id, item.productSku, item.product.erpProduct.productEnglishName)"
                                                         alt="Product image"
-                                                        class="w-24 h-24 object-cover cursor-pointer">
+                                                        class="w-16 h-16 object-cover cursor-pointer" />
                                                 </div>
-                                                <div class="w-52">
+                                                <div class="flex-1">
                                                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
                                                         :title="item.product.erpProduct.productEnglishName"
-                                                        :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
-                                                        <div class="text-lg text-blackcolor truncate-1-lines max-w-52">
+                                                        :overlayStyle="{ maxWidth: '250px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
+                                                        <div class="text-sm font-medium text-black truncate-1-lines">
                                                             {{ item.product.erpProduct.productEnglishName }}
                                                         </div>
                                                     </Tooltip>
-
                                                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
                                                         :title="item.product.skuSpec.specAttr"
-                                                        :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
-                                                        <div
-                                                            class="text-sm text-[#8E8E8E]  truncate-1-lines max-w-52 mt-1">
-                                                            {{
-                                                                item.product.skuSpec.specAttr
-                                                            }}</div>
+                                                        :overlayStyle="{ maxWidth: '250px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
+                                                        <div class="text-xs text-[#8E8E8E] truncate-1-lines mt-1">
+                                                            {{ item.product.skuSpec.specAttr }}
+                                                        </div>
                                                     </Tooltip>
-
                                                 </div>
                                             </div>
-                                        </td>
-                                        <td class="py-4 pl-4 text-center p-6 text-gray-900">{{
-                                            item.product.skuSpec.customPrice.toFixed(2)
-                                        }}
-                                        </td>
-                                        <td class="py-4 text-center w-28">
-                                            <!-- <InputNumber v-model:value="item.productQuantity" :min="1" :max="9999" /> -->
-                                            <div class="flex items-center border rounded-md w-24 justify-between px-2">
-                                                <button @click="decreaseproductQuantity(index)"
-                                                    class="text-gray-500 hover:text-black disabled:text-gray-300"
-                                                    :disabled="item.productQuantity <= min">
-                                                    -
-                                                </button>
-                                                <input v-model.number="item.productQuantity" @blur="validate(index)"
-                                                    class="w-12 h-8 text-center outline-none border-none focus:ring-0 focus:outline-none"
-                                                    :min="min" :max="max" />
+                                            <div class="flex justify-between items-center">
+                                                <div>
+                                                    <div class="text-sm text-gray-900">
+                                                        Price: ${{ item.product.skuSpec.customPrice.toFixed(2) }}
+                                                    </div>
+                                                    <div class="text-sm text-gray-900 mt-1">
+                                                        Subtotal: ${{ (item.product.skuSpec.customPrice *
+                                                            item.productQuantity).toFixed(2) }}
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <div
+                                                        class="flex items-center border rounded-md w-24 justify-between px-2 h-7">
+                                                        <button @click="decreaseproductQuantity(index)"
+                                                            class="text-gray-500 hover:text-black disabled:text-gray-300 text-base"
+                                                            :disabled="item.productQuantity <= min">
+                                                            -
+                                                        </button>
+                                                        <input v-model.number="item.productQuantity"
+                                                            @blur="validate(index)"
+                                                            class="w-12  h-7 text-center outline-none border-b border-t border-l-0 border-r-0 border-gray-300 focus:ring-0 text-xs"
+                                                            :min="min" :max="max" />
 
-                                                <button @click="increaseproductQuantity(index)"
-                                                    class="text-gray-500 hover:text-black disabled:text-gray-300"
-                                                    :disabled="item.productQuantity >= max">
-                                                    +
-                                                </button>
+                                                        <button @click="increaseproductQuantity(index)"
+                                                            class="text-gray-500 hover:text-black disabled:text-gray-300 text-base"
+                                                            :disabled="item.productQuantity >= max">
+                                                            +
+                                                        </button>
+                                                    </div>
+                                                    <img @click="deleteItem(item)" src="/del.png"
+                                                        class="w-5 cursor-pointer" />
+                                                </div>
                                             </div>
-
-                                        </td>
-                                        <td class="py-4 pl-4 text-center p-6 text-gray-900">{{
-                                            (item.product.skuSpec.customPrice *
-                                            item.productQuantity).toFixed(2) }}</td>
-                                        <td class="py-4 pl-4 text-center p-6 ">
-                                            <img @click="deleteItem(item)" src="/del.png" class="w-6 cursor-pointer">
-
-                                            <!-- <button @click="deleteItem(item)"
-                                                class="text-primary hover:text-primary-600">Delete</button> -->
-                                        </td>
-                                    </tr>
-                                    <tr v-if="cart.itemList.length === 0">
-                                        <td colspan="6" class="text-center py-10 text-gray-400 p-6">
-                                            <div
-                                                class="bg-white rounded-lg  flex flex-col items-center justify-center h-80 px-8 ">
-
-                                                <p class="text-black">There are no more items in your cart</p>
-                                                <NuxtLink to="/"
-                                                    class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors mt-8">
-                                                    Go shopping
-                                                </NuxtLink>
+                                        </div>
+                                    </td>
+                                    <!-- Desktop View -->
+                                    <td class="py-4 p-6 w-8 bg-blue hidden md:table-cell">
+                                        <input type="checkbox" v-model="item.selected" @change="updateSelection"
+                                            class="rounded" />
+                                    </td>
+                                    <td class="py-4 w-80 hidden md:table-cell">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-24 h-24 overflow-hidden rounded-lg">
+                                                <img :src="item.product.erpProduct.mainPic"
+                                                    @click="checkdetai(item.product.id, item.productSku, item.product.erpProduct.productEnglishName)"
+                                                    alt="Product image" class="w-24 h-24 object-cover cursor-pointer" />
                                             </div>
-                                        </td>
-                                    </tr>
-
-                                </tbody>
-                            </table>
-                            <div class="flex justify-between items-center my-6" v-show="Invalidlist.length > 0">
-                                <div>Discontinued product</div>
-                                <div> <button class="text-primary hover:text-primary-600 mr-4"
-                                        @click="deleteInvalid">Delete
-                                        All</button></div>
+                                            <div class="w-52">
+                                                <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
+                                                    :title="item.product.erpProduct.productEnglishName"
+                                                    :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
+                                                    <div class="text-lg text-blackcolor truncate-1-lines max-w-52">
+                                                        {{ item.product.erpProduct.productEnglishName }}
+                                                    </div>
+                                                </Tooltip>
+                                                <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
+                                                    :title="item.product.skuSpec.specAttr"
+                                                    :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
+                                                    <div class="text-sm text-[#8E8E8E] truncate-1-lines max-w-52 mt-1">
+                                                        {{ item.product.skuSpec.specAttr }}
+                                                    </div>
+                                                </Tooltip>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 pl-4 text-center p-6 text-gray-900 hidden md:table-cell">
+                                        {{ item.product.skuSpec.customPrice.toFixed(2) }}
+                                    </td>
+                                    <td class="py-4 text-center w-28 hidden md:table-cell">
+                                        <div class="flex items-center border rounded-md w-24 justify-between px-2 h-8">
+                                            <button @click="decreaseproductQuantity(index)"
+                                                class="text-gray-500 hover:text-black disabled:text-gray-300"
+                                                :disabled="item.productQuantity <= min">
+                                                -
+                                            </button>
+                                            <input v-model.number="item.productQuantity" @blur="validate(index)"
+                                                class="w-12 h-8 text-center outline-none border-b border-t border-l-0 border-r-0 border-gray-300 focus:ring-0 focus:outline-none"
+                                                :min="min" :max="max" />
+                                            <button @click="increaseproductQuantity(index)"
+                                                class="text-gray-500 hover:text-black disabled:text-gray-300"
+                                                :disabled="item.productQuantity >= max">
+                                                +
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 pl-4 text-center p-6 text-gray-900 hidden md:table-cell">
+                                        {{ (item.product.skuSpec.customPrice * item.productQuantity).toFixed(2) }}
+                                    </td>
+                                    <td class="py-4 pl-4 text-center p-6 hidden md:table-cell">
+                                        <img @click="deleteItem(item)" src="/del.png" class="w-6 cursor-pointer" />
+                                    </td>
+                                </tr>
+                                <!-- Empty Cart -->
+                                <tr v-if="cart.itemList.length === 0">
+                                    <td colspan="6" class="text-center py-10 text-gray-400 p-6">
+                                        <div
+                                            class="bg-white rounded-lg flex flex-col items-center justify-center h-80 px-8">
+                                            <p class="text-black">There are no more items in your cart</p>
+                                            <NuxtLink to="/"
+                                                class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors mt-8">
+                                                Go shopping
+                                            </NuxtLink>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <!-- Invalid Items -->
+                        <div class="flex justify-between items-center my-6" v-show="Invalidlist.length > 0">
+                            <div>Discontinued product</div>
+                            <div>
+                                <button class="text-primary hover:text-primary-600 mr-4" @click="deleteInvalid">Delete
+                                    All</button>
                             </div>
-                            <table class="w-full bg-white rounded">
-
-                                <tbody class="md:max-h-[480px] md:overflow-y-auto block">
-                                    <tr v-for="(item, index) in Invalidlist" :key="item.id" :class="[
-                                        'p-6 border-solid border-[#F8F8F8]',
-                                        index !== cart.itemList.length - 1 ? 'border-b' : ''
-                                    ]">
-                                        <!-- <td class="py-4 p-6 w-8">
-                                            <input type="checkbox" v-model="item.selected" @change="updateSelection"
-                                                class="rounded outline-none">
-                                        </td> -->
-                                        <td class="py-4 pl-6 p-6">
-                                            <div class="flex items-center gap-6">
-                                                <div class="w-24 h-24 overflow-hidden rounded relative cursor-pointer">
+                        </div>
+                        <table class="w-full bg-white rounded">
+                            <tbody class="md:max-h-[480px] md:overflow-y-auto block">
+                                <tr v-for="(item, index) in Invalidlist" :key="item.id" :class="[
+                                    'p-6 border-solid border-[#F8F8F8]',
+                                    index !== cart.itemList.length - 1 ? 'border-b' : '',
+                                ]">
+                                    <!-- Mobile View -->
+                                    <td colspan="5" class="md:hidden p-4">
+                                        <div class="flex flex-col gap-4">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-20 h-20 overflow-hidden rounded relative cursor-pointer">
                                                     <img :src="item.product ? item.product.erpProduct.mainPic : ''"
                                                         alt="Product image" class="w-full h-full object-cover" />
                                                     <div
                                                         class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                                                        <span class="text-white text-base">Invalid</span>
+                                                        <span class="text-white text-sm">Invalid</span>
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <div class="font-medium text-lg">{{
-                                                        item.product ? item.product.erpProduct.productEnglishName : ''
-                                                    }}
+                                                    <div class="font-medium text-base">
+                                                        {{ item.product ? item.product.erpProduct.productEnglishName :
+                                                            '' }}
                                                     </div>
-                                                    <p class="text-sm text-gray-500">{{ item.product.skuSpec.specAttr }}
+                                                    <p class="text-xs text-gray-500">{{ item.product.skuSpec.specAttr }}
                                                     </p>
                                                 </div>
                                             </div>
-                                        </td>
-                                        <td class="py-4 pl-4 text-center p-6">
-                                        </td>
-                                        <td class="py-4 pl-4 text-center p-6">
-
-
-                                        </td>
-                                        <td class="py-4 pl-4 text-center p-6"></td>
-                                        <td class="py-4 pl-4 text-center p-6">
-
-                                        </td>
-                                    </tr>
-
-                                </tbody>
-                            </table>
-                        </div>
+                                        </div>
+                                    </td>
+                                    <!-- Desktop View -->
+                                    <td class="py-4 pl-6 p-6 hidden md:table-cell">
+                                        <div class="flex items-center gap-6">
+                                            <div class="w-24 h-24 overflow-hidden rounded relative cursor-pointer">
+                                                <img :src="item.product ? item.product.erpProduct.mainPic : ''"
+                                                    alt="Product image" class="w-full h-full object-cover" />
+                                                <div
+                                                    class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                                                    <span class="text-white text-base">Invalid</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="font-medium text-lg">
+                                                    {{ item.product ? item.product.erpProduct.productEnglishName : '' }}
+                                                </div>
+                                                <p class="text-sm text-gray-500">{{ item.product.skuSpec.specAttr }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 pl-4 text-center p-6 hidden md:table-cell"></td>
+                                    <td class="py-4 pl-4 text-center p-6 hidden md:table-cell"></td>
+                                    <td class="py-4 pl-4 text-center p-6 hidden md:table-cell"></td>
+                                    <td class="py-4 pl-4 text-center p-6 hidden md:table-cell"></td>
+                                </tr>
+                            </tbody>
+                        </table>
                         <div class="mt-4 flex items-center gap-6 p-6 bg-white sticky bottom-0 shadow-md">
-                            <input type="checkbox" v-model="selectAll" @change="toggleSelectAll" class="rounded">
+                            <input type="checkbox" v-model="selectAll" @change="toggleSelectAll" class="rounded" />
                             <span class="text-gray-600"><span class="font-normal mr-2 cursor-pointer"
-                                    @click="setSelectAll">Select
-                                    all</span> (select {{
-                                        selectedQuantity }} items)</span>
+                                    @click="setSelectAll">Select all</span>
+                                (select {{ selectedQuantity }} items)</span>
                             <button @click="deleteSelected" :disabled="selectedItems.length === 0"
                                 class="text-primary hover:text-primary-600 disabled:text-gray-300 disabled:cursor-not-allowed">
                                 Delete
                             </button>
-
                         </div>
                     </div>
                     <!-- Cart Summary -->
@@ -204,27 +263,26 @@
         </div>
     </div>
 </template>
-<script lang="ts" setup>
-import { ref, computed, watch } from 'vue';
-import { InputNumber } from 'ant-design-vue'
-const { getCart, deleteCart } = cartAuth();
-import { message, Tooltip } from 'ant-design-vue'
-import { useRouter } from 'vue-router'
-const router = useRouter()
-import { useCartStore } from '@/stores/cart'
-const cart = useCartStore()
-// const cart.itemList = ref([
 
-// ]);
+<script lang="ts" setup>
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { InputNumber } from 'ant-design-vue';
+import { message, Tooltip } from 'ant-design-vue';
+import { useRouter } from 'vue-router';
+import { useCartStore } from '@/stores/cart';
+
+const router = useRouter();
+const cart = useCartStore();
+const { getCart, deleteCart } = cartAuth();
+
 const activeTab = ref<'cart' | 'expired'>('cart');
-const min = 1
-const max = 999
-const validate = (index: any) => {
-    if (cart.itemList[index].productQuantity < min) cart.itemList[index].productQuantity = min
-    if (cart.itemList[index].productQuantity > max) cart.itemList[index].productQuantity = max
-}
+const min = 1;
+const max = 999;
 const selectAll = ref(false);
 const shipping = ref(0);
+const Invalidlist = ref([]);
+const isDesktop = ref(window.innerWidth >= 768);
+
 const selectedItems = computed(() => cart.itemList.filter(item => item.selected));
 const selectedTotal = computed(() => {
     return selectedItems.value.reduce((total, item) => total + item.product.skuSpec.customPrice * item.productQuantity, 0);
@@ -232,38 +290,38 @@ const selectedTotal = computed(() => {
 const selectedQuantity = computed(() => {
     return selectedItems.value.reduce((sum, item) => sum + item.productQuantity, 0);
 });
-const Invalidlist = ref([
 
-])
+const validate = (index: number) => {
+    if (cart.itemList[index].productQuantity < min) cart.itemList[index].productQuantity = min;
+    if (cart.itemList[index].productQuantity > max) cart.itemList[index].productQuantity = max;
+};
+
 const handleGetCart = async () => {
-
-
     try {
-
         let res = await getCart();
-        let result = res.result
-        cart.updateCart(result)
-        Invalidlist.value = res.saleDownList
-        // cart.itemList = result
-        setSelectAll()
-
+        let result = res.result;
+        cart.updateCart(result);
+        Invalidlist.value = res.saleDownList;
+        setSelectAll();
     } catch (error) {
-
+        console.error(error);
     }
 };
-const token = useCookie('token')
-const isTokenValid = computed(() => !!token.value) // 如果有 token，返回 true
-if (isTokenValid) {
-    handleGetCart()
-}
-const toggleSelectAll = () => {
 
+const token = useCookie('token');
+const isTokenValid = computed(() => !!token.value);
+if (isTokenValid.value) {
+    handleGetCart();
+}
+
+const toggleSelectAll = () => {
     cart.itemList.forEach(item => {
         item.selected = selectAll.value;
     });
 };
+
 const setSelectAll = () => {
-    selectAll.value = !selectAll.value
+    selectAll.value = !selectAll.value;
     cart.itemList.forEach(item => {
         item.selected = selectAll.value;
     });
@@ -276,78 +334,72 @@ const checkout = () => {
     } else {
         router.push(`/checkout?from=cart`);
     }
-}
+};
 
 const updateSelection = () => {
     selectAll.value = cart.itemList.every(item => item.selected);
 };
-const checkdetai = (id, sku, name) => {
 
-    router.push('/product/' + id + '/' + name + '?sku=' + sku)
-}
-const deleteItem = async (item) => {
+const checkdetai = (id: string, sku: string, name: string) => {
+    router.push('/product/' + id + '/' + name.replace(/\s+/g, '-') + '?sku=' + sku);
+};
+
+const deleteItem = async (item: any) => {
     const index = cart.itemList.indexOf(item);
     if (index > -1) {
         cart.itemList.splice(index, 1);
     }
-    let data = {
-        idList: [item.id],
-    }
-    let res = await deleteCart(data);
-    message.success('Delete successful')
+    let data = { idList: [item.id] };
+    await deleteCart(data);
+    message.success('Delete successful');
 };
+
 const deleteSelected = async () => {
     let selectitems = cart.itemList.filter(item => item.selected);
     selectAll.value = false;
-    let ids = [];
-    selectitems.forEach(element => {
-        ids.push(element['id']);
-    });
-    let data = {
-        idList: ids,
-    }
-    let res = await deleteCart(data);
-    message.success('Delete successful')
-    handleGetCart()
-
+    let ids = selectitems.map(element => element.id);
+    let data = { idList: ids };
+    await deleteCart(data);
+    message.success('Delete successful');
+    handleGetCart();
 };
+
 const deleteInvalid = async () => {
-
-    let ids = [];
-    Invalidlist.value.forEach(element => {
-        ids.push(element['id']);
-    });
-    let data = {
-        idList: ids,
-    }
-    let res = await deleteCart(data);
-    message.success('Delete successful')
-    handleGetCart()
-    // Invalidlist.value = []
-
+    let ids = Invalidlist.value.map(element => element.id);
+    let data = { idList: ids };
+    await deleteCart(data);
+    message.success('Delete successful');
+    handleGetCart();
 };
-const increaseproductQuantity = (index: number) => {
-    cart.increaseQuantity(index)
 
+const increaseproductQuantity = (index: number) => {
+    cart.increaseQuantity(index);
 };
 
 const decreaseproductQuantity = (index: number) => {
-    cart.decreaseQuantity(index)
-
+    cart.decreaseQuantity(index);
 };
-watch(() => cart.itemList, (newvalue, oldvalue) => {
 
+watch(() => cart.itemList, (newvalue) => {
     if (newvalue) {
-        cart.updateCart(cart.itemList)
+        cart.updateCart(cart.itemList);
     }
 });
+
+// Update isDesktop on window resize
+const handleResize = () => {
+    isDesktop.value = window.innerWidth >= 768;
+};
+
 onMounted(() => {
-    // selectAll.value = !selectAll.value
-    // cart.itemList.forEach(item => {
-    //     item.selected = selectAll.value;
-    // });
+    window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('resize', handleResize);
 });
 </script>
+
 <style scoped>
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
@@ -370,14 +422,11 @@ input[type="checkbox"]:focus {
     --tw-ring-color: none;
 }
 
-
 table thead,
 tbody tr {
     display: table;
     width: 100%;
-    /* table-layout: fixed; */
 }
-
 
 .cart-table__checkbox {
     @apply w-5 h-5 rounded border-gray-300;

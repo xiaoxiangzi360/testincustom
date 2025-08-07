@@ -1,7 +1,7 @@
 <template>
     <div class="w-full">
-        <div class="max-row py-10 ">
-            <h1 class="text-2xl md:text-[40px] text-blackcolor font-normal text-center mb-12 dark:text-white">
+        <div class="max-row py-5 ">
+            <h1 class="text-xl md:text-[40px] text-blackcolor font-normal text-center mb-3 sm:mb-12 dark:text-white">
                 FAQ
             </h1>
 
@@ -10,9 +10,10 @@
             }" class="text-title dark:text-white">
                 <template #default="{ item, index, open }">
                     <UButton color="gray" variant="ghost"
-                        class="text-arialblack w-full flex justify-between items-center text-lg dark:text-white"
-                        :ui="{ rounded: 'rounded-none', padding: { sm: 'px-5 py-4' } }">
-                        <span class="truncate text-blackcolor text-left dark:text-white">{{ index + 1 }}. {{ item.label
+                        class="text-arialblack w-full flex justify-between items-center text-base sm:text-lg dark:text-white font-noraml"
+                        :ui="{ rounded: 'rounded-none', padding: { sm: 'px-5 py-3 sm:py-4' } }">
+                        <span class="truncate text-blackcolor text-left dark:text-white font-normal">{{ index + 1 }}. {{
+                            item.label
                             }}</span>
                         <UIcon name="i-heroicons-chevron-down-20-solid"
                             class="w-5 h-5 transition-transform duration-200" :class="[open ? 'rotate-180' : '']" />
@@ -20,7 +21,7 @@
                 </template>
 
                 <template #item="{ item }">
-                    <div class="px-5 py-0 text-[#5A5B5B] dark:text-white text-lg">
+                    <div class="px-5 py-0 text-[#5A5B5B] dark:text-white text-sm sm:text-lg">
                         <p class="content" v-html="item.content"></p>
 
                     </div>

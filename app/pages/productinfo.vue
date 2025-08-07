@@ -976,7 +976,7 @@ if (lastpage) {
 }
 
 const updateBreadcrumbProduct = (productName) => {
-    const productPath = `/product/${productid.value}/${productName}`
+    const productPath = `/product/${productid.value}/${productName.replace(/\s+/g, '-')}`
 
     // 检查最后一项是否已经是产品详情
     const lastIndex = breadcrumbLinks.value.length - 1
@@ -1132,7 +1132,7 @@ const customFilter = (input, option) => {
 const checkdetail = (id, productName) => {
     // const productPath = `/product/${productid.value}/${productName}`
 
-    router.push(`/product/${id}/${productName}`);
+    router.push(`/product/${id}/${productName.replace(/\s+/g, '-')}`);
 };
 
 const changeshow = (index) => {

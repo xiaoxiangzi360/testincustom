@@ -12,6 +12,7 @@ const isTokenValid = computed(() => !!token.value)
 
 // 控制移动菜单
 const { isMobileMenuOpen } = useMobileMenu()
+const { isMobileCartMenuOpen } = useMobileCartMenu()
 
 // 搜索历史相关
 const searchHistory = ref<{ id: string; date: string }[]>([])
@@ -110,6 +111,18 @@ const loginout = async () => {
   let res = await logout();
 
 }
+const checklogin = () => {
+
+  if (isTokenValid.value) {
+    isMobileCartMenuOpen.value = true
+  } else {
+    router.push('/login')
+
+  }
+}
+function goToCart() {
+  router.push('/cart')
+}
 // 监听路由变化和搜索历史变化
 watch(
   () => route.query.query,
@@ -136,7 +149,7 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
           <NavHamburger @click="isMobileMenuOpen = true"></NavHamburger>
         </div>
 
-        <div data-pg-name="Searchbox" style="grid-area: search;" class="max-w-100 ml-4 relative">
+        <div data-pg-name="Searchbox" style="grid-area: search;" class="max-w-100 md:ml-4 mt-3 md:mt-0 relative">
           <UFormGroup hint="Optional">
             <UInput v-model="searchInput" @keyup.enter="onEnterSearch" placeholder="Search..." size="md"
               class="w-full border-none ring-0" autocomplete="off" :ui="{
@@ -186,7 +199,12 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
 
         <div data-pg-name="Profile" class="flex sm:space-x-1 justify-end sm:justify-start">
           <ProfileActions class="!hidden sm:!flex"></ProfileActions>
-          <UIcon name="i-heroicons-user-circle" class="sm:!hidden w-7 h-7" width="28" height="28" @click="gouserinfo" />
+
+          <UIcon name="i-heroicons-user-circle" class="sm:!hidden w-7 h-7" width="28" height="28"
+            @click="checklogin()" />
+          <UIcon name="i-heroicons:shopping-cart" class="sm:!hidden w-7 h-7 ml-3" width="28" height="28"
+            @click="goToCart" />
+
 
         </div>
       </div>
@@ -199,22 +217,20 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
       class="w-72 sm:hidden" side="left">
       <div class="flex flex-col h-full">
         <!-- 主体内容 -->
-        <div class="flex-1 overflow-y-auto p-4">
+        <div class="flex-1 overflow-y-auto px-3">
           <NavPrimary />
-        </div>
-
-        <!-- 底部内容 -->
-        <div class="p-4 flex justify-end">
-          <div @click="loginout">
-            <div class="flex items-center">
-              <img src="/loginout.png" class="w-4 mr-2 h-4" />
-              <div>login out</div>
-            </div>
-          </div>
         </div>
       </div>
     </USlideover>
-
+    <USlideover v-model="isMobileCartMenuOpen" data-pg-name="NavCart" style="grid-area: primary-nav"
+      class="w-72 sm:hidden" side="left">
+      <div class="flex flex-col h-full">
+        <!-- 主体内容 -->
+        <div class="flex-1 overflow-y-auto">
+          <Userslide />
+        </div>
+      </div>
+    </USlideover>
   </nav>
 </template>
 

@@ -68,7 +68,8 @@
 
                     <!-- Product List -->
                     <div v-show="products.length > 0 && !loading" class="grid grid-cols-4 gap-6 mb-12">
-                        <NuxtLink :to="`/product/${product.id}/${product.erpProduct.productEnglishName}`"
+                        <NuxtLink
+                            :to="`/product/${product.id}/${product.erpProduct.productEnglishName.replace(/\s+/g, '-')}`"
                             v-for="(product, index) in products" :key="index"
                             class="bg-white rounded-lg cursor-pointer group">
                             <div class="aspect-square overflow-hidden rounded-t-lg">

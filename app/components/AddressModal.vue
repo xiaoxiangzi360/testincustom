@@ -1,8 +1,8 @@
 <template>
-    <UModal v-model="props.isshow">
-        <UCard>
+    <UModal v-model="props.isshow" :ui="{ rounded: 'rounded' }">
+        <UCard :ui="{ header: { padding: 'px-4 py-2 sm:px-6' }, rounded: 'rounded', ring: 'ring-0' }">
             <template #header>
-                <div class="text-lg font-semibold">{{ form.id ? 'Edit' : 'Add' }} Address</div>
+                <div class="text-lg font-medium">{{ form.id ? 'Edit' : 'Add' }} Address</div>
             </template>
 
             <Form ref="formRef" :model="form" :rules="rules" layout="vertical" @keydown.enter.prevent>
@@ -334,6 +334,6 @@ onUnmounted(() => {
 }
 
 .ant-form-item {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 </style>

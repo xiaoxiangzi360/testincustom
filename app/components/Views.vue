@@ -1,14 +1,14 @@
 <template>
-    <div class="p-2 md:p-10 mt-16">
+    <div class="px-2 md:p-10 mt-[30px] sm:mt-16">
         <div class="max-row">
             <h1
-                class="text-2xl md:text-[40px] mb-6 md:mb-8 bg-clip-text font-normal text-blackcolor text-center dark:text-white">
+                class="text-xl md:text-[40px] mb-3 md:mb-8 bg-clip-text font-normal text-blackcolor text-center dark:text-white">
                 Why Love inCustom
             </h1>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-12 md:mb-16">
-                <div v-for="(review, index) in reviews" :key="index" class="bg-white rounded-lg p-6 md:p-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-8 mb-12 md:mb-16">
+                <div v-for="(review, index) in reviews" :key="index" class="bg-white rounded px-6 pb-2 md:px-8">
                     <p
-                        class="text-title mb-4 md:mb-6 text-base md:text-lg leading-relaxed min-h-40 border-b border-[rgba(46,46,12,0.1)] py-6">
+                        class="text-title mb-4 md:mb-6 text-sm md:text-lg leading-relaxed min-h-40 border-b border-[rgba(46,46,12,0.1)] py-6">
                         {{ review.text }}
                     </p>
                     <div class="flex items-center justify-between">
@@ -16,7 +16,7 @@
                             <NuxtImg :src="review.avatar" :alt="review.name"
                                 class="w-10 h-10 sm:w-16 sm:h-16 rounded-full object-cover" />
                             <div>
-                                <h5 class="font-semibold text-title">{{ review.name }}</h5>
+                                <h5 class="font-semibold text-title text-sm md:text-base">{{ review.name }}</h5>
                                 <div class="flex text-primary">
                                     <UIcon v-for="star in 5" :key="star" name="i-material-symbols-star"
                                         class="text-xl md:text-2xl" />

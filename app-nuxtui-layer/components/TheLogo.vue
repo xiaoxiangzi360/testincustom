@@ -6,7 +6,7 @@
   <ULink data-pg-name="Logo" class="flex sm:flex-row" to="/">
     <div>
       <img src="/images/incustom.png" alt="InCustom" class="h-8" />
-      <div class="text-xs mt-1">Unique but Affordable</div>
+      <!-- <div class="text-xs mt-1">Unique but Affordable</div> -->
     </div>
 
   </ULink>

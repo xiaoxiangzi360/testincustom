@@ -166,9 +166,9 @@ onUnmounted(() => {
 
 <template>
     <div class="bg-white">
-        <div class="max-row py-8">
+        <div class="max-row py-3">
             <UBreadcrumb divider=">" :links="breadcrumbLinks"
-                class="mb-6 text-blackcolor custom-breadcrumb text-lg sm:text-2xl" :ui="{
+                class="mb-3 md:mb-6 text-blackcolor custom-breadcrumb text-lg sm:text-2xl" :ui="{
                     base: 'hover:underline',
                     li: 'text-xs sm:text-sm font-normal text-gray-400',
                     active: 'text-customblack dark:text-primary-400 no-underline hover:no-underline',
@@ -177,9 +177,9 @@ onUnmounted(() => {
 
 
             <!-- Main Content -->
-            <div class="container mx-auto px-4 sm:px-6 mt-6">
+            <div class="container mx-auto px-2 sm:px-6 mt-0 md:mt-6">
                 <!-- Filters -->
-                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8"
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-3 md:mb-8"
                     v-show="products.length != 0">
                     <div class="flex flex-wrap gap-4">
 
@@ -215,7 +215,8 @@ onUnmounted(() => {
                     <!-- Product List -->
                     <div v-show="products.length > 0 && !loading"
                         class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
-                        <NuxtLink :to="`/product/${product.id}/${product.erpProduct.productEnglishName}`"
+                        <NuxtLink
+                            :to="`/product/${product.id}/${product.erpProduct.productEnglishName.replace(/\s+/g, '-')}`"
                             v-for="(product, index) in products" :key="index"
                             class="bg-white rounded-lg cursor-pointer group">
                             <div class="aspect-square overflow-hidden rounded-t-lg">
@@ -225,11 +226,11 @@ onUnmounted(() => {
                                     style="aspect-ratio: 1 / 1;" />
                             </div>
                             <div>
-                                <h3 class="text-xs sm:text-sm mb-1 sm:mb-2 text-customblack mt-2 sm:mt-3 line-clamp-2 cursor-default font-normal"
+                                <h3 class="text-sm sm:text-sm mb-1 sm:mb-2 text-customblack mt-2 sm:mt-3 line-clamp-2 cursor-default font-normal"
                                     :title="product.erpProduct.productEnglishName">
                                     {{ product.erpProduct.productEnglishName }}
                                 </h3>
-                                <p class="text-xs sm:text-sm text-[#AEAEAE] mb-1 sm:mb-2">{{ product.size }}</p>
+                                <p class="text-sm sm:text-sm text-[#AEAEAE] mb-1 sm:mb-2">{{ product.size }}</p>
                                 <div class="flex justify-between items-center">
                                     <span class="text-sm sm:text-base font-medium text-primary">
                                         ${{ product.erpProduct.customPrice }}

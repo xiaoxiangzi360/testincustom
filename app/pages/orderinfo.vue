@@ -87,7 +87,7 @@
                                             class=" whitespace-nowrap px-5 py-2 border border-[rgba(0,178,227,0.4)] bg-[rgba(166,236,255,0.2)] text-primary rounded">
                                             Pay
                                         </button>
-                                        <button v-if="orderInfo.status <= 1000" @click="setCancleOrder(orderInfo.id)"
+                                        <button v-if="orderInfo.status <= 1200" @click="setCancleOrder(orderInfo.id)"
                                             class="whitespace-nowrap p-2 px-3 border border-[rgba(255,173,28,0.4)] bg-[rgba(255,213,215,0.2)] rounded">
                                             <img src="/deletered.png" class="w-5" />
                                         </button>
@@ -268,34 +268,39 @@ const items = ref([{
     orderstatus: 500,
     ordertitle: 'Waiting fo payment',
     orderdesc: 'The order has been Submitted successfully, please pay as soon as possible!',
+    key: 1
 },
 {
     title: 'Pending Confirm',
     orderstatus: 1000,
     ordertitle: 'we are confirming',
     orderdesc: 'We are communicating with the factory whether your order can be produced',
+    key: 2
 },
 {
     title: 'Awaiting Shipment',
     orderstatus: 1500,
     ordertitle: 'In production or Warehouse processing',
     orderdesc: 'Your product is being produced or packaged in the warehouse',
+    key: 3
 },
 {
     title: 'Shipped',
     orderstatus: 2000,
     ordertitle: 'Warehouse has shipped',
     orderdesc: 'Your order has started to be delivered, please pay attention to the logistics information',
+    key: 4
 },
 {
     title: 'Delivered',
     orderstatus: 2500,
     ordertitle: 'Product delivery completed',
     orderdesc: 'You have signed for all the goods. If you have any questions, please contact us in time.',
+    key: 5
 },
 ]);
 
-const currentStep = ref(1);
+const currentStep = ref(0);
 const activeTab = ref('Pay Info');
 const tabs = ['Pay Info', 'Shipping & Address', 'Order timeline', 'Note'];
 function getOrderStatus(status) {
@@ -305,6 +310,8 @@ function getOrderStatus(status) {
         case 500:
             return 'Unpaid';
         case 1000:
+            return 'Pending Confirm';
+        case 1200:
             return 'Pending Confirm';
         case 1500:
             return 'Awaiting Shipment';
@@ -335,7 +342,7 @@ const handleGetOrder = async () => {
 
 
         if (index !== -1) {
-            currentStep.value = index;
+            currentStep.value = Number(index);
             currentstatustitle.value = items.value[index].ordertitle
             currentstatusdesc.value = items.value[index].orderdesc
         }
@@ -344,7 +351,11 @@ const handleGetOrder = async () => {
             currentstatusdesc.value = 'You can buy other products.'
             currentStep.value = -1;
         }
-
+        if (result.status == 1200) {
+            currentstatustitle.value = 'we are confirming'
+            currentstatusdesc.value = 'We are communicating with the factory whether your order can be produced'
+        }
+        console.log(currentStep.value);
         let orderTimelineList = result.orderTimelineList;
         orderTimelineList.forEach(element => {
             element.title = element.desc
