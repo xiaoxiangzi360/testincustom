@@ -39,7 +39,7 @@
                 class="w-full flex justify-between items-center text-base sm:text-lg dark:text-white font-noraml pl-2 py-2 border-t border-white/10">
                 <span class="text-white/80  text-left dark:text-white font-normal">{{
                   item.label
-                }}</span>
+                  }}</span>
                 <UIcon name="i-heroicons-chevron-down-20-solid" class="w-5 h-5 transition-transform duration-200"
                   :class="[open ? 'rotate-180' : '']" />
               </div>
@@ -68,7 +68,7 @@
       </div>
     </div>
     <div
-      class="max-w-7xl mt-3 md:mt-10 mx-auto px-4 flex flex-wrap text-sm gap-3 md:gap-10 items-center border-t border-white/10 pt-3 md:pt-10 md:space-y-0 md:flex-nowrap font-normal text-white/60">
+      class="max-w-7xl  md:mt-10 mx-auto px-4 flex flex-wrap text-sm gap-3 md:gap-10 items-center border-t border-white/10 pt-3 md:pt-10 md:space-y-0 md:flex-nowrap font-normal text-white/60">
       <!-- 左侧链接 -->
       <div class="flex flex-wrap items-center gap-1">
         <NuxtLink to="/article/privacy-policy">Privacy</NuxtLink>
@@ -98,7 +98,7 @@
       </div>
     </div>
     <!-- 底部版权信息 -->
-    <div class="text-center text-xs text-gray-400 mt-10">
+    <div class="text-center text-xs text-gray-400 mt-4 md:mt-10">
       © 2025 Incustom. All rights reserved.
     </div>
 

@@ -226,7 +226,8 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <div class="mt-4 flex items-center gap-6 p-6 bg-white sticky bottom-0 shadow-md">
+                        <div
+                            class="mt-4 flex items-center text-sm md:text-base gap-6 p-3 md:p-6 bg-white sticky bottom-0 shadow-md">
                             <input type="checkbox" v-model="selectAll" @change="toggleSelectAll" class="rounded" />
                             <span class="text-gray-600"><span class="font-normal mr-2 cursor-pointer"
                                     @click="setSelectAll">Select all</span>
@@ -238,7 +239,8 @@
                         </div>
                     </div>
                     <!-- Cart Summary -->
-                    <div class="md:w-80 bg-white rounded-lg shadow-sm flex flex-col justify-between min-h-[200px]">
+                    <div
+                        class="md:w-80 bg-white rounded-lg shadow-sm flex flex-col justify-between min-h-[200px] text-sm md:text-base">
                         <div class="p-6">
                             <div class="flex justify-between text-gray-600">
                                 <span>Selected {{ selectedQuantity }} items</span>
@@ -281,7 +283,7 @@ const max = 999;
 const selectAll = ref(false);
 const shipping = ref(0);
 const Invalidlist = ref([]);
-const isDesktop = ref(window.innerWidth >= 768);
+const isDesktop = ref(false);
 
 const selectedItems = computed(() => cart.itemList.filter(item => item.selected));
 const selectedTotal = computed(() => {
@@ -388,10 +390,13 @@ watch(() => cart.itemList, (newvalue) => {
 
 // Update isDesktop on window resize
 const handleResize = () => {
-    isDesktop.value = window.innerWidth >= 768;
+    if (typeof window !== 'undefined') {
+        isDesktop.value = window.innerWidth >= 768;
+    }
 };
 
 onMounted(() => {
+    handleResize(); // 初始化
     window.addEventListener('resize', handleResize);
 });
 

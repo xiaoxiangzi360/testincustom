@@ -78,7 +78,7 @@
         <div class="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-8">
           <!-- Left section with image thumbnails -->
           <div class="md:col-span-5">
-            <div class="sticky top-[124px] overflow-hidden">
+            <div class="sticky top-[100px] overflow-hidden">
               <div class="w-full aspect-square overflow-hidden mb-4 relative" v-if="mainImage">
                 <NuxtImg format="webp" :src="mainImage" @load="onMainImageLoaded" alt="Shade sail"
                   class="rounded shadow-lg w-full h-full object-cover transition-all duration-300 cursor-pointer" />
@@ -152,7 +152,7 @@
                       class="mr-3 w-[18px] h-[18px] flex items-center justify-center"
                       :ui="{ color: { black: { solid: 'dark:bg-gray-900 dark:text-white' } } }">{{ index + 1 }}</UBadge>
                     <span class="truncate-1-lines font-medium text-sm md:text-base">{{ property.propertyNameShop
-                    }}</span>
+                      }}</span>
                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" placement="topLeft"
                       v-if="property.desc" :title="property.desc"
                       :overlayStyle="{ maxWidth: '330px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">

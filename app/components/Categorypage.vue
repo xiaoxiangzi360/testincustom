@@ -4,7 +4,7 @@
     <div class="max-row mx-auto px-32">
         <div class="grid sm:grid-cols-1 md:grid-cols-2 gap-2 sm:gap-6">
             <div v-for="(item, index) in items" :key="index" @click="checklist(item.title)"
-                class="relative h-[160px] sm:h-[220px] rounded overflow-hidden group cursor-pointer transition-shadow duration-300">
+                class="relative h-[160px] lg:h-[220px] rounded overflow-hidden group cursor-pointer transition-shadow duration-300">
                 <NuxtImg :src="item.image"
                     class="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                     format="webp" alt="InCustom" preload />

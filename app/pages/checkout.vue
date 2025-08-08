@@ -185,7 +185,7 @@
                         </main>
                     </div>
                     <!-- Cart Summary -->
-                    <div class="sm:w-80 bg-white rounded shadow-sm  min-h-[200px]">
+                    <div class="lg:w-80 bg-white rounded shadow-sm  min-h-[200px]">
                         <div
                             class="py-2 md:p-3 px-4 sm:px-6 text-customblack font-semibold text-base sm:text-lg border-b border-b-blackcolor/10">
                             Order Summary</div>

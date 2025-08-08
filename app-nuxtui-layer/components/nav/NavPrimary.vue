@@ -58,7 +58,7 @@ const getcatelist = async () => {
 
 // 检测屏幕尺寸，判断是否为移动设备
 const checkScreenSize = () => {
-  isMobile.value = window.innerWidth < 768;
+  isMobile.value = window.innerWidth < 1024;
 };
 
 // 初始化

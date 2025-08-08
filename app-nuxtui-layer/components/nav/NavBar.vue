@@ -143,13 +143,13 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
     <div class="bg-[#222222]">
       <div class="flex items-center justify-between navbar-grid py-2 max-row">
         <div style="grid-area: logo" class="flex">
-          <TheLogo></TheLogo>
+          <TheLogo class="absolute top-2 left-1/2 -translate-x-1/2 lg:static lg:translate-x-0"></TheLogo>
         </div>
-        <div data-pg-name="Hamburger" style="grid-area: hamburger" class="sm:hidden flex">
+        <div data-pg-name="Hamburger" style="grid-area: hamburger" class="lg:hidden flex">
           <NavHamburger @click="isMobileMenuOpen = true"></NavHamburger>
         </div>
 
-        <div data-pg-name="Searchbox" style="grid-area: search;" class="max-w-100 md:ml-4 mt-3 md:mt-0 relative">
+        <div data-pg-name="Searchbox" style="grid-area: search;" class="max-w-100 lg:ml-4 mt-3 lg:mt-0 relative">
           <UFormGroup hint="Optional">
             <UInput v-model="searchInput" @keyup.enter="onEnterSearch" placeholder="Search..." size="md"
               class="w-full border-none ring-0" autocomplete="off" :ui="{
@@ -197,12 +197,12 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
           </UFormGroup>
         </div>
 
-        <div data-pg-name="Profile" class="flex sm:space-x-1 justify-end sm:justify-start">
-          <ProfileActions class="!hidden sm:!flex"></ProfileActions>
+        <div data-pg-name="Profile" class="flex lg:space-x-1 justify-end lg:justify-start">
+          <ProfileActions class="!hidden lg:!flex"></ProfileActions>
 
-          <UIcon name="i-heroicons-user-circle" class="sm:!hidden w-7 h-7" width="28" height="28"
+          <UIcon name="i-heroicons-user-circle" class="lg:!hidden w-7 h-7" width="28" height="28"
             @click="checklogin()" />
-          <UIcon name="i-heroicons:shopping-cart" class="sm:!hidden w-7 h-7 ml-3" width="28" height="28"
+          <UIcon name="i-heroicons:shopping-cart" class="lg:!hidden w-7 h-7 ml-3" width="28" height="28"
             @click="goToCart" />
 
 
@@ -210,11 +210,11 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
       </div>
     </div>
 
-    <div class="hidden sm:flex bg-primary">
-      <NavPrimary class="sm:w-full max-row"></NavPrimary>
+    <div class="hidden lg:flex bg-primary">
+      <NavPrimary class="lg:w-full max-row"></NavPrimary>
     </div>
     <USlideover v-model="isMobileMenuOpen" data-pg-name="NavBarSecondary" style="grid-area: primary-nav"
-      class="w-72 sm:hidden" side="left">
+      class="w-72 lg:hidden" side="left">
       <div class="flex flex-col h-full">
         <!-- 主体内容 -->
         <div class="flex-1 overflow-y-auto px-3">
@@ -223,7 +223,7 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
       </div>
     </USlideover>
     <USlideover v-model="isMobileCartMenuOpen" data-pg-name="NavCart" style="grid-area: primary-nav"
-      class="w-72 sm:hidden" side="left">
+      class="w-72 lg:hidden" side="left">
       <div class="flex flex-col h-full">
         <!-- 主体内容 -->
         <div class="flex-1 overflow-y-auto">
@@ -242,7 +242,7 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
   grid-template-areas: 'hamburger logo profile' 'search search search';
 }
 
-@media (min-width: 640px) {
+@media (min-width: 1024px) {
   .navbar-grid {
     display: grid;
     grid-template-columns: auto 1fr auto;
