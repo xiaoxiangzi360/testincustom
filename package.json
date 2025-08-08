@@ -27,6 +27,7 @@
   "dependencies": {
     "@paypal/paypal-js": "^8.2.0",
     "@pinia/nuxt": "^0.5.4",
+    "@splidejs/vue-splide": "^0.6.12",
     "@unhead/vue": "1.11.14",
     "@vee-validate/nuxt": "^4.13.2",
     "@vueuse/core": "^11.0.3",
