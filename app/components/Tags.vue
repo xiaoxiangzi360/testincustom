@@ -1,11 +1,11 @@
 <template>
     <div class="max-row my-2 md:my-6">
-        <div class="grid grid-cols-2 md:grid-cols-4 bg-white py-3 sm:py-6 rounded">
+        <div class="grid grid-cols-2 md:grid-cols-4 bg-white py-3 lg:py-0 rounded">
             <div v-for="(feature, index) in features" :key="index"
                 class="flex flex-col items-center gap-1 sm:gap-2 px-2 py-2 text-center"
                 :class="{ 'md:border-l md:border-gray-100': index !== 0 }">
-                <NuxtImg class="w-7 h-7 md:w-16 md:h-16" :alt="feature.title" :src="feature.icon" />
-                <span class="text-blackcolor text-xs md:text-lg break-words">
+                <NuxtImg class="w-7 h-7 md:w-10 md:h-10" :alt="feature.title" :src="feature.icon" />
+                <span class="text-blackcolor text-xs md:text-sm break-words">
                     {{ feature.title }}
                 </span>
             </div>

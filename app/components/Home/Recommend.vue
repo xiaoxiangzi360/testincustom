@@ -13,7 +13,8 @@ const isProductLeft = computed(() => !!props.productOnLeft)
 /** 左侧封面与可选视频（示例，可用父级传入改造） */
 const cover = ref({
     image: './actbanner.png',
-    video: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+    // video: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+    video: 'https://cdn.incustom.com/upload/web/%E7%BD%A9%E5%A3%B3%E5%8D%B7%E5%B8%98%E6%96%B0.mp4',
 })
 
 type Product = { id: string; title: string; image: string; price: number; originPrice?: number }
@@ -39,12 +40,12 @@ const goNext = () => splideRef.value?.splide?.go('>')
 </script>
 
 <template>
-    <div class="mt-[30px]">
+    <div class="mt-[24px]">
         <div class="max-row mx-auto">
             <!-- md 起两列；窄列固定范围，宽列自适应；同时配合 order 切换左右 -->
             <div class="md:grid  gap-4 md:gap-6" :class="isProductLeft
-                ? 'md:grid-cols-[28%_72%]'
-                : 'md:grid-cols-[72%_28%]'">
+                ? 'md:grid-cols-[28%_72%] lg:grid-cols-[30%_70%]'
+                : 'md:grid-cols-[72%_28%] lg:grid-cols-[70%_30%]'">
                 <!-- 大图列 -->
                 <div :class="isProductLeft ? 'md:order-2' : 'md:order-1'">
                     <div class="relative w-full aspect-[16/9] overflow-hidden bg-gray-100 group"
