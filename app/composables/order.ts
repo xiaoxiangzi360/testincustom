@@ -94,6 +94,19 @@ export const OrderAuth = () => {
             throw error
         }
     }
+    const groupOrderTrackInfo = async (params) => {
+        try {
+            const query = new URLSearchParams(params).toString()
 
-    return { generateOrderId, createOrder, getOrderlists, groupUserOrderStatusCount, cancleOrder, getUserOrderDocByOrderNumber, tryOrder }
+            const response = await $api(`/order/orderTrackInfo/groupOrderTrackInfo?${query}`, {
+                method: 'GET',
+            })
+
+            return response
+        } catch (error) {
+
+            throw error
+        }
+    }
+    return { generateOrderId, createOrder, getOrderlists, groupUserOrderStatusCount, cancleOrder, getUserOrderDocByOrderNumber, tryOrder, groupOrderTrackInfo }
 }

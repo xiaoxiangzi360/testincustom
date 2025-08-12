@@ -14,7 +14,7 @@ const isProductLeft = computed(() => !!props.productOnLeft)
 const cover = ref({
     image: './actbanner.png',
     // video: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
-    video: 'https://cdn.incustom.com/upload/web/%E7%BD%A9%E5%A3%B3%E5%8D%B7%E5%B8%98%E6%96%B0.mp4',
+    video: 'https://cdn.incustom.com/upload/web/juanlian.mp4',
 })
 
 type Product = { id: string; title: string; image: string; price: number; originPrice?: number }
@@ -48,7 +48,7 @@ const goNext = () => splideRef.value?.splide?.go('>')
                 : 'md:grid-cols-[72%_28%] lg:grid-cols-[70%_30%]'">
                 <!-- 大图列 -->
                 <div :class="isProductLeft ? 'md:order-2' : 'md:order-1'">
-                    <div class="relative w-full aspect-[16/9] overflow-hidden bg-gray-100 group"
+                    <div class="relative w-full aspect-[16/9] overflow-hidden bg-gray-100 group rounded"
                         @mouseenter="hasVideo && onEnter()" @mouseleave="hasVideo && onLeave()"
                         :class="hasVideo ? 'cursor-pointer' : ''">
                         <img :src="cover.image" alt="cover"
@@ -74,10 +74,11 @@ const goNext = () => splideRef.value?.splide?.go('>')
                                 <Splide ref="splideRef" :options="splideOptions" aria-label="Products">
                                     <SplideSlide v-for="p in products" :key="p.id">
                                         <!-- 移动端：左图右文；md+：上下结构 -->
-                                        <div class="flex gap-3 items-start md:block">
-                                            <div class="w-24 aspect-square shrink-0 md:w-full md:aspect-square">
-                                                <img :src="p.image" :alt="p.title" class="w-full h-full object-cover"
-                                                    draggable="false" loading="lazy" />
+                                        <div class="flex gap-3 items-start md:block rounded">
+                                            <div class="w-24 aspect-square shrink-0 md:w-full md:aspect-square ">
+                                                <img :src="p.image" :alt="p.title"
+                                                    class="w-full h-full object-cover rounded" draggable="false"
+                                                    loading="lazy" />
                                             </div>
                                             <div class="flex-1 md:mt-2">
                                                 <div class="mb-2 md:mb-2 lg:mb-3 text-sm line-clamp-2 text-d3black"
