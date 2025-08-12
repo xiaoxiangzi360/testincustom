@@ -1021,7 +1021,8 @@ onMounted(async () => {
 
     const paypal = await loadScript({
         clientId: config.public.paypalClientId,
-        currency: 'USD'
+        currency: 'USD',
+        locale: 'en_US'
     })
 
     if (paypal) {

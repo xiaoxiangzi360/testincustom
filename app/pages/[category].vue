@@ -238,9 +238,8 @@ watch(categorybanner, () => {
                   class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                   style="aspect-ratio: 1 / 1;" />
               </div>
-              <div class="py-2">
-                <h3
-                  class="text-sm sm:text-sm mb-1 sm:mb-2 text-customblack mt-2 sm:mt-3 line-clamp-2 cursor-default font-normal"
+              <div>
+                <h3 class="text-sm sm:text-sm text-customblack my-2 lg:my-4 line-clamp-2 cursor-default font-normal"
                   :title="product.erpProduct.productEnglishName">
                   {{ product.erpProduct.productEnglishName }}
                 </h3>

@@ -32,7 +32,7 @@
                     <UInput :ui="{ base: 'dark:!bg-white dark:!text-gray-900' }" v-model="formState.email" size="xl"
                         placeholder="Your email address" type="email" @blur="validateEmail" />
                     <span v-if="formErrors.email" class="text-red-500 text-sm mb-2">{{ formErrors.email
-                        }}</span>
+                    }}</span>
                 </UFormGroup>
 
                 <UFormGroup name="password" required class="mb-4">
@@ -48,7 +48,7 @@
                         </template>
                     </UInput>
                     <span v-if="formErrors.password" class="text-red-500 text-sm mb-2">{{ formErrors.password
-                        }}</span>
+                    }}</span>
                 </UFormGroup>
 
                 <div class="flex items-center justify-between w-full mb-6 text-sm text-gray-600">
@@ -205,9 +205,12 @@ const handleLogin = async () => {
         }
         $hideLoading()
         message.success('Login successful!')
-
-        navigateTo('/');
+        const redirectCookie = useCookie('redirect_to', { path: '/' })
+        const backTo = redirectCookie.value || '/'   // 没有就回首页
+        redirectCookie.value = null                  // 清除，避免下次误跳
+        await navigateTo(backTo, { replace: true })
     } catch (error) {
+        console.log(error);
         $hideLoading()
         let errormsg = JSON.parse(error.message)
         if (errormsg.errorKey == 'email') {

@@ -26,7 +26,10 @@ onMounted(async () => {
     try {
         // 传递 code 给后端
         const res = await googleLogin({ code })
-        navigateTo('/');
+        const redirectCookie = useCookie('redirect_to', { path: '/' })
+        const backTo = redirectCookie.value || '/'   // 没有就回首页
+        redirectCookie.value = null                  // 清除，避免下次误跳
+        await navigateTo(backTo, { replace: true })
 
     } catch (error) {
         router.replace('/login')

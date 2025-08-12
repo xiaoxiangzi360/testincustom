@@ -15,7 +15,19 @@ export const ProductAuth = () => {
       throw error
     }
   }
+  const getProductDetailsById = async (params) => {
+    try {
+      const response = await $api('/product/product/getProductDetailsById', {
+        method: 'POST',
+        body: params,
+      })
 
+      return response
+    } catch (error) {
+
+      throw error
+    }
+  }
   const randomRecommendationProductByCatalogId = async (params) => {
     try {
       const query = new URLSearchParams(params).toString()
@@ -162,5 +174,5 @@ export const ProductAuth = () => {
       throw error
     }
   }
-  return { getProductById, randomRecommendationProductByCatalogId, getUserProductRollPage, getmapProductByProductSkuList, customizedProductPriceTrialCalculation, erpTryToCreateSku, trialPriceCalculationBySpuV2, getproductSearch, productSearchRecommendation, getlistOnlineCatalogTree, trialPriceCalculationBySpuV3, getProductCatalogById }
+  return { getProductById, getProductDetailsById, randomRecommendationProductByCatalogId, getUserProductRollPage, getmapProductByProductSkuList, customizedProductPriceTrialCalculation, erpTryToCreateSku, trialPriceCalculationBySpuV2, getproductSearch, productSearchRecommendation, getlistOnlineCatalogTree, trialPriceCalculationBySpuV3, getProductCatalogById }
 }

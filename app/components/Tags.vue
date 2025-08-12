@@ -1,5 +1,5 @@
 <template>
-    <div class="max-row my-2 md:my-8">
+    <div class="max-row my-2 md:my-6">
         <div class="grid grid-cols-2 md:grid-cols-4 bg-white py-3 sm:py-6 rounded">
             <div v-for="(feature, index) in features" :key="index"
                 class="flex flex-col items-center gap-1 sm:gap-2 px-2 py-2 text-center"

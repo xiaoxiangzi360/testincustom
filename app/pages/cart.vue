@@ -1,9 +1,9 @@
 <template>
     <div class="min-h-screen bg-[#F8F8F8]">
-        <div class="max-w-7xl mx-auto p-3 md:py-8">
-            <div class="mb-3 md:mb-6 font-medium dark:text-black text-base">Shopping Cart</div>
+        <div class="max-w-7xl mx-auto p-3 md:py-4 lg:py-8">
+            <div class="mb-3 md:mb-4 lg:mb-6 font-medium dark:text-black text-base">Shopping Cart</div>
             <div class="rounded-lg shadow-sm">
-                <div class="flex flex-col gap-8 md:flex-row items-stretch">
+                <div class="flex flex-col md:gap-4 lg:gap-8 lg:flex-row items-stretch">
                     <!-- Cart Items -->
                     <div class="flex-1">
                         <table class="w-full bg-white rounded">
@@ -97,17 +97,19 @@
                                             class="rounded" />
                                     </td>
                                     <td class="py-4 w-80 hidden md:table-cell">
-                                        <div class="flex items-center gap-4">
-                                            <div class="w-24 h-24 overflow-hidden rounded-lg">
+                                        <div class="flex lg:items-center gap-4">
+                                            <div class="w-20 h-20 lg:w-24 lg:h-24 overflow-hidden ">
                                                 <img :src="item.product.erpProduct.mainPic"
                                                     @click="checkdetai(item.product.id, item.productSku, item.product.erpProduct.productEnglishName)"
-                                                    alt="Product image" class="w-24 h-24 object-cover cursor-pointer" />
+                                                    alt="Product image"
+                                                    class="w-20 h-20 lg:w-24 lg:h-24 object-cover cursor-pointer rounded-lg" />
                                             </div>
                                             <div class="w-52">
                                                 <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
                                                     :title="item.product.erpProduct.productEnglishName"
                                                     :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
-                                                    <div class="text-lg text-blackcolor truncate-1-lines max-w-52">
+                                                    <div
+                                                        class="text-sm lg:text-lg font-medium text-blackcolor truncate-1-lines max-w-52">
                                                         {{ item.product.erpProduct.productEnglishName }}
                                                     </div>
                                                 </Tooltip>
@@ -227,7 +229,7 @@
                             </tbody>
                         </table>
                         <div
-                            class="mt-4 flex items-center text-sm md:text-base gap-6 p-3 md:p-6 bg-white sticky bottom-0 shadow-md">
+                            class="mt-4 flex items-center text-sm md:text-base md:gap-4 lg:gap-6 p-3 md:p-4 lg:p-6 bg-white sticky bottom-0 shadow-md">
                             <input type="checkbox" v-model="selectAll" @change="toggleSelectAll" class="rounded" />
                             <span class="text-gray-600"><span class="font-normal mr-2 cursor-pointer"
                                     @click="setSelectAll">Select all</span>
@@ -240,7 +242,7 @@
                     </div>
                     <!-- Cart Summary -->
                     <div
-                        class="md:w-80 bg-white rounded-lg shadow-sm flex flex-col justify-between min-h-[200px] text-sm md:text-base">
+                        class="lg:w-80 bg-white rounded-lg shadow-sm flex flex-col justify-between min-h-[200px] text-sm md:text-base">
                         <div class="p-6">
                             <div class="flex justify-between text-gray-600">
                                 <span>Selected {{ selectedQuantity }} items</span>
@@ -391,7 +393,7 @@ watch(() => cart.itemList, (newvalue) => {
 // Update isDesktop on window resize
 const handleResize = () => {
     if (typeof window !== 'undefined') {
-        isDesktop.value = window.innerWidth >= 768;
+        isDesktop.value = window.innerWidth >= 1024;
     }
 };
 

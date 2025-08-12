@@ -1,54 +1,93 @@
+// plugins/api.ts
 import { message } from 'ant-design-vue'
 
 export default defineNuxtPlugin((nuxtApp) => {
     const config = useRuntimeConfig()
 
-    // console.log(config.public)
     const apiFetch = $fetch.create({
         baseURL: config.public.apiBase,
-        // baseURL: '/api',
-        timeout: 10000, // 超时时间 10s
-        credentials: 'include',
-        headers: useRequestHeaders(['cookie']), // 适配 SSR & 客户端
-        onRequest({ options }) {
-            // ✅ 统一管理 Headers
-            const token = useCookie('token').value
+        timeout: 10000,
+        // ❌ 不要固定 include；在 onRequest 里按需设置
+        // credentials: 'include',
+
+        async onRequest({ options }) {
+            const token = useCookie<string | null>('token').value
+
+            if (!options.headers) options.headers = new Headers()
+
             if (token) {
-                if (!options.headers) {
-                    options.headers = new Headers()
+                // ✅ 有前端 token：才附带头与 Cookie
+                ; (options.headers as Headers).set('token', token)
+                options.credentials = 'include'
+
+                // SSR 下仅在有 token 时转发入站 Cookie（比如其它会话用到）
+                if (process.server) {
+                    const reqCookie = useRequestHeaders(['cookie']).cookie
+                    if (reqCookie) (options.headers as Headers).set('cookie', reqCookie)
                 }
-                (options.headers as Headers).set('token', `${token}`)
+            } else {
+                // ✅ 没有前端 token：彻底不带 Cookie，避免把 HttpOnly token 也带上
+                options.credentials = 'omit'
+                    ; (options.headers as Headers).delete('token')
+                // 防止 SSR 透传入站 Cookie
+                if ((options.headers as Headers).has('cookie')) {
+                    ; (options.headers as Headers).delete('cookie')
+                }
             }
         },
+
         async onResponse({ response }) {
-
-            // ✅ 统一处理状态码
+            // 统一状态处理
             if (response.status === 401) {
-                console.error('未授权，请重新登录')
-                message.warning('Please log in')
+                // 记录返回页
+                const redirectCookie = useCookie<string | null>('redirect_to', {
+                    path: '/', sameSite: 'lax'
+                })
+                let fullPath = '/'
+                if (process.client) {
+                    fullPath = window.location.pathname + window.location.search + window.location.hash
+                } else {
+                    try {
+                        const event = useRequestEvent()
+                        fullPath = event?.node?.req?.url || '/'
+                    } catch { }
+                }
+                redirectCookie.value = fullPath
 
-                await navigateTo('/login') // ✅ `await` 使返回值符合 `Promise<void>`
-                return Promise.reject(new Error(JSON.stringify({ enDesc: 'Request failed' })))
-
+                if (process.client) {
+                    message.warning('Please log in')
+                    await navigateTo('/login')
+                } else {
+                    // 服务端渲染时抛 401，让页面/中间件处理重定向
+                    throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
+                }
+                return
             }
+
             if (response.status >= 500) {
-                console.error('服务器错误')
                 return Promise.reject(new Error('服务器繁忙，请稍后再试'))
             }
-            if (response.status == 200) {
-                const returndata = response._data
-                if (returndata.code != 0) {
 
-                    return Promise.reject(new Error(JSON.stringify(returndata.errorBody) || JSON.stringify({ enDesc: 'Request failed' })))
+            if (response.status === 200) {
+                // 你后端是 { code, result, errorBody } 结构
+                const data = response._data
+                if (data && typeof data === 'object' && 'code' in data) {
+                    if (data.code !== 0) {
+                        return Promise.reject(
+                            new Error(JSON.stringify(data.errorBody) || JSON.stringify({ enDesc: 'Request failed' }))
+                        )
+                    }
+                    return data
                 }
-                return returndata
+                // 非标准 JSON（比如文件流）直接返回
+                return data
             }
         },
+
         onResponseError({ response }) {
             console.error('Request failed:', response.status, response.statusText)
         },
     })
 
-    // 挂载到 Nuxt 全局
     nuxtApp.provide('api', apiFetch)
 })

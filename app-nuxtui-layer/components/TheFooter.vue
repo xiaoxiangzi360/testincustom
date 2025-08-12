@@ -39,7 +39,7 @@
                 class="w-full flex justify-between items-center text-base sm:text-lg dark:text-white font-noraml pl-2 py-2 border-t border-white/10">
                 <span class="text-white/80  text-left dark:text-white font-normal">{{
                   item.label
-                  }}</span>
+                }}</span>
                 <UIcon name="i-heroicons-chevron-down-20-solid" class="w-5 h-5 transition-transform duration-200"
                   :class="[open ? 'rotate-180' : '']" />
               </div>
@@ -74,10 +74,10 @@
         <NuxtLink to="/article/privacy-policy">Privacy</NuxtLink>
         <span>|</span>
         <NuxtLink to="/article/terms-of-service">Terms</NuxtLink>
-        <span>|</span>
+        <!-- <span>|</span>
         <NuxtLink to="/cookies">Cookie Policy</NuxtLink>
         <span>|</span>
-        <NuxtLink to="/accessibility">Accessibility</NuxtLink>
+        <NuxtLink to="/accessibility">Accessibility</NuxtLink> -->
       </div>
 
       <!-- 中间语言/支付 -->
@@ -145,37 +145,37 @@ const medialist = ([
 const hovered = ref(null)
 
 const sections = [
-  {
-    title: 'Customizations',
-    links: [
-      { label: 'Size Customization', to: '/' },
-      { label: 'Pattern Printing', to: '/' },
-      { label: 'Material Options', to: '/' },
-      { label: 'Fabric Swatch Request', to: '/' },
-    ],
-  },
+  // {
+  //   title: 'Customizations',
+  //   links: [
+  //     { label: 'Size Customization', to: '/' },
+  //     { label: 'Pattern Printing', to: '/' },
+  //     { label: 'Material Options', to: '/' },
+  //     { label: 'Fabric Swatch Request', to: '/' },
+  //   ],
+  // },
   {
     title: 'Feature',
     links: [
       { label: 'About Us', to: '/article/about-us' },
       { label: 'Our Mission', to: '/article/our-mission' },
-      { label: 'Sustainability & Materials', to: '/' },
-      { label: 'Blog / Shade Tips', to: '/' },
-      { label: 'Affiliate / Influencer Program', to: '/' },
+      // { label: 'Sustainability & Materials', to: '/' },
+      // { label: 'Blog / Shade Tips', to: '/' },
+      // { label: 'Affiliate / Influencer Program', to: '/' },
     ],
   },
   {
     title: 'Feature requests',
     links: [
       { label: 'FAQS', to: '/article/faq' },
-      { label: 'Track My Order', to: '/' },
+      // { label: 'Track My Order', to: '/' },
       { label: 'Shipping & Delivery', to: '/article/shipping-delivery' },
       { label: 'Returns & Exchanges', to: '/article/returns-exchanges' },
       { label: 'Warranty Policy', to: '/article/warranty-policy' },
       { label: 'Installation Guides', to: '/article/installation-guides' },
       { label: 'How to Measure', to: '/article/how-to-measure' },
       { label: 'Contact Us', to: '/article/contact-us' },
-      { label: 'Request a Quote', to: '/' },
+      // { label: 'Request a Quote', to: '/' },
     ],
   },
 ]

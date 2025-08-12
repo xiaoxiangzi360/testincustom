@@ -12,7 +12,7 @@
       speed: 800,
     }" class="overflow-hidden">
       <SplideSlide v-for="(item, index) in backgroundImages" :key="index">
-        <img :src="item" class="w-full h-full object-cover block min-h-[200px] sm:min-h-[240px] md:min-h-[280px]"
+        <img :src="item" class="w-full h-full object-cover block min-h-[200px] sm:min-h-[260px] md:min-h-[280px]"
           draggable="false" />
       </SplideSlide>
     </Splide>

@@ -1,9 +1,9 @@
 <template>
-    <div class="mt-[30px] sm:mt-16">
+    <div class="mt-[30px] md:mt-6 lg:mt-[30px]">
         <div class="max-row">
             <!-- 标题 -->
             <h1
-                class="text-xl md:text-[40px] mb-3 md:mb-8 bg-clip-text font-normal text-blackcolor text-center dark:text-white">
+                class="text-xl md:text-[30px] mb-3 lg:mb-5 bg-clip-text font-medium text-blackcolor text-center dark:text-white">
                 Most Popular Products
             </h1>
 

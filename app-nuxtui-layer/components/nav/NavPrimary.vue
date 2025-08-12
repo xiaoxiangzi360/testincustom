@@ -123,7 +123,7 @@ const close = () => {
 
 <template>
   <!-- 加载状态 -->
-  <div v-if="isLoading" class="loading-state p-3 text-center">
+  <div v-if="isLoading" class="loading-state p-3 text-center h-10">
 
   </div>
 

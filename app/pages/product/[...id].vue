@@ -69,50 +69,72 @@
           base: 'hover:underline font-normal',
           li: 'text-sm font-normal text-gray-400',
           active: 'text-customblack dark:text-primary-400 no-underline hover:no-underline font-normal',
-          divider: {
-            base: 'px-2 text-gray-400 no-underline'
-          }
+          divider: { base: 'px-2 text-gray-400 no-underline' }
         }" />
+
       <!-- 产品详情部分 -->
       <div class="text-gray-800" ref="detailSectionRef">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-8">
-          <!-- Left section with image thumbnails -->
+
+          <!-- Left section with image thumbnails (已改：主图手势滑动 + 缩略图联动) -->
           <div class="md:col-span-5">
             <div class="sticky top-[100px] overflow-hidden">
-              <div class="w-full aspect-square overflow-hidden mb-4 relative" v-if="mainImage">
-                <NuxtImg format="webp" :src="mainImage" @load="onMainImageLoaded" alt="Shade sail"
-                  class="rounded shadow-lg w-full h-full object-cover transition-all duration-300 cursor-pointer" />
-                <!-- Main image navigation buttons -->
-                <div class="main-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
-                  :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }" @click="prevMainImage">
-                  <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
-                    <UIcon name="i-raphael:arrowleft2" class="text-primary w-6 h-6" />
-                  </div>
-                </div>
-                <div class="main-button-next absolute right-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
-                  :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }" @click="nextMainImage">
-                  <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
-                    <UIcon name="i-raphael:arrowright2" class="text-primary w-6 h-6" />
-                  </div>
-                </div>
-              </div>
               <ClientOnly>
-                <Swiper :modules="[Navigation]" ref="swiperRefThumb"
-                  :navigation="{ nextEl: '.custom-button-next', prevEl: '.custom-button-prev' }" :space-between="10"
-                  class="w-full" :breakpoints="{ 0: { slidesPerView: 6, slidesPerGroup: 1 } }" @swiper="onSwiper"
-                  @slideChange="onSlideChange" :watchSlidesProgress="true">
-                  <SwiperSlide v-for="item in productinfo.erpProduct.photoList" :key="item.url">
-                    <NuxtImg width="80" height="80" loading="eager" :src="item.url" alt="thumbnail"
-                      class="w-full object-cover rounded cursor-pointer hover:opacity-80"
-                      @click="mainImage = item.url" />
+                <!-- 主图 Swiper -->
+                <Swiper :modules="[Navigation, Controller]" ref="swiperRefMain" :space-between="10" :slides-per-view="1"
+                  class="w-full aspect-square overflow-hidden mb-4 relative rounded shadow-lg"
+                  :navigation="{ nextEl: '.main-button-next', prevEl: '.main-button-prev' }" @swiper="onMainSwiper"
+                  @slideChange="onMainSlideChange">
+                  <SwiperSlide v-for="(item, idx) in productinfo.erpProduct.photoList" :key="item.url || idx"
+                    class="w-full h-full">
+                    <NuxtImg format="webp" :src="item.url" alt="Shade sail"
+                      class="w-full h-full object-cover transition-all duration-300 cursor-pointer"
+                      @load="onMainImageLoaded" />
                   </SwiperSlide>
-                  <SwiperSlide>
+
+                  <!-- 可选：最后一页放视频 -->
+                  <SwiperSlide v-if="productinfo.erpProduct.productVideoUrl">
+                    <video class="w-full h-full object-contain" controls
+                      :src="productinfo.erpProduct.productVideoUrl" />
+                  </SwiperSlide>
+
+                  <!-- 主图左右按钮 -->
+                  <div class="main-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
+                    :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }" @click="prevMainImage">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
+                      <UIcon name="i-raphael:arrowleft2" class="text-primary w-6 h-6" />
+                    </div>
+                  </div>
+                  <div class="main-button-next absolute right-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
+                    :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }" @click="nextMainImage">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
+                      <UIcon name="i-raphael:arrowright2" class="text-primary w-6 h-6" />
+                    </div>
+                  </div>
+                </Swiper>
+
+                <!-- 缩略图 Swiper -->
+                <Swiper :modules="[Navigation, Controller]" ref="swiperRefThumb" :space-between="10" class="w-full"
+                  :breakpoints="{ 0: { slidesPerView: 6, slidesPerGroup: 1 } }"
+                  :navigation="{ nextEl: '.custom-button-next', prevEl: '.custom-button-prev' }"
+                  @swiper="onThumbSwiper">
+                  <SwiperSlide v-for="(item, idx) in productinfo.erpProduct.photoList"
+                    :key="'thumb-' + (item.url || idx)" @click="swiperMain?.slideTo(idx)">
+                    <NuxtImg width="80" height="80" loading="eager" :src="item.url" alt="thumbnail"
+                      class="w-full object-cover rounded cursor-pointer hover:opacity-80" />
+                  </SwiperSlide>
+
+                  <!-- 视频缩略（可选） -->
+                  <SwiperSlide v-if="productinfo.erpProduct.productVideoUrl"
+                    @click="swiperMain?.slideTo(productinfo.erpProduct.photoList.length)">
                     <div class="flex items-center justify-center h-full w-full">
-                      <video class="max-h-full max-w-full">
-                        <source :src="productinfo.erpProduct.productVideoUrl" type="video/mp4" />
-                      </video>
+                      <div
+                        class="w-full h-20 rounded overflow-hidden relative cursor-pointer bg-black/5 flex items-center justify-center">
+                        <UIcon name="i-mdi:play-circle" class="w-6 h-6 text-primary" />
+                      </div>
                     </div>
                   </SwiperSlide>
+
                   <div class="custom-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
                     :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }">
                     <div class="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow text-primary">
@@ -130,7 +152,7 @@
             </div>
           </div>
 
-          <!-- Right section -->
+          <!-- Right section（原样） -->
           <div class="md:col-span-7">
             <div class="flex items-center justify-between">
               <h1 class="text-base font-normal md:text-lg lg:text-2xl mb-0">
@@ -141,9 +163,9 @@
               class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0  pb-4 mt-4 border-b border-b-[#D1D1D1]">
               <div class="text-base sm:text-xl font-medium text-primary">${{ skuprice }}</div>
             </div>
-            <!-- Section 1: THE TYPE -->
+
+            <!-- Section 1: THE TYPE（原样） -->
             <div v-if="productinfo.normalPropertyList">
-              <!-- <div class="mb-3 md:mb-4 border-b border-b-[#D1D1D1] pb-3 md:pb-4" -->
               <div class="border-b border-b-[#D1D1D1] py-3" v-for="(property, index) in productinfo.normalPropertyList"
                 :key="index">
                 <div class="flex justify-between items-center cursor-pointer" @click="changeshow(index)">
@@ -160,10 +182,10 @@
                     </Tooltip>
                   </h2>
                   <div class="flex items-center">
-                    <span class="mr-4 truncate-1-lines text-sm text-gray-500" v-if="property.selectedproperty">{{
-                      property.isneedinput &&
-                        property.chooseindex == 2 ? property.selectedproperty.inputvalue :
-                        property.selectedproperty.detailName }}</span>
+                    <span class="mr-4 truncate-1-lines text-sm text-gray-500" v-if="property.selectedproperty">
+                      {{ property.isneedinput && property.chooseindex == 2 ? property.selectedproperty.inputvalue :
+                        property.selectedproperty.detailName }}
+                    </span>
                     <UIcon :name="property.showType ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
                       class="w-5 h-5 text-gray-500 font-medium transition-all duration-300" />
                   </div>
@@ -182,11 +204,10 @@
                     ]">
                     <Tooltip :title="type.detailName" placement="bottom">
                       <div :class="[
-                        'w-full aspect-square overflow-hidden relative hover:border hover:border-primary', // Added 'relative' for positioning the triangle
+                        'w-full aspect-square overflow-hidden relative hover:border hover:border-primary',
                         property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'rounded border border-primary' : ''
                       ]" v-if="type.imageLink">
                         <img :src="type.imageLink" class="w-full h-full object-contain rounded" />
-                        <!-- Add solid triangular checkmark when selected -->
                         <div
                           v-if="property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId"
                           class="absolute bottom-0 right-0 w-5 h-5">
@@ -200,7 +221,6 @@
                     </Tooltip>
                   </div>
 
-
                   <div class="w-full flex flex-wrap max-h-[160px] overflow-y-auto"
                     v-if="!property.isneedinput && property.productPropertyDetailType == 'text'">
                     <div v-for="(type, propertyindex) in property.detailList" :key="type.propertyDetailId"
@@ -209,11 +229,10 @@
                         type.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                       ]">
                       <div :class="[
-                        'w-full aspect-square overflow-hidden relative hover:border hover:border-primary', // Added 'relative' for positioning the triangle
+                        'w-full aspect-square overflow-hidden relative hover:border hover:border-primary',
                         property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'bg-primary-50 border border-primary' : ''
                       ]" v-if="type.imageLink">
                         <img :src="type.imageLink" class="w-full h-full object-cover" />
-                        <!-- Add solid triangular checkmark when selected -->
                         <div
                           v-if="property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId"
                           class="absolute bottom-0 right-0 w-6 h-6">
@@ -225,12 +244,11 @@
                         </div>
                       </div>
                       <div :class="[
-                        'p-2 w-full text-sm relative hover:border hover:border-primary hover:text-primary', // Added 'relative' for positioning the triangle when no image
+                        'p-2 w-full text-sm relative hover:border hover:border-primary hover:text-primary',
                         !type.imageLink ? 'border border-customblack w-full rounded-md' : '',
                         !type.imageLink && property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'text-primary bg-primary-50 border border-primary w-full' : '',
                       ]" v-if="!type.imageLink">
                         <div class="truncate-1-lines text-center">{{ type.detailName }}</div>
-                        <!-- Add solid triangular checkmark when selected and no image -->
                         <div
                           v-if="property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId"
                           class="absolute bottom-0 right-0 w-5 h-5 text-white">
@@ -275,10 +293,9 @@
                                   </span>
                                 </template>
                                 <template v-else-if="needinput.customDetailList[pindex].viewType === 50">
-                                  <Select v-model:value="needinput.inputvalue[pindex]" :options="needinput.customDetailList[pindex].ruleList.map(rule => ({
-                                    label: rule.start,
-                                    value: rule.start
-                                  }))" size="middle" style="width: 112px; height: 28px; line-height: 28px"
+                                  <Select v-model:value="needinput.inputvalue[pindex]"
+                                    :options="needinput.customDetailList[pindex].ruleList.map(rule => ({ label: rule.start, value: rule.start }))"
+                                    size="middle" style="width: 112px; height: 28px; line-height: 28px"
                                     :dropdownStyle="{ lineHeight: '28px' }" class="custom-select" placeholder="Select"
                                     @change="() => changeinputvalue(property, needindex + 2, index)" />
                                   <span v-if="needinput.customDetailList[pindex].unit"
@@ -324,6 +341,7 @@
               </div>
             </div>
 
+            <!-- POD 区块（原样） -->
             <div class="mb-4 border-b border-b-[#D1D1D1] pb-4"
               v-show="productinfo.printPropertyList && productinfo.printPropertyList.length > 0">
               <div class="flex justify-between items-center cursor-pointer" @click="showDimensions = !showDimensions">
@@ -354,6 +372,7 @@
               </div>
             </div>
 
+            <!-- 数量/价格/按钮（原样） -->
             <div>
               <div class="w-full mx-auto bg-white rounded-md">
                 <div class="flex flex-row sm:items-center justify-between gap-4 mt-3">
@@ -394,9 +413,9 @@
         </div>
       </div>
 
+      <!-- Tabs / 详情 / 评价（原样） -->
       <div class="bg-[#F8F8F8]">
         <div class="mx-auto mt-2">
-          <!-- Tab Buttons -->
           <div class="text-base font-normal bg-white">
             <div class="flex justify-start">
               <div class="w-auto" v-if="productinfo.erpProduct.remarks">
@@ -420,7 +439,6 @@
             </div>
           </div>
 
-          <!-- Content Area -->
           <div class="mx-auto p-5 px-0 rounded p-2 grid grid-cols-1 gap-6 bg-white"
             v-if="productinfo.erpProduct.remarks || productinfo.printPropertyList.length > 0 || reviews.length > 0">
             <div v-show="tabindex === 1 && productinfo.erpProduct.remarks" class="overflow-hidden lg:col-span-3"
@@ -432,8 +450,8 @@
                 <span class="text-sm sm:text-base">{{ Propertyitem.value }}</span>
               </div>
             </div>
+
             <div v-show="tabindex === 3" class="w-full">
-              <!-- Reviews Statistics -->
               <h3 class="text-base font-semibold mb-6 text-gray-900">Customer Reviews</h3>
               <div class="flex flex-col lg:flex-row gap-6 mb-8 border-b pb-6 border-gray-300">
                 <div class="w-full lg:w-1/2">
@@ -450,9 +468,7 @@
                 </div>
                 <div class="w-full lg:w-1/2 flex items-center justify-end bg-gray-100 p-4 bg-primary-100 rounded-lg">
                   <div class="text-center w-full">
-                    <p class="text-3xl font-bold text-gray-900">
-                      <span>{{ averageRating.toFixed(1) }}</span>
-                    </p>
+                    <p class="text-3xl font-bold text-gray-900"><span>{{ averageRating.toFixed(1) }}</span></p>
                     <div class="my-2 flex justify-center">
                       <span v-for="star in 5" :key="star" class="text-2xl text-[#FFD359]">
                         <UIcon v-if="getStarStatus(star) === 'full'" name="i-mdi:star" class="text-[#FFD359]" />
@@ -466,12 +482,9 @@
                 </div>
               </div>
 
-              <!-- Individual Reviews -->
               <div>
-                <div v-if="reviews.length === 0" class="text-center text-gray-500 py-4">
-                  No reviews yet.
-                </div>
-                <!-- Inside the reviews section -->
+                <div v-if="reviews.length === 0" class="text-center text-gray-500 py-4">No reviews yet.</div>
+
                 <div v-for="review in reviews" :key="review.date" class="bg-white p-4 border-b border-[#D1D1D1] mt-4">
                   <div class="flex items-center">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3">
@@ -488,9 +501,10 @@
                       </span>
                     </div>
                   </div>
+
                   <p class="text-sm text-gray-400 my-2 mb-4">{{ review.text }}</p>
+
                   <div class="flex gap-2 flex-wrap" v-if="review.pictureUrlList?.length || review.videoUrlList?.length">
-                    <!-- Images with Image.PreviewGroup -->
                     <Image.PreviewGroup :preview="{
                       visible: review.previewVisible,
                       onVisibleChange: (visible) => {
@@ -519,7 +533,7 @@
                           @error="onImageError(index, review)" @click="selectReview(review, index, 'image')" />
                       </div>
                     </Image.PreviewGroup>
-                    <!-- Videos -->
+
                     <div v-for="(video, index) in review.videoUrlList?.slice(0, 5)" :key="'video-' + index"
                       class="w-16 h-16 rounded overflow-hidden shadow-md cursor-pointer relative video-thumbnail"
                       @click="openImageModal(video, 'video', review, index)">
@@ -533,21 +547,16 @@
                 </div>
               </div>
 
-              <!-- Pagination -->
               <div class="flex justify-between mt-3 md:mt-6 items-center">
-                <Button :disabled="currentPage === 1" @click="prevPage" class="custom-btn">
-                  Previous
-                </Button>
-                <Button :disabled="currentPage === totalPages" @click="nextPage" class="custom-btn">
-                  Next
-                </Button>
+                <Button :disabled="currentPage === 1" @click="prevPage" class="custom-btn">Previous</Button>
+                <Button :disabled="currentPage === totalPages" @click="nextPage" class="custom-btn">Next</Button>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 推荐产品部分 -->
+      <!-- 推荐产品部分（原样） -->
       <div class="mt-[30px] md:mt-12 pb-4" v-if="products.length > 0">
         <h1 class="text-lg font-semibold mb-3 md:mb-8">Recommended products</h1>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-12">
@@ -567,31 +576,25 @@
       </div>
     </div>
 
-    <!-- Video Modal -->
+    <!-- Video Modal（原样） -->
     <div v-if="isImageModalOpen && selectedMediaType === 'video'"
       class="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center" @click.self="closeImageModal">
       <div class="relative bg-transparent p-0 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
         <video :src="selectedImage" controls autoplay class="w-full max-h-[80vh] object-contain relative modal-video">
           Your browser does not support the video tag.
         </video>
-
-        <!-- Previous Button -->
         <button v-if="mediaList.length > 1" class="absolute left-4 top-1/2 -translate-y-1/2 z-10 cursor-pointer"
           :class="{ 'opacity-30 pointer-events-none': selectedMediaIndex === 0 }" @click="prevMedia">
           <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
             <UIcon name="i-raphael:arrowleft2" class="text-primary w-6 h-6" />
           </div>
         </button>
-
-        <!-- Next Button -->
         <button v-if="mediaList.length > 1" class="absolute right-4 top-1/2 -translate-y-1/2 z-10 cursor-pointer"
           :class="{ 'opacity-30 pointer-events-none': selectedMediaIndex === mediaList.length - 1 }" @click="nextMedia">
           <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
             <UIcon name="i-raphael:arrowright2" class="text-primary w-6 h-6" />
           </div>
         </button>
-
-        <!-- Close Button -->
         <button
           class="absolute top-4 right-4 text-gray-500 w-8 h-8 flex items-center justify-center bg-transparent text-white"
           @click="closeImageModal">
@@ -600,6 +603,7 @@
       </div>
     </div>
 
+    <!-- Bottom bar（原样） -->
     <div ref="bottomBarRef"
       class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4 px-8 bg-white rounded-md shadow-lg sticky bottom-0 transition-all duration-300 ease-in-out"
       :class="{ 'opacity-100 translate-y-0 pointer-events-auto': !isBottomBarHidden, 'opacity-0 translate-y-8 pointer-events-none': isBottomBarHidden }"
@@ -617,9 +621,7 @@
         </div>
         <span class="text-sm text-gray-600">Panels</span>
         <span class="text-base sm:text-lg font-medium text-gray-800">${{ totalPrice.toFixed(2) }}</span>
-        <UButton color="primary" size="md" @click="addtocart" class="rounded-lg">
-          Add to Cart
-        </UButton>
+        <UButton color="primary" size="md" @click="addtocart" class="rounded-lg">Add to Cart</UButton>
       </div>
     </div>
   </div>
@@ -627,789 +629,647 @@
 </template>
 
 <script setup>
-import { Image } from 'ant-design-vue';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import { Swiper, SwiperSlide } from 'swiper/vue';
-import { Navigation } from 'swiper/modules';
-import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
-import { message, Tooltip, Select, InputNumber, Button } from 'ant-design-vue';
-import { useCartStore } from '@/stores/cart';
-import { useRouter, useRoute } from 'vue-router';
-const { getProductById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV3, erpTryToCreateSku, getmapProductByProductSkuList } = ProductAuth();
-const { createCart } = cartAuth();
-const { getspuCommentProductRollPage, getgroupComment } = CommentAuth();
-const route = useRoute();
-const router = useRouter();
-const cart = useCartStore();
+import { Image } from 'ant-design-vue'
+import 'swiper/css'
+import 'swiper/css/navigation'
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import { Navigation, Controller } from 'swiper/modules'
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
+import { message, Tooltip, Select, InputNumber, Button } from 'ant-design-vue'
+import { useCartStore } from '@/stores/cart'
+import { useRouter, useRoute } from 'vue-router'
 
-const swiperRefThumb = ref();
-const lastpage = router.options.history.state.back;
-const cartloding = ref(false);
-const orderloding = ref(false);
-const orginproductinfo = ref({});
-const productid = computed(() => route.params.id[0] ?? '29201');
-const { data: serverProductData, pending, error } = await useAsyncData('product-detail', () => {
-  return getProductById({
-    id: productid.value,
-    needPropData: true,
-    excludeUserCustomProp: true
-  });
-});
-const showDimensions = ref(true);
-const mainImageIndex = ref(0);
-const isSwiperAtStart = computed(() => mainImageIndex.value === 0);
-const isSwiperAtEnd = computed(() => mainImageIndex.value === productinfo.value.erpProduct.photoList.length - 1);
-let specList = [];
-let joinsku = [];
-const designimage = ref('');
-const mainImage = ref('');
-const productinfo = ref(serverProductData.value?.result ?? {});
-if (productinfo.value.erpProduct?.mainPic) {
-  mainImage.value = productinfo.value.erpProduct.mainPic;
+const { getProductById, getProductDetailsById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV3, erpTryToCreateSku, getmapProductByProductSkuList } = ProductAuth()
+const { createCart } = cartAuth()
+const { getspuCommentProductRollPage, getgroupComment } = CommentAuth()
+const route = useRoute()
+const router = useRouter()
+const cart = useCartStore()
+
+/** ===== 新增：Swiper 主图/缩略图引用 & 控制器 ===== **/
+const swiperRefMain = ref()
+const swiperRefThumb = ref()
+const swiperMain = ref(null)
+const swiperThumb = ref(null)
+const mainImageIndex = ref(0)
+const isSwiperAtStart = ref(true)
+const isSwiperAtEnd = ref(false)
+
+const onMainSwiper = (s) => { swiperMain.value = s }
+const onThumbSwiper = (s) => { swiperThumb.value = s }
+
+// 建立双向控制（主图 <-> 缩略图）
+watch([swiperMain, swiperThumb], ([main, thumb]) => {
+  if (main && thumb) {
+    main.controller.control = thumb
+    thumb.controller.control = main
+  }
+})
+
+// 主图切换时更新 index / 按钮状态 / mainImage（供其它逻辑用）
+const onMainSlideChange = () => {
+  const s = swiperMain.value
+  if (!s) return
+  mainImageIndex.value = s.activeIndex
+  isSwiperAtStart.value = s.isBeginning
+  isSwiperAtEnd.value = s.isEnd
+
+  const slides = productinfo.value.erpProduct.photoList || []
+  if (s.activeIndex < slides.length) {
+    mainImage.value = slides[s.activeIndex]?.url || productinfo.value.erpProduct.mainPic
+  } else {
+    mainImage.value = slides[slides.length - 1]?.url || productinfo.value.erpProduct.mainPic
+  }
 }
-const skuprice = ref(productinfo.value?.erpProduct.customPrice ?? {});
-const products = ref([]);
-const quantity = ref(1);
-const totalPrice = computed(() => quantity.value * skuprice.value);
-const tabindex = ref(1);
-const errorsize = ref('');
-const averageRating = ref(0);
-const totalReviews = ref(0);
-const starPercentages = ref({ 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 });
-const reviews = ref([]);
-const currentPage = ref(1);
-const pageSize = ref(5);
-const totalPages = ref(1);
-const sortOption = ref('latest');
-const isImageModalOpen = ref(false);
-const selectedImage = ref('');
-const selectedMediaType = ref('video');
-const mediaList = ref([]);
-const selectedMediaIndex = ref(0);
-const selectedReview = ref(null);
-const isLoading = computed(() => pending.value);
-const isBottomBarHidden = ref(true);
-const detailSectionRef = ref(null);
-const bottomBarRef = ref(null);
-const isshow = ref(true);
+
+const prevMainImage = () => swiperMain.value?.slidePrev()
+const nextMainImage = () => swiperMain.value?.slideNext()
+
+/** ===== 其余原有逻辑 ===== **/
+const lastpage = router.options.history.state.back
+const cartloding = ref(false)
+const orderloding = ref(false)
+const orginproductinfo = ref({})
+const productid = computed(() => route.params.id[0] ?? '29201')
+const { data: serverProductData, pending, error } = await useAsyncData('product-detail', () => {
+  // return getProductById({ id: productid.value, needPropData: true, excludeUserCustomProp: true })
+  // let needfileds = 'id,catalogIdPathList,erpProduct.productStyle,erpProduct.productVideoUrl,erpProduct.remarks,erpProduct.productPicUrl,erpProduct.productName,erpProduct.productVideoUrl,erpProduct.productId,erpProduct.productEnglishName,erpProduct.photoList,erpProduct.mainPic,erpProduct.customPrice,erpProduct.customPrice,printPropertyList,normalPropertyList.propertyId,normalPropertyList.desc, normalPropertyList.productPropertyDetailType,normalPropertyList.propertyNameShop,normalPropertyList.propertyName,normalPropertyList.propertyType,normalPropertyList.detailList.isCustomAdd,normalPropertyList.detailList.customDetailList,normalPropertyList.detailList.desc,normalPropertyList.detailList.detailName,normalPropertyList.detailList.imageLink,normalPropertyList.detailList.inputList,normalPropertyList.detailList.isMissing,normalPropertyList.detailList.isSelect,normalPropertyList.detailList.propertyDetailId,normalPropertyList.detailList.propertyId,normalPropertyList.detailList.customDetailList,normalPropertyList.detailList.skuList'
+
+  let needfileds = 'id,catalogIdPathList,printPropertyList,erpProduct.productStyle,erpProduct.productVideoUrl,erpProduct.remarks,erpProduct.productPicUrl,erpProduct.productName,erpProduct.productVideoUrl,erpProduct.productId,erpProduct.productEnglishName,erpProduct.photoList,erpProduct.mainPic,erpProduct.customPrice,erpProduct.customPrice,normalPropertyList.propertyId,normalPropertyList.desc,normalPropertyList.productPropertyDetailType,normalPropertyList.propertyNameShop,normalPropertyList.propertyName,normalPropertyList.propertyType,normalPropertyList.detailList'
+  return getProductDetailsById({
+    productId: productid.value,
+    spuFields: needfileds
+  })
+})
+const showDimensions = ref(true)
+const designimage = ref('')
+const mainImage = ref('')
+const productinfo = ref(serverProductData.value?.result ?? {})
+if (productinfo.value.erpProduct?.mainPic) {
+  mainImage.value = productinfo.value.erpProduct.mainPic
+}
+const skuprice = ref(productinfo.value?.erpProduct.customPrice ?? {})
+const products = ref([])
+const quantity = ref(1)
+const totalPrice = computed(() => quantity.value * skuprice.value)
+const tabindex = ref(1)
+const errorsize = ref('')
+const averageRating = ref(0)
+const totalReviews = ref(0)
+const starPercentages = ref({ 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 })
+const reviews = ref([])
+const currentPage = ref(1)
+const pageSize = ref(5)
+const totalPages = ref(1)
+const sortOption = ref('latest')
+const isImageModalOpen = ref(false)
+const selectedImage = ref('')
+const selectedMediaType = ref('video')
+const mediaList = ref([])
+const selectedMediaIndex = ref(0)
+const selectedReview = ref(null)
+const isLoading = computed(() => pending.value)
+const isBottomBarHidden = ref(true)
+const detailSectionRef = ref(null)
+const bottomBarRef = ref(null)
+const isshow = ref(true)
 
 const onMainImageLoaded = () => {
   nextTick(() => {
-    swiperRefThumb.value?.swiper?.update();
-  });
-};
-
-const onSwiper = (swiper) => {
-  swiperInstance.value = swiper;
-};
-
-const swiperInstance = ref(null);
-
-const onSlideChange = () => {
-  if (swiperInstance.value) {
-    const swiper = swiperInstance.value;
-    isSwiperAtStart.value = swiper.isBeginning;
-    isSwiperAtEnd.value = swiper.isEnd;
-    const activeIndex = swiper.activeIndex;
-    const slides = productinfo.value.erpProduct.photoList;
-    if (activeIndex < slides.length) {
-      mainImage.value = slides[activeIndex].url;
-    } else {
-      mainImage.value = slides[slides.length - 1]?.url || productinfo.value.erpProduct.mainPic;
-    }
-  }
-};
-
-const prevMainImage = () => {
-  if (mainImageIndex.value > 0) {
-    mainImageIndex.value--;
-    swiperRefThumb.value.swiper.slideTo(mainImageIndex.value);
-  }
-};
-
-const nextMainImage = () => {
-  const max = productinfo.value.erpProduct.photoList.length - 1;
-  if (mainImageIndex.value < max) {
-    mainImageIndex.value++;
-    swiperRefThumb.value.swiper.slideTo(mainImageIndex.value);
-  }
-};
-
-const changetab = (index) => {
-  tabindex.value = index;
-};
-
-const increment = () => {
-  quantity.value++;
-};
-
-const decrement = () => {
-  if (quantity.value > 1) quantity.value--;
-};
-function getCatalogId(arr) {
-  if (!Array.isArray(arr) || arr.length === 0) return '';
-
-  if (arr.length >= 2) {
-    return arr[1]; // 取第二个值
-  } else {
-    return arr[0]; // 只有一个值时取第一个
-  }
+    swiperRefThumb.value?.swiper?.update()
+  })
 }
+
+const changetab = (index) => { tabindex.value = index }
+const increment = () => { quantity.value++ }
+const decrement = () => { if (quantity.value > 1) quantity.value-- }
+
+function getCatalogId(arr) {
+  if (!Array.isArray(arr) || arr.length === 0) return ''
+  if (arr.length >= 2) return arr[1]
+  return arr[0]
+}
+
 const handleGetrelated = async () => {
   try {
     let catalogIdPathList = productinfo.value.catalogIdPathList
     let recommendcateid = getCatalogId(catalogIdPathList)
-    let parmes = {
-      catalogId: recommendcateid,
-      size: 5,
-      excludeProductId: productinfo.value.id
-    };
-    let res = await randomRecommendationProductByCatalogId(parmes);
-    products.value = res.result;
-  } catch (error) {
-    console.error(error);
-  }
-};
+    let parmes = { catalogId: recommendcateid, size: 5, excludeProductId: productinfo.value.id }
+    let res = await randomRecommendationProductByCatalogId(parmes)
+    products.value = res.result
+  } catch (error) { console.error(error) }
+}
 
+let joinsku = []
 const selectproperty = (index, type) => {
-  if (type.disabled) return;
+  if (type.disabled) return
   productinfo.value.normalPropertyList.forEach((element, index1) => {
     if (index1 < index && isUndefinedOrEmptyObject(element.selectedproperty)) {
-      joinsku = joinsku.filter(item => element.selectedproperty.skuList.includes(item));
+      joinsku = joinsku.filter(item => element.selectedproperty.skuList.includes(item))
     }
-    if (index === 0) {
-      joinsku = type.skuList;
-    }
-  });
-  if (!joinsku) joinsku = [];
+    if (index === 0) { joinsku = type.skuList }
+  })
+  if (!joinsku) joinsku = []
   if (productinfo.value.normalPropertyList[index + 1] && type.skuList) {
-    let curskulist = joinsku.length > 0 ? joinsku.filter(item => type.skuList.includes(item)) : type.skuList || [];
-    let nextProperty = productinfo.value.normalPropertyList[index + 1];
-    let nextselectedproperty = nextProperty['selectedproperty'];
-    let nextselectedid = '-1';
-    if (nextselectedproperty) {
-      nextselectedid = nextselectedproperty.propertyDetailId;
-    }
+    let curskulist = joinsku.length > 0 ? joinsku.filter(item => type.skuList.includes(item)) : type.skuList || []
+    let nextProperty = productinfo.value.normalPropertyList[index + 1]
+    let nextselectedproperty = nextProperty['selectedproperty']
+    let nextselectedid = '-1'
+    if (nextselectedproperty) { nextselectedid = nextselectedproperty.propertyDetailId }
     if (nextProperty.isneedinput) {
-      let nextdetailList = nextProperty.noneedinputlist;
+      let nextdetailList = nextProperty.noneedinputlist
       nextdetailList.forEach(element => {
-        let skulist = element.skuList;
-        let hasIntersection = skulist && skulist.some(item => curskulist.includes(item));
-        element.isactive = hasIntersection;
-        element.disabled = !hasIntersection;
+        let skulist = element.skuList
+        let hasIntersection = skulist && skulist.some(item => curskulist.includes(item))
+        element.isactive = hasIntersection
+        element.disabled = !hasIntersection
         if (nextselectedid == element.propertyDetailId && element.disabled) {
-          productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {};
+          productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {}
         }
-      });
-      let nextdetailList1 = nextProperty.needinputlist;
+      })
+      let nextdetailList1 = nextProperty.needinputlist
       nextdetailList1.forEach(element1 => {
-        let skulist = element1.skuList;
-        let hasIntersection = skulist && skulist.some(item => curskulist.includes(item));
-        element1.isactive = hasIntersection;
-        element1.disabled = !hasIntersection;
+        let skulist = element1.skuList
+        let hasIntersection = skulist && skulist.some(item => curskulist.includes(item))
+        element1.isactive = hasIntersection
+        element1.disabled = !hasIntersection
         if (nextselectedid == element1.propertyDetailId && element1.disabled) {
-          productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {};
+          productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {}
         }
-      });
+      })
     } else {
-      let nextdetailList = nextProperty.detailList;
+      let nextdetailList = nextProperty.detailList
       nextdetailList.forEach(element => {
-        let skulist = element.skuList;
-        let hasIntersection = skulist && skulist.some(item => curskulist.includes(item));
-        element.isactive = hasIntersection;
-        element.disabled = !hasIntersection;
+        let skulist = element.skuList
+        let hasIntersection = skulist && skulist.some(item => curskulist.includes(item))
+        element.isactive = hasIntersection
+        element.disabled = !hasIntersection
         if (nextselectedid == element.propertyDetailId && element.disabled) {
-          productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {};
+          productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {}
         }
-      });
+      })
     }
   }
-  productinfo.value.normalPropertyList[index]['selectedproperty'] = type;
+  productinfo.value.normalPropertyList[index]['selectedproperty'] = type
 
-  let inputvalue = [];
-  let hasEmpty = false;
-  let needinputproperty;
-  let ischoose = true;
+  let inputvalue = []
+  let hasEmpty = false
+  let needinputproperty
+  let ischoose = true
 
   productinfo.value.normalPropertyList.forEach(element => {
-    if (isUndefinedOrEmptyObject(element.selectedproperty)) {
-      ischoose = false;
-    }
+    if (isUndefinedOrEmptyObject(element.selectedproperty)) { ischoose = false }
     if (element.isneedinput && element.chooseindex == 2) {
-      let needinputlist = element.needinputlist.filter(item => item.isactive);
+      let needinputlist = element.needinputlist.filter(item => item.isactive)
       needinputlist.forEach(item => {
-        inputvalue = item.inputvalue;
-        hasEmpty = inputvalue.some(item => item === "");
-      });
-      needinputproperty = element;
+        inputvalue = item.inputvalue
+        hasEmpty = inputvalue.some(item => item === "")
+      })
+      needinputproperty = element
     }
-  });
+  })
   if (needinputproperty && ischoose && !hasEmpty) {
-    getcustomprice(inputvalue);
+    getcustomprice(inputvalue)
   } else if (ischoose) {
     const skuLists = productinfo.value.normalPropertyList
       .map(property => property.selectedproperty?.skuList)
-      .filter(list => Array.isArray(list) && list.length > 0);
-    if (skuLists.length === 0) return;
-    let innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)));
-    let firstsku = innersku[0];
-    if (firstsku) {
-      getskuprice(firstsku);
-    }
+      .filter(list => Array.isArray(list) && list.length > 0)
+    if (skuLists.length === 0) return
+    let innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)))
+    let firstsku = innersku[0]
+    if (firstsku) { getskuprice(firstsku) }
   }
-};
+}
 
 const getskuprice = async (sku) => {
   try {
-    let params = {
-      skuList: [sku]
-    };
-    let res = await getmapProductByProductSkuList(params);
-    let lists = res.result;
-    let skuinfo = lists[sku];
-    skuprice.value = skuinfo.skuSpec.customPrice;
-  } catch (error) {
-    console.error(error);
-  }
-};
+    let params = { skuList: [sku] }
+    let res = await getmapProductByProductSkuList(params)
+    let lists = res.result
+    let skuinfo = lists[sku]
+    skuprice.value = skuinfo.skuSpec.customPrice
+  } catch (error) { console.error(error) }
+}
 
-const opencartloding = () => {
-  cartloding.value = true;
-};
-
-const openorderloding = () => {
-  orderloding.value = true;
-};
-
-const closecartloding = () => {
-  cartloding.value = false;
-};
-
-const closeorderloding = () => {
-  orderloding.value = false;
-};
+const opencartloding = () => { cartloding.value = true }
+const openorderloding = () => { orderloding.value = true }
+const closecartloding = () => { cartloding.value = false }
+const closeorderloding = () => { orderloding.value = false }
 
 const addtocart = async () => {
   try {
-    if (!quantity.value || quantity.value <= 0) {
-      message.error('Please enter quantity!');
-      return;
-    }
-    let ischoose = true;
-    let hasEmpty = false;
-    let inputvalue = [];
-    let needinputproperty;
-    let selectproperlist = [];
+    if (!quantity.value || quantity.value <= 0) { message.error('Please enter quantity!'); return }
+    let ischoose = true
+    let hasEmpty = false
+    let inputvalue = []
+    let needinputproperty
+    let selectproperlist = []
     productinfo.value.normalPropertyList.forEach(element => {
-      if (isUndefinedOrEmptyObject(element.selectedproperty)) {
-        ischoose = false;
-      }
+      if (isUndefinedOrEmptyObject(element.selectedproperty)) { ischoose = false }
       if (element.isneedinput && element.chooseindex == 2) {
-        let needinputlist = element.needinputlist.filter(item => item.isactive);
+        let needinputlist = element.needinputlist.filter(item => item.isactive)
         needinputlist.forEach(item => {
-          inputvalue = item.inputvalue;
-          hasEmpty = inputvalue.some(item => item === "");
-        });
-        needinputproperty = element;
+          inputvalue = item.inputvalue
+          hasEmpty = inputvalue.some(item => item === "")
+        })
+        needinputproperty = element
       }
       let detailitem = [{
-        isSelect: true,
-        isMissing: true,
+        isSelect: true, isMissing: true,
         detailName: element.selectedproperty?.detailName,
         propertyId: element.selectedproperty?.propertyId
-      }];
+      }]
       selectproperlist.push({
-        detailList: detailitem,
-        specCode: element.specCode,
-        propertyId: element.propertyId,
-        propertyType: element.propertyType,
-        propertyName: element.propertyName,
-      });
-    });
-    if (hasEmpty) {
-      message.error('No dimensions entered!');
-      return;
-    }
-    if (!ischoose) {
-      message.error('Please select properties!');
-      return;
-    }
-    let selectsku;
+        detailList: detailitem, specCode: element.specCode, propertyId: element.propertyId,
+        propertyType: element.propertyType, propertyName: element.propertyName,
+      })
+    })
+    if (hasEmpty) { message.error('No dimensions entered!'); return }
+    if (!ischoose) { message.error('Please select properties!'); return }
+
+    let selectsku
     if (inputvalue.length > 0) {
-      let target = selectproperlist.find(item => item.propertyId === needinputproperty.propertyId);
+      let target = selectproperlist.find(item => item.propertyId === needinputproperty.propertyId)
       if (target) {
         target.detailList = [{
-          isSelect: true,
-          isMissing: true,
+          isSelect: true, isMissing: true,
           detailName: inputvalue.join("*"),
           propertyId: needinputproperty.propertyId
-        }];
+        }]
       }
-      let variationList = productinfo.value.erpProduct.variationList;
-      const targetProperty = productinfo.value.normalPropertyList.find(item => item.propertyNameShop === 'Shape');
-      let detailName = targetProperty?.selectedproperty?.detailName || '';
+      let variationList = productinfo.value.erpProduct.variationList
+      const targetProperty = productinfo.value.normalPropertyList.find(item => item.propertyNameShop === 'Shape')
+      let detailName = targetProperty?.selectedproperty?.detailName || ''
       let createData = {
         productId: productid.value,
         productStyle: productinfo.value.erpProduct.productStyle,
         propertyList: selectproperlist,
         shape: detailName,
         variationList: variationList ? variationList : []
-      };
+      }
       for (let i = 0; i < inputvalue.length; i++) {
-        createData[`edge${i + 1}`] = inputvalue[i] || 0;
+        createData[`edge${i + 1}`] = inputvalue[i] || 0
       }
       try {
-        opencartloding();
-        let res = await erpTryToCreateSku(createData);
-        selectsku = res.result.skuSpec.sku;
+        opencartloding()
+        let res = await erpTryToCreateSku(createData)
+        selectsku = res.result.skuSpec.sku
       } catch (e) {
-        closecartloding();
-        const errormsg = JSON.parse(e.message || '{}');
-        message.error(errormsg.enDesc || 'Create SKU failed');
-        return;
+        closecartloding()
+        const errormsg = JSON.parse(e.message || '{}')
+        message.error(errormsg.enDesc || 'Create SKU failed')
+        return
       }
     } else {
       const skuLists = productinfo.value.normalPropertyList
         .map(property => property.selectedproperty?.skuList)
-        .filter(list => Array.isArray(list) && list.length > 0);
-      if (skuLists.length === 0) return;
-      let innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)));
-      if (innersku.length == 0) {
-        message.error('Please select all properties');
-        return;
-      }
-      selectsku = innersku[0];
-      opencartloding();
+        .filter(list => Array.isArray(list) && list.length > 0)
+      if (skuLists.length === 0) return
+      let innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)))
+      if (innersku.length == 0) { message.error('Please select all properties'); return }
+      selectsku = innersku[0]
+      opencartloding()
     }
-    let data = {
-      productQuantity: quantity.value,
-      productSku: selectsku,
-    };
-    let res = await createCart(data);
-    message.success('Add successful!');
-    closecartloding();
-    cart.refreshCart();
+    let data = { productQuantity: quantity.value, productSku: selectsku }
+    await createCart(data)
+    message.success('Add successful!')
+    closecartloding()
+    cart.refreshCart()
   } catch (error) {
-    let errormsg = JSON.parse(error.message || '{}');
-    closecartloding();
-    message.error(errormsg.enDesc || 'failed, please try again');
+    let errormsg = JSON.parse(error.message || '{}')
+    closecartloding()
+    message.error(errormsg.enDesc || 'failed, please try again')
   }
-};
+}
 
 const onQuantityInput = (e) => {
-  let val = parseInt(e.target.value.replace(/[^\d]/g, '')) || 1;
-  if (val < 1) val = 1;
-  if (val > 999) val = 999;
-  quantity.value = val;
-};
+  let val = parseInt(e.target.value.replace(/[^\d]/g, '')) || 1
+  if (val < 1) val = 1
+  if (val > 999) val = 999
+  quantity.value = val
+}
 
 function isUndefinedOrEmptyObject(val) {
-  return (
-    val === undefined ||
-    (typeof val === 'object' &&
-      val !== null &&
-      Object.keys(val).length === 0 &&
-      val.constructor === Object)
-  );
+  return (val === undefined || (typeof val === 'object' && val !== null && Object.keys(val).length === 0 && val.constructor === Object))
 }
 
 const createorder = async () => {
   try {
-    if (!quantity.value || quantity.value <= 0) {
-      message.error('Please enter quantity!');
-      return;
-    }
-    let ischoose = true;
-    let hasEmpty = false;
-    let inputvalue = [];
-    let needinputproperty;
-    let selectproperlist = [];
+    if (!quantity.value || quantity.value <= 0) { message.error('Please enter quantity!'); return }
+    let ischoose = true
+    let hasEmpty = false
+    let inputvalue = []
+    let needinputproperty
+    let selectproperlist = []
     productinfo.value.normalPropertyList.forEach(element => {
-      if (isUndefinedOrEmptyObject(element.selectedproperty)) {
-        ischoose = false;
-      }
+      if (isUndefinedOrEmptyObject(element.selectedproperty)) { ischoose = false }
       if (element.isneedinput && element.chooseindex == 2) {
-        let needinputlist = element.needinputlist.filter(item => item.isactive);
+        let needinputlist = element.needinputlist.filter(item => item.isactive)
         needinputlist.forEach(item => {
-          inputvalue = item.inputvalue;
-          hasEmpty = inputvalue.some(item => item === "");
-        });
-        needinputproperty = element;
+          inputvalue = item.inputvalue
+          hasEmpty = inputvalue.some(item => item === "")
+        })
+        needinputproperty = element
       }
       let detailitem = [{
-        isSelect: true,
-        isMissing: true,
+        isSelect: true, isMissing: true,
         detailName: element.selectedproperty?.detailName,
         propertyId: element.selectedproperty?.propertyId
-      }];
+      }]
       selectproperlist.push({
-        detailList: detailitem,
-        specCode: element.specCode,
-        propertyId: element.propertyId,
-        propertyType: element.propertyType,
-        propertyName: element.propertyName,
-      });
-    });
-    if (hasEmpty) {
-      message.error('No dimensions entered!');
-      return;
-    }
-    if (!ischoose) {
-      message.error('Please select properties!');
-      return;
-    }
-    let selectsku;
+        detailList: detailitem, specCode: element.specCode, propertyId: element.propertyId,
+        propertyType: element.propertyType, propertyName: element.propertyName,
+      })
+    })
+    if (hasEmpty) { message.error('No dimensions entered!'); return }
+    if (!ischoose) { message.error('Please select properties!'); return }
+
+    let selectsku
     if (inputvalue.length > 0) {
-      let target = selectproperlist.find(item => item.propertyId === needinputproperty.propertyId);
+      let target = selectproperlist.find(item => item.propertyId === needinputproperty.propertyId)
       if (target) {
         target.detailList = [{
-          isSelect: true,
-          isMissing: true,
+          isSelect: true, isMissing: true,
           detailName: inputvalue.join("*"),
           propertyId: needinputproperty.propertyId
-        }];
+        }]
       }
-      let variationList = productinfo.value.erpProduct.variationList;
-      const targetProperty = productinfo.value.normalPropertyList.find(item => item.propertyNameShop === 'Shape');
-      let detailName = targetProperty?.selectedproperty?.detailName || '';
+      let variationList = productinfo.value.erpProduct.variationList
+      const targetProperty = productinfo.value.normalPropertyList.find(item => item.propertyNameShop === 'Shape')
+      let detailName = targetProperty?.selectedproperty?.detailName || ''
       let createData = {
         productId: productid.value,
         productStyle: productinfo.value.erpProduct.productStyle,
         propertyList: selectproperlist,
         shape: detailName,
         variationList: variationList ? variationList : []
-      };
+      }
       for (let i = 0; i < inputvalue.length; i++) {
-        createData[`edge${i + 1}`] = inputvalue[i] || 0;
+        createData[`edge${i + 1}`] = inputvalue[i] || 0
       }
       try {
-        openorderloding();
-        let res = await erpTryToCreateSku(createData);
-        selectsku = res.result.skuSpec.sku;
+        openorderloding()
+        let res = await erpTryToCreateSku(createData)
+        selectsku = res.result.skuSpec.sku
       } catch (e) {
-        closeorderloding();
-        const errormsg = JSON.parse(e.message || '{}');
-        message.error(errormsg.enDesc || 'Create SKU failed');
-        return;
+        closeorderloding()
+        const errormsg = JSON.parse(e.message || '{}')
+        message.error(errormsg.enDesc || 'Create SKU failed')
+        return
       }
     } else {
       const skuLists = productinfo.value.normalPropertyList
         .map(property => property.selectedproperty?.skuList)
-        .filter(list => Array.isArray(list) && list.length > 0);
-      if (skuLists.length === 0) return;
-      let innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)));
-      if (innersku.length == 0) {
-        message.error('Please select all properties');
-        return;
-      }
-      selectsku = innersku[0];
-      openorderloding();
+        .filter(list => Array.isArray(list) && list.length > 0)
+      if (skuLists.length === 0) return
+      let innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)))
+      if (innersku.length == 0) { message.error('Please select all properties'); return }
+      selectsku = innersku[0]
+      openorderloding()
     }
-    closeorderloding();
-    router.push('/checkout?from=detail&sku=' + selectsku + '&number=' + quantity.value);
+    closeorderloding()
+    router.push('/checkout?from=detail&sku=' + selectsku + '&number=' + quantity.value)
   } catch (error) {
-    let errormsg = JSON.parse(error.message || '{}');
-    closeorderloding();
-    message.error(errormsg.enDesc || 'Failed');
-  }
-};
-
-let lastLabel = null;
-let lastTo = null;
-const breadcrumbLinks = ref([
-  { label: 'Home', to: '/', title: 'Home' }
-]);
-if (lastpage) {
-  const decodedPath = decodeURIComponent(lastpage);
-  const categoryMatch = decodedPath.match(/^\/(.+?)-(\d+)(\/)?$/);
-  if (categoryMatch) {
-    lastLabel = categoryMatch[1];
-    lastTo = lastpage;
-  }
-  const collectionMatch = decodedPath.match(/^\/collections\/[^/?#]+/);
-  if (collectionMatch) {
-    lastLabel = collectionMatch[0].split('/')[2];
-    lastTo = lastpage;
-  }
-  if (lastLabel && lastTo) {
-    breadcrumbLinks.value.push({
-      label: lastLabel,
-      to: lastTo,
-      title: lastLabel
-    });
+    let errormsg = JSON.parse(error.message || '{}')
+    closeorderloding()
+    message.error(errormsg.enDesc || 'Failed')
   }
 }
 
+let lastLabel = null
+let lastTo = null
+const breadcrumbLinks = ref([{ label: 'Home', to: '/', title: 'Home' }])
+if (lastpage) {
+  const decodedPath = decodeURIComponent(lastpage)
+  const categoryMatch = decodedPath.match(/^\/(.+?)-(\d+)(\/)?$/)
+  if (categoryMatch) { lastLabel = categoryMatch[1]; lastTo = lastpage }
+  const collectionMatch = decodedPath.match(/^\/collections\/[^/?#]+/)
+  if (collectionMatch) { lastLabel = collectionMatch[0].split('/')[2]; lastTo = lastpage }
+  if (lastLabel && lastTo) { breadcrumbLinks.value.push({ label: lastLabel, to: lastTo, title: lastLabel }) }
+}
+
 const updateBreadcrumbProduct = (productName) => {
-  const productPath = `/product/${productid.value}/${productName.replace(/\s+/g, '-')}`;
-  const lastIndex = breadcrumbLinks.value.length - 1;
-  const lastItem = breadcrumbLinks.value[lastIndex];
+  const productPath = `/product/${productid.value}/${productName.replace(/\s+/g, '-')}`
+  const lastIndex = breadcrumbLinks.value.length - 1
+  const lastItem = breadcrumbLinks.value[lastIndex]
   if (lastItem && lastItem.to?.startsWith('/product')) {
-    breadcrumbLinks.value[lastIndex] = {
-      label: productName,
-      to: productPath,
-      title: productName
-    };
+    breadcrumbLinks.value[lastIndex] = { label: productName, to: productPath, title: productName }
   } else {
-    breadcrumbLinks.value.push({
-      label: productName,
-      to: productPath,
-      title: productName
-    });
+    breadcrumbLinks.value.push({ label: productName, to: productPath, title: productName })
   }
-};
+}
 
 const handleGetProudct = async () => {
   try {
-    isLoading.value = true;
-    let parmes = {
-      id: productid.value,
-      needPropData: true,
-      excludeUserCustomProp: true
-    };
-    let res = await getProductById(parmes);
+    isLoading.value = true // 保持你原有写法
+    let parmes = { id: productid.value, needPropData: true, excludeUserCustomProp: true }
+    let res = await getProductById(parmes)
     // updateBreadcrumbProduct(res.result.erpProduct.productEnglishName);
-    orginproductinfo.value = res.result;
-    productinfo.value = res.result;
-    skuprice.value = res.result.erpProduct.customPrice;
-    specList = res.result.erpProduct.specList;
+    orginproductinfo.value = res.result
+    productinfo.value = res.result
+    skuprice.value = res.result.erpProduct.customPrice
     productinfo.value.normalPropertyList.forEach(element => {
-      let noneedinputlist = ref([]);
-      let needinputlist = ref([]);
+      let noneedinputlist = ref([])
+      let needinputlist = ref([])
       element.detailList.forEach(item => {
-        item.isactive = true;
-        item.label = item.detailName;
+        item.isactive = true
+        item.label = item.detailName
         if (item.inputList) {
-          let inputvalue = [];
-          item.inputList.forEach(() => {
-            inputvalue.push('');
-          });
-          item.inputvalue = inputvalue;
-          element.isneedinput = true;
-          needinputlist.value.push(item);
+          let inputvalue = []
+          item.inputList.forEach(() => { inputvalue.push('') })
+          item.inputvalue = inputvalue
+          element.isneedinput = true
+          needinputlist.value.push(item)
         } else {
-          noneedinputlist.value.push(item);
+          noneedinputlist.value.push(item)
         }
-        element.needinputlist = needinputlist.value;
-        element.noneedinputlist = noneedinputlist.value;
-        element.chooseindex = 1;
-        if (noneedinputlist.value.length == 0) {
-          element.chooseindex = 2;
-        }
-      });
-    });
-    productinfo.value.normalPropertyList[0].showType = true;
-    mainImage.value = productinfo.value.erpProduct.mainPic;
-    await fetchComments();
+        element.needinputlist = needinputlist.value
+        element.noneedinputlist = noneedinputlist.value
+        element.chooseindex = 1
+        if (noneedinputlist.value.length == 0) { element.chooseindex = 2 }
+      })
+    })
+    productinfo.value.normalPropertyList[0].showType = true
+    mainImage.value = productinfo.value.erpProduct.mainPic
+    await fetchComments()
   } catch (error) {
-    message.error('Failed to load product data');
-    console.error(error);
+    message.error('Failed to load product data')
+    console.error(error)
   } finally {
-    isLoading.value = false;
-    handleGetrelated();
+    isLoading.value = false
+    handleGetrelated()
   }
-};
+}
 
 const organizeproduct = () => {
   try {
     // updateBreadcrumbProduct(productinfo.value.erpProduct.productEnglishName);
-    specList = productinfo.value.erpProduct.specList;
     productinfo.value.normalPropertyList.forEach(element => {
-      let noneedinputlist = ref([]);
-      let needinputlist = ref([]);
+      let noneedinputlist = ref([])
+      let needinputlist = ref([])
       element.detailList.forEach(item => {
-        item.isactive = true;
-        item.label = item.detailName;
+        item.isactive = true
+        item.label = item.detailName
         if (item.inputList) {
-          let inputvalue = [];
+          let inputvalue = []
           if (item.customDetailList) {
             let sortedCustomDetailList = item.inputList.map(inputName =>
               item.customDetailList.find(item => item.input === inputName)
-            );
-            item.customDetailList = sortedCustomDetailList;
+            )
+            item.customDetailList = sortedCustomDetailList
           }
-          item.inputList.forEach(() => {
-            inputvalue.push('');
-          });
-          item.inputvalue = inputvalue;
-          element.isneedinput = true;
-          needinputlist.value.push(item);
+          item.inputList.forEach(() => { inputvalue.push('') })
+          item.inputvalue = inputvalue
+          element.isneedinput = true
+          needinputlist.value.push(item)
         } else {
-          noneedinputlist.value.push(item);
+          noneedinputlist.value.push(item)
         }
-        element.needinputlist = needinputlist.value;
-        element.noneedinputlist = noneedinputlist.value;
-        element.chooseindex = 1;
-        if (noneedinputlist.value.length == 0) {
-          element.chooseindex = 2;
-        }
-      });
-    });
-    productinfo.value.normalPropertyList[0].showType = true;
+        element.needinputlist = needinputlist.value
+        element.noneedinputlist = noneedinputlist.value
+        element.chooseindex = 1
+        if (noneedinputlist.value.length == 0) { element.chooseindex = 2 }
+      })
+    })
+    productinfo.value.normalPropertyList[0].showType = true
   } catch (error) {
-    console.error(error);
-    message.error('Failed to load product data');
+    console.error(error)
+    message.error('Failed to load product data')
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-};
-organizeproduct();
+}
+organizeproduct()
 
 const handleSelectChange = (propertyIndex, selected) => {
-  if (selected && selected.propertyDetailId) {
-    selectproperty(propertyIndex, selected);
-  }
-};
+  if (selected && selected.propertyDetailId) { selectproperty(propertyIndex, selected) }
+}
 
 const onChange = (val, property, index) => {
-  property.chooseindex = '1';
-  let selectvalue = property.detailList.find(item => item.propertyDetailId === val);
-  selectproperty(index, selectvalue);
-};
+  property.chooseindex = '1'
+  let selectvalue = property.detailList.find(item => item.propertyDetailId === val)
+  selectproperty(index, selectvalue)
+}
 
 const changeinputvalue = (element, index, propertyindex) => {
-  element.chooseindex = index;
-  let strresult = '';
-  let detailName = '';
-  let inputList = [];
+  element.chooseindex = index
+  let strresult = ''
+  let detailName = ''
+  let inputList = []
   if (element.isneedinput) {
-    let needinputlist = element.needinputlist.filter(item => item.isactive);
+    let needinputlist = element.needinputlist.filter(item => item.isactive)
     needinputlist.forEach((item, zindex) => {
       if (zindex + 2 == element.chooseindex) {
-        detailName = item.detailName;
-        let inputvalue = item.inputvalue;
-        inputList = item.inputList;
-        strresult = inputvalue.join("*");
+        detailName = item.detailName
+        let inputvalue = item.inputvalue
+        inputList = item.inputList
+        strresult = inputvalue.join("*")
       }
-    });
-    if (!element.selectedproperty) {
-      element.selectedproperty = {};
-    }
-    element.selectedproperty.inputvalue = strresult;
-    element.selectedproperty.detailName = detailName;
-    element.selectedproperty.inputList = inputList;
-    selectproperty(propertyindex, element.selectedproperty);
+    })
+    if (!element.selectedproperty) { element.selectedproperty = {} }
+    element.selectedproperty.inputvalue = strresult
+    element.selectedproperty.detailName = detailName
+    element.selectedproperty.inputList = inputList
+    selectproperty(propertyindex, element.selectedproperty)
   }
-};
+}
 
 const getcustomprice = async (inputvalue) => {
-  const propList = [];
-  const sideMap = {};
-  const shapeProperty = productinfo.value.normalPropertyList.find(p => p.propertyNameShop === 'Shape');
-  const shape = shapeProperty?.selectedproperty?.detailName || '';
+  const propList = []
+  const sideMap = {}
+  const shapeProperty = productinfo.value.normalPropertyList.find(p => p.propertyNameShop === 'Shape')
+  const shape = shapeProperty?.selectedproperty?.detailName || ''
   productinfo.value.normalPropertyList.forEach((property) => {
-    if (!property.selectedproperty) return;
-    const isCustomInput = property.isneedinput && property.chooseindex === 2;
-    let detailName = property.selectedproperty.detailName;
-    const propItem = {
-      propertyNameShop: property.propertyNameShop,
-      detailName
-    };
+    if (!property.selectedproperty) return
+    const isCustomInput = property.isneedinput && property.chooseindex === 2
+    let detailName = property.selectedproperty.detailName
+    const propItem = { propertyNameShop: property.propertyNameShop, detailName }
     if (isCustomInput && property.selectedproperty.inputvalue) {
       const inputArr = Array.isArray(property.selectedproperty.inputvalue)
         ? property.selectedproperty.inputvalue
-        : String(property.selectedproperty.inputvalue).split('*');
+        : String(property.selectedproperty.inputvalue).split('*')
       propItem.inputList = inputArr.map((val, idx) => {
-        const inputKey = property.selectedproperty?.inputList?.[idx] || `side${idx + 1}`;
-        sideMap[`side${idx + 1}`] = val;
-        return {
-          input: inputKey,
-          customPropValue: val
-        };
-      });
+        const inputKey = property.selectedproperty?.inputList?.[idx] || `side${idx + 1}`
+        sideMap[`side${idx + 1}`] = val
+        return { input: inputKey, customPropValue: val }
+      })
     }
-    propList.push(propItem);
-  });
-  const params = {
-    spu: productinfo.value.erpProduct.productStyle,
-    shape,
-    ...sideMap,
-    propList
-  };
+    propList.push(propItem)
+  })
+  const params = { spu: productinfo.value.erpProduct.productStyle, shape, ...sideMap, propList }
   try {
-    const res = await trialPriceCalculationBySpuV3(params);
-    skuprice.value = res.result.sellingPrice;
-    errorsize.value = '';
+    const res = await trialPriceCalculationBySpuV3(params)
+    skuprice.value = res.result.sellingPrice
+    errorsize.value = ''
   } catch (error) {
-    const errormsg = JSON.parse(error.message || '{}');
-    errorsize.value = errormsg.enDesc || 'Invalid input';
+    const errormsg = JSON.parse(error.message || '{}')
+    errorsize.value = errormsg.enDesc || 'Invalid input'
   }
-};
+}
 
 const hasRange = (item) => {
-  return (
-    item.inputStart !== null &&
-    item.inputEnd !== null &&
-    item.inputStart !== undefined &&
-    item.inputEnd !== undefined &&
-    (item.inputStart !== 0 || item.inputEnd !== 0)
-  );
-};
+  return (item.inputStart !== null && item.inputEnd !== null && item.inputStart !== undefined && item.inputEnd !== undefined && (item.inputStart !== 0 || item.inputEnd !== 0))
+}
 
 const customFilter = (input, option) => {
-  return option.detailName?.toLowerCase().includes(input.toLowerCase());
-};
+  return option.detailName?.toLowerCase().includes(input.toLowerCase())
+}
 
 const checkdetail = (id, name) => {
-  router.push(`/product/${id}/${name.replace(/\s+/g, '-')}`);
-};
+  router.push(`/product/${id}/${name.replace(/\s+/g, '-')}`)
+}
 
 const changeshow = (index) => {
   productinfo.value.normalPropertyList.forEach((item, i) => {
-    item.showType = i === index ? !item.showType : false;
-  });
-};
+    item.showType = i === index ? !item.showType : false
+  })
+}
 
 const handleScroll = () => {
   if (bottomBarRef.value && detailSectionRef.value) {
-    const rect1 = detailSectionRef.value.getBoundingClientRect();
-    const rect2 = bottomBarRef.value.getBoundingClientRect();
-    if (rect2.top < 800 || rect1.top > 0) {
-      isBottomBarHidden.value = true;
-    } else {
-      isBottomBarHidden.value = false;
-    }
+    const rect1 = detailSectionRef.value.getBoundingClientRect()
+    const rect2 = bottomBarRef.value.getBoundingClientRect()
+    if (rect2.top < 800 || rect1.top > 0) { isBottomBarHidden.value = true }
+    else { isBottomBarHidden.value = false }
   }
-};
+}
 
 const getStarStatus = (starIndex) => {
-  if (!averageRating.value && averageRating.value !== 0) return 'empty';
-  const fullStars = Math.floor(averageRating.value);
-  const decimalPart = averageRating.value - fullStars;
-  if (starIndex <= fullStars) return 'full';
-  if (starIndex === fullStars + 1 && decimalPart >= 0.25 && decimalPart <= 0.75) return 'half';
-  if (starIndex === fullStars + 1 && decimalPart > 0.75) return 'full';
-  return 'empty';
-};
+  if (!averageRating.value && averageRating.value !== 0) return 'empty'
+  const fullStars = Math.floor(averageRating.value)
+  const decimalPart = averageRating.value - fullStars
+  if (starIndex <= fullStars) return 'full'
+  if (starIndex === fullStars + 1 && decimalPart >= 0.25 && decimalPart <= 0.75) return 'half'
+  if (starIndex === fullStars + 1 && decimalPart > 0.75) return 'full'
+  return 'empty'
+}
 
 const formatShanghaiToLocalDate = (shanghaiDate) => {
-  const date = new Date(shanghaiDate);
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-};
+  const date = new Date(shanghaiDate)
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+}
 
 const fetchComments = async () => {
   try {
-    const groupRes = await getgroupComment({ productSpu: productinfo.value.erpProduct.productStyle });
-    const result = groupRes.result;
-
-    averageRating.value = result.averageRank || 0;
-    totalReviews.value = result.total || 0;
+    const groupRes = await getgroupComment({ productSpu: productinfo.value.erpProduct.productStyle })
+    const result = groupRes.result
+    averageRating.value = result.averageRank || 0
+    totalReviews.value = result.total || 0
     starPercentages.value = {
       5: result.groupList.find((g) => g.group === 5)?.percentage || 0,
       4: result.groupList.find((g) => g.group === 4)?.percentage || 0,
       3: result.groupList.find((g) => g.group === 3)?.percentage || 0,
       2: result.groupList.find((g) => g.group === 2)?.percentage || 0,
       1: result.groupList.find((g) => g.group === 1)?.percentage || 0,
-    };
-    totalPages.value = Math.ceil(totalReviews.value / pageSize.value);
+    }
+    totalPages.value = Math.ceil(totalReviews.value / pageSize.value)
 
     const rollRes = await getspuCommentProductRollPage({
       pageNum: currentPage.value,
       pageSize: pageSize.value,
       productSpu: productinfo.value.erpProduct.productStyle,
       needCount: true,
-    });
+    })
     reviews.value = rollRes.result.list.map((review) => ({
       name: review.fullName || 'Anonymous',
       date: formatShanghaiToLocalDate(review.commentDate),
@@ -1419,171 +1279,134 @@ const fetchComments = async () => {
       rating: review.rank || 1,
       previewVisible: false,
       previewIndex: 0,
-    }));
+    }))
     totalPages.value = Math.ceil(
       (rollRes.result.total > 0 ? rollRes.result.total : reviews.value.length) / pageSize.value
-    );
-    if (
-      (!productinfo.value.erpProduct.remarks || productinfo.value.erpProduct.remarks.trim() === '') &&
+    )
+    if ((!productinfo.value.erpProduct.remarks || productinfo.value.erpProduct.remarks.trim() === '') &&
       productinfo.value.printPropertyList.length === 0 &&
-      reviews.value.length > 0
-    ) {
-      tabindex.value = 3;
+      reviews.value.length > 0) {
+      tabindex.value = 3
     } else if (reviews.value.length === 0 && tabindex.value === 3) {
-      tabindex.value = 1;
+      tabindex.value = 1
     }
-    sortReviews();
+    sortReviews()
   } catch (error) {
-    message.error('Failed to load comments');
-    console.error(error);
-  } finally {
-    message.destroy();
-  }
-};
+    message.error('Failed to load comments')
+    console.error(error)
+  } finally { message.destroy() }
+}
 
 const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--;
-    fetchComments();
-  }
-};
+  if (currentPage.value > 1) { currentPage.value--; fetchComments() }
+}
 
 const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++;
-    fetchComments();
-  }
-};
+  if (currentPage.value < totalPages.value) { currentPage.value++; fetchComments() }
+}
 
 const sortReviews = () => {
   reviews.value.sort((a, b) => {
-    if (sortOption.value === 'rating') {
-      return b.rating - a.rating;
-    } else {
-      return new Date(b.date) - new Date(a.date);
-    }
-  });
-};
+    if (sortOption.value === 'rating') return b.rating - a.rating
+    return new Date(b.date) - new Date(a.date)
+  })
+}
 
-// Update the getMediaIndex function to handle image indices correctly
 const getMediaIndex = (review, index, type) => {
-  if (type === 'image') {
-    return index; // For images, return the index directly
-  }
-  // For videos, account for the number of images
-  return (review.pictureUrlList?.length || 0) + index;
-};
+  if (type === 'image') return index
+  return (review.pictureUrlList?.length || 0) + index
+}
 
-// Update the selectReview function to set previewIndex correctly for images
 const selectReview = (review, index, type) => {
-  selectedReview.value = review;
+  selectedReview.value = review
   mediaList.value = [
     ...(review.pictureUrlList || []).map((url) => ({ url, type: 'image' })),
     ...(review.videoUrlList || []).map((url) => ({ url, type: 'video' })),
-  ];
+  ]
   if (type === 'image') {
-    review.previewVisible = true;
-    review.previewIndex = index; // Set the previewIndex to the clicked image index
-    selectedMediaIndex.value = index; // Update media index for consistency
+    review.previewVisible = true
+    review.previewIndex = index
+    selectedMediaIndex.value = index
   } else {
-    selectedMediaIndex.value = getMediaIndex(review, index, type);
+    selectedMediaIndex.value = getMediaIndex(review, index, type)
   }
-};
+}
 
-// Update openImageModal to handle video selection
 const openImageModal = (media, type, review, index) => {
-  selectReview(review, index, type);
-  selectedImage.value = media;
-  selectedMediaType.value = type;
-  isImageModalOpen.value = true;
-};
+  selectReview(review, index, type)
+  selectedImage.value = media
+  selectedMediaType.value = type
+  isImageModalOpen.value = true
+}
 
-// Update prevMedia to handle image and video navigation
 const prevMedia = () => {
   if (selectedMediaIndex.value > 0 && selectedReview.value) {
-    selectedMediaIndex.value--;
-    const media = mediaList.value[selectedMediaIndex.value];
+    selectedMediaIndex.value--
+    const media = mediaList.value[selectedMediaIndex.value]
     if (media.type === 'image') {
-      selectedReview.value.previewVisible = true;
-      selectedReview.value.previewIndex = selectedMediaIndex.value; // Set to image index
-      isImageModalOpen.value = false;
+      selectedReview.value.previewVisible = true
+      selectedReview.value.previewIndex = selectedMediaIndex.value
+      isImageModalOpen.value = false
     } else {
-      selectedImage.value = media.url;
-      selectedMediaType.value = media.type;
-      isImageModalOpen.value = true;
+      selectedImage.value = media.url
+      selectedMediaType.value = media.type
+      isImageModalOpen.value = true
     }
   }
-};
+}
 
-// Update nextMedia to handle image and video navigation
 const nextMedia = () => {
   if (selectedMediaIndex.value < mediaList.value.length - 1 && selectedReview.value) {
-    selectedMediaIndex.value++;
-    const media = mediaList.value[selectedMediaIndex.value];
+    selectedMediaIndex.value++
+    const media = mediaList.value[selectedMediaIndex.value]
     if (media.type === 'image') {
-      selectedReview.value.previewVisible = true;
-      selectedReview.value.previewIndex = selectedMediaIndex.value; // Set to image index
-      isImageModalOpen.value = false;
+      selectedReview.value.previewVisible = true
+      selectedReview.value.previewIndex = selectedMediaIndex.value
+      isImageModalOpen.value = false
     } else {
-      selectedImage.value = media.url;
-      selectedMediaType.value = media.type;
-      isImageModalOpen.value = true;
+      selectedImage.value = media.url
+      selectedMediaType.value = media.type
+      isImageModalOpen.value = true
     }
   }
-};
+}
 
-// Update closeImageModal to reset state
 const closeImageModal = () => {
-  isImageModalOpen.value = false;
-  selectedImage.value = '';
-  selectedMediaType.value = 'video';
-  mediaList.value = [];
-  selectedMediaIndex.value = 0;
+  isImageModalOpen.value = false
+  selectedImage.value = ''
+  selectedMediaType.value = 'video'
+  mediaList.value = []
+  selectedMediaIndex.value = 0
   if (selectedReview.value) {
-    selectedReview.value.previewVisible = false;
-    selectedReview.value.previewIndex = 0;
-    selectedReview.value = null;
+    selectedReview.value.previewVisible = false
+    selectedReview.value.previewIndex = 0
+    selectedReview.value = null
   }
-};
+}
 
 const onImageError = (index, review) => {
-  console.warn(`Image failed to load at index ${index} for review by ${review.name}`);
-  if (review.pictureUrlList) {
-    review.pictureUrlList[index] = '/placeholder-image.jpg';
-  }
-};
+  console.warn(`Image failed to load at index ${index} for review by ${review.name}`)
+  if (review.pictureUrlList) { review.pictureUrlList[index] = '/placeholder-image.jpg' }
+}
 
 const onVideoError = (index, review) => {
-  console.warn(`Video failed to load at index ${index} for review by ${review.name}`);
-  if (review.videoUrlList) {
-    review.videoUrlList[index] = '/placeholder-video.mp4';
-  }
-};
+  console.warn(`Video failed to load at index ${index} for review by ${review.name}`)
+  if (review.videoUrlList) { review.videoUrlList[index] = '/placeholder-video.mp4' }
+}
 
-watch(() => route.query, () => {
-  handleGetProudct();
-}, { deep: true });
-
+watch(() => route.query, () => { handleGetProudct() }, { deep: true })
 watch(mainImageIndex, (newVal) => {
-  const list = productinfo.value.erpProduct.photoList;
-  if (list[newVal]) {
-    mainImage.value = list[newVal].url;
-  }
-});
-
-watch(sortOption, () => {
-  sortReviews();
-});
+  const list = productinfo.value.erpProduct.photoList
+  if (list && list[newVal]) { mainImage.value = list[newVal].url }
+})
+watch(sortOption, () => { sortReviews() })
 
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll);
-  handleGetrelated();
-  fetchComments();
-});
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll);
-});
+  window.addEventListener('scroll', handleScroll)
+  handleGetrelated()
+  fetchComments()
+})
+onUnmounted(() => { window.removeEventListener('scroll', handleScroll) })
 </script>
 
 <style scoped>
@@ -1605,6 +1428,7 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
+/* 你已有的 aspect-ratio 兼容写法 */
 .aspect-square {
   aspect-ratio: 1 / 1;
 
@@ -1759,9 +1583,7 @@ input[type="radio"]:checked:hover {
 
 :deep(.ant-btn-default.custom-btn:not(:disabled):hover) {
   color: #00B2E3 !important;
-  /* 自定义文字颜色 */
   border-color: #00B2E3 !important;
-  /* 自定义边框颜色 */
 }
 
 .triangle-checkmark {
@@ -1852,7 +1674,6 @@ input:where(:not([type])):focus {}
   font-size: 14px;
 }
 
-/* 统一 Select 高度和文字对齐 */
 .custom-select :deep(.ant-select-selector) {
   height: 28px !important;
   line-height: 28px !important;
@@ -1862,7 +1683,6 @@ input:where(:not([type])):focus {}
   font-size: 14px;
 }
 
-/* 下拉选项行高 */
 .custom-select :deep(.ant-select-item-option) {
   height: 28px !important;
   line-height: 28px !important;
@@ -1874,15 +1694,11 @@ input:where(:not([type])):focus {}
   align-items: center;
   justify-content: center;
   gap: 4px;
-}
-
-/* 隐藏 Preview 文字节点 */
-:deep(.ant-image-mask-info) {
   font-size: 0 !important;
 }
 
-/* 单独还原小眼睛图标大小 */
 :deep(.ant-image-mask-info .anticon) {
   font-size: 16px !important;
+  margin-inline-end: 0 !important;
 }
 </style>

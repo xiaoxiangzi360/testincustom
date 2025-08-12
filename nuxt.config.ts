@@ -45,7 +45,7 @@ export default defineNuxtConfig({
     preset: 'vercel',
     devProxy: {
       '/api/': {
-        target: 'https://testapi.incustom.com',
+        target: 'https://mallapi.incustom.com',
         // target: 'http://192.168.8.52:50500',
         changeOrigin: true,
         prependPath: false,

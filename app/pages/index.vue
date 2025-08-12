@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { heroImageUrl } from '@/utils/hero'
-
 definePageMeta({
   // layout: 'default',
   // name: 'index',
@@ -60,6 +59,7 @@ getactivitylistlist()
     <Categorypage />
     <PopularProducts />
     <Needs />
+    <HomeCompoents />
     <!-- <Howwork /> -->
     <!-- <Integration /> -->
     <!-- <Integration2 /> -->
