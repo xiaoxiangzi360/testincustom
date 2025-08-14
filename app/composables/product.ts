@@ -174,5 +174,19 @@ export const ProductAuth = () => {
       throw error
     }
   }
-  return { getProductById, getProductDetailsById, randomRecommendationProductByCatalogId, getUserProductRollPage, getmapProductByProductSkuList, customizedProductPriceTrialCalculation, erpTryToCreateSku, trialPriceCalculationBySpuV2, getproductSearch, productSearchRecommendation, getlistOnlineCatalogTree, trialPriceCalculationBySpuV3, getProductCatalogById }
+
+  const getconfigRollPage = async (params) => {
+    try {
+      const response = await $api('/user/homePageConfig/configRollPage', {
+        method: 'POST',
+        body: params,
+      })
+
+      return response
+    } catch (error) {
+
+      throw error
+    }
+  }
+  return { getProductById, getProductDetailsById, randomRecommendationProductByCatalogId, getUserProductRollPage, getmapProductByProductSkuList, customizedProductPriceTrialCalculation, erpTryToCreateSku, trialPriceCalculationBySpuV2, getproductSearch, productSearchRecommendation, getlistOnlineCatalogTree, trialPriceCalculationBySpuV3, getProductCatalogById, getconfigRollPage }
 }

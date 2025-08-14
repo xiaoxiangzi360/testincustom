@@ -117,7 +117,7 @@
                                             </div>
 
                                             <!-- Show more -->
-                                            <div v-if="order.orderItemList.length > 3">
+                                            <div v-if="order.orderItemList.length >= 3">
                                                 <button @click="toggleShowMore(order.id)"
                                                     class="text-blue-500 text-sm mt-1">
                                                     {{ showMore[order.id] ? 'Show Less' : 'Show More' }}
@@ -126,7 +126,7 @@
                                         </div>
 
                                         <!-- Total Price -->
-                                        <div class="md:col-span-3 flex items-start justify-start md:justify-center">
+                                        <div class="md:col-span-3 flex items-center justify-start md:justify-center">
                                             <span class="font-medium text-base mt-1 md:mt-0 dark:text-gray-900">${{
                                                 order.paymentAmount
                                                 }}</span>
@@ -134,23 +134,27 @@
 
                                         <!-- Actions -->
                                         <div
-                                            class="md:col-span-3 flex flex-wrap gap-2 items-start md:flex-col md:items-end">
+                                            class="md:col-span-3 flex flex-wrap gap-2 items-center justify-end md:flex-col md:items-end md:justify-center">
                                             <UButton class="w-auto px-4 md:w-28 flex justify-center items-center"
-                                                v-if="order.status == 500" @click="gotopay(order.orderNumber)">Pay
+                                                v-if="order.status == 500" @click="gotopay(order.orderNumber)">
+                                                Pay
                                             </UButton>
                                             <UButton color="white"
                                                 class="w-auto px-4 md:w-28 flex justify-center items-center"
                                                 variant="solid" v-if="order.status <= 1200"
-                                                @click="setCancleOrder(order.id)">Cancel
+                                                @click="setCancleOrder(order.id)">
+                                                Cancel
                                             </UButton>
                                             <UButton class="w-auto px-4 md:w-28 flex justify-center items-center"
-                                                v-if="order.status == 2500">Write a
-                                                review
+                                                v-if="order.status == 2500">
+                                                Write a review
                                             </UButton>
                                             <UButton class="w-auto px-4 md:w-28 flex justify-center items-center"
-                                                v-if="order.status == 2000">View Tracks
+                                                v-if="order.status == 2000">
+                                                View Tracks
                                             </UButton>
                                         </div>
+
                                     </div>
                                 </div>
                             </div>
