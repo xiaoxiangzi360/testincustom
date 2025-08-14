@@ -174,7 +174,7 @@
                       class="mr-3 w-[18px] h-[18px] flex items-center justify-center"
                       :ui="{ color: { black: { solid: 'dark:bg-gray-900 dark:text-white' } } }">{{ index + 1 }}</UBadge>
                     <span class="truncate-1-lines font-medium text-sm md:text-base">{{ property.propertyNameShop
-                      }}</span>
+                    }}</span>
                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" placement="topLeft"
                       v-if="property.desc" :title="property.desc"
                       :overlayStyle="{ maxWidth: '330px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
@@ -442,7 +442,7 @@
           <div class="mx-auto p-5 px-0 rounded p-2 grid grid-cols-1 gap-6 bg-white"
             v-if="productinfo.erpProduct.remarks || productinfo.printPropertyList.length > 0 || reviews.length > 0">
             <div v-show="tabindex === 1 && productinfo.erpProduct.remarks" class="overflow-hidden lg:col-span-3"
-              v-html="productinfo.erpProduct.remarks"></div>
+              v-shadow-html="productinfo.erpProduct.remarks"></div>
             <div v-show="tabindex === 2 && productinfo.printPropertyList.length > 0"
               class="lg:col-span-3 mx-auto max-row p-6 grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-y-6 gap-x-8 text-gray-800 bg-[#F8F8F8] py-16 rounded p-2">
               <div class="flex justify-between" v-for="Propertyitem in productinfo.printPropertyList"
@@ -560,7 +560,7 @@
       <div class="mt-[30px] md:mt-12 pb-4" v-if="products.length > 0">
         <h1 class="text-lg font-semibold mb-3 md:mb-8">Recommended products</h1>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-12">
-          <NuxtLink :to="`/product/${product.id}/${product.erpProduct.productEnglishName.replace(/\s+/g, '-')}`"
+          <NuxtLink :to="`/product/${product.id}/${slugify(product.erpProduct.productEnglishName)}`"
             v-for="(product, index) in products" :key="index"
             class="product-card rounded-lg transition-transform duration-300 ease-in-out hover:scale-105 cursor-pointer">
             <div class="relative overflow-hidden">
@@ -1048,16 +1048,6 @@ if (lastpage) {
   if (lastLabel && lastTo) { breadcrumbLinks.value.push({ label: lastLabel, to: lastTo, title: lastLabel }) }
 }
 
-const updateBreadcrumbProduct = (productName) => {
-  const productPath = `/product/${productid.value}/${productName.replace(/\s+/g, '-')}`
-  const lastIndex = breadcrumbLinks.value.length - 1
-  const lastItem = breadcrumbLinks.value[lastIndex]
-  if (lastItem && lastItem.to?.startsWith('/product')) {
-    breadcrumbLinks.value[lastIndex] = { label: productName, to: productPath, title: productName }
-  } else {
-    breadcrumbLinks.value.push({ label: productName, to: productPath, title: productName })
-  }
-}
 
 const handleGetProudct = async () => {
   try {
@@ -1215,9 +1205,6 @@ const customFilter = (input, option) => {
   return option.detailName?.toLowerCase().includes(input.toLowerCase())
 }
 
-const checkdetail = (id, name) => {
-  router.push(`/product/${id}/${name.replace(/\s+/g, '-')}`)
-}
 
 const changeshow = (index) => {
   productinfo.value.normalPropertyList.forEach((item, i) => {
@@ -1407,6 +1394,15 @@ onMounted(() => {
   fetchComments()
 })
 onUnmounted(() => { window.removeEventListener('scroll', handleScroll) })
+const slugify = (str) => {
+  return str
+    .normalize('NFKD')           // 去掉重音符号
+    .replace(/[^\w\s-]/g, '')    // 去掉非字母数字/下划线/空格/连字符
+    .trim()
+    .replace(/\s+/g, '-')        // 空格转-
+    .replace(/-+/g, '-')         // 合并多个-
+    .toLowerCase()
+}
 </script>
 
 <style scoped>

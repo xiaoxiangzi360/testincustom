@@ -78,6 +78,15 @@ const splideRef = ref<InstanceType<typeof Splide> | null>(null)
 const splideOptions = { type: 'loop', gap: '12px', pagination: false, perPage: 1, arrows: false }
 const goPrev = () => splideRef.value?.splide?.go('<')
 const goNext = () => splideRef.value?.splide?.go('>')
+const slugify = (str) => {
+    return str
+        .normalize('NFKD')           // 去掉重音符号
+        .replace(/[^\w\s-]/g, '')    // 去掉非字母数字/下划线/空格/连字符
+        .trim()
+        .replace(/\s+/g, '-')        // 空格转-
+        .replace(/-+/g, '-')         // 合并多个-
+        .toLowerCase()
+}
 </script>
 
 <template>
@@ -113,7 +122,7 @@ const goNext = () => splideRef.value?.splide?.go('>')
                             <ClientOnly>
                                 <Splide ref="splideRef" :options="splideOptions" aria-label="Products">
                                     <SplideSlide v-for="p in products" :key="p.id">
-                                        <ULink :to="`/product/${p.id}/${p.title.replace(/\s+/g, '-')}`" class="block">
+                                        <ULink :to="`/product/${p.id}/${slugify(p.title)}`" class="block">
                                             <!-- 移动端：左图右文；md+：上下结构 -->
                                             <div class="flex gap-3 items-start md:block rounded">
                                                 <div class="w-24 aspect-square shrink-0 md:w-full md:aspect-square">

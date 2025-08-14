@@ -12,13 +12,12 @@
       speed: 800,
     }" class="overflow-hidden">
       <SplideSlide v-for="(item, index) in backgroundImages" :key="index">
-        <img :src="item" class="w-full h-full object-cover block min-h-[200px] sm:min-h-[260px] md:min-h-[280px]"
-          draggable="false" />
+        <img :src="item" class="w-full h-full object-cover block " draggable="false" />
       </SplideSlide>
     </Splide>
 
     <!-- 固定文字浮层 -->
-    <div class="absolute inset-0 z-20 flex justify-start items-center pointer-events-none max-row">
+    <!-- <div class="absolute inset-0 z-20 flex justify-start items-center pointer-events-none max-row">
       <div class="text-left pointer-events-auto">
         <div class="text-xl sm:text-5xl lg:text-6xl text-white mb-4 sm:mb-10 leading-normal"
           style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
@@ -43,7 +42,7 @@
           </span>
         </div>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -52,6 +51,7 @@ import { Splide, SplideSlide } from '@splidejs/vue-splide'
 import '@splidejs/vue-splide/css'
 
 const backgroundImages = [
+  '/images/banner5.webp',
   '/images/banner1.webp',
   '/images/banner2.webp',
   '/images/banner3.webp',

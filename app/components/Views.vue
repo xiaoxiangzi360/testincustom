@@ -1,5 +1,5 @@
 <template>
-    <div class="px-2 md:p-10 mt-[30px] sm:mt-16">
+    <div class="mt-[30px]">
         <div class="max-row">
             <h1
                 class="text-xl md:text-[40px] mb-3 md:mb-8 bg-clip-text font-normal text-blackcolor text-center dark:text-white">

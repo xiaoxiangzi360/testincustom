@@ -59,6 +59,7 @@ getactivitylistlist()
     <Categorypage />
     <PopularProducts />
     <!-- <Needs /> -->
+
     <HomeCompoents />
     <!-- <Howwork /> -->
     <!-- <Integration /> -->

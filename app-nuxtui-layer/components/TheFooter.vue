@@ -84,10 +84,7 @@
       <div class="flex items-center gap-1">
         <span>EN / USD</span>
         <span>|</span>
-        <span>Visa</span>
         <span>PayPal</span>
-        <span>ApplePay</span>
-        <span>Klarna</span>
       </div>
 
       <!-- 右侧信息 -->

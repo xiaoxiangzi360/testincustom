@@ -17,7 +17,7 @@
 const features = [
     { icon: '/images/service3.png', title: 'Customized Just for You' },
     { icon: '/images/service1.png', title: 'Fast & Free Shipping' },
-    { icon: '/images/service2.png', title: 'Manufacturer Direct to Consume' },
-    { icon: '/images/service4.png', title: '24/7 Customer Support Assistance' }
+    { icon: '/images/service2.png', title: 'Manufacturer to Consume' },
+    { icon: '/images/service4.png', title: '24/7 Support Assistance' }
 ];
 </script>

@@ -2,7 +2,7 @@
     <div>
         <div v-for="compoent in compoents">
             <HomeRecommend v-if="compoent.componentType == 50" :item="compoent" />
-
+            <HomeVideoGrass v-if="compoent.componentType == 100" :item="compoent" />
         </div>
     </div>
 </template>

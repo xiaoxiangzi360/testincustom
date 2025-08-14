@@ -132,7 +132,7 @@ function goShopping() {
 }
 const checkdetai = (id, sku, name) => {
 
-  router.push('/product/' + id + '/' + name.replace(/\s+/g, '-') + '?sku=' + sku)
+  router.push('/product/' + id + '/' + slugify(name) + '?sku=' + sku)
 }
 const getlocation = async () => {
 
@@ -199,6 +199,15 @@ const checkout = () => {
   // router.push('/checkout?from=cart')
   window.location.href = '/checkout?from=cart'
 }
+const slugify = (str) => {
+  return str
+    .normalize('NFKD')           // 去掉重音符号
+    .replace(/[^\w\s-]/g, '')    // 去掉非字母数字/下划线/空格/连字符
+    .trim()
+    .replace(/\s+/g, '-')        // 空格转-
+    .replace(/-+/g, '-')         // 合并多个-
+    .toLowerCase()
+}
 </script>
 
 <template>
@@ -245,7 +254,7 @@ const checkout = () => {
                       :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
                       <div class="text-sm text-[#8E8E8E]  truncate-1-lines w-52 mt-1">{{
                         item.product.skuSpec.specAttr
-                        }}</div>
+                      }}</div>
                     </Tooltip>
 
                     <div class="flex items-center mt-2">

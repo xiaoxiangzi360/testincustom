@@ -41,7 +41,7 @@
                     <!-- Product List -->
                     <div v-show="products.length > 0 && !loading"
                         class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
-                        <NuxtLink :to="`/product/${product.id}/${product.productEnglishName.replace(/\s+/g, '-')}`"
+                        <ULink :to="`/product/${product.id}/${slugify(product.productEnglishName)}`"
                             v-for="(product, index) in products" :key="index"
                             class="bg-white rounded-lg cursor-pointer group">
                             <div class="aspect-square overflow-hidden rounded-t-lg">
@@ -62,7 +62,7 @@
                                     </span>
                                 </div>
                             </div>
-                        </NuxtLink>
+                        </ULink>
                     </div>
                     <div class="my-12" v-show="products.length === 0 && !loading">
                         <div class="flex flex-col items-center text-center space-y-4 text-gray-200 text-sm">
@@ -220,8 +220,17 @@ getlistlist()
 
 const checkdetail = (id, productName) => {
 
-    router.push(`/product/${id}/${productName.replace(/\s+/g, '-')}`);
+    router.push(`/product/${id}/${slugify(productName)}`);
 
+}
+const slugify = (str) => {
+    return str
+        .normalize('NFKD')           // 去掉重音符号
+        .replace(/[^\w\s-]/g, '')    // 去掉非字母数字/下划线/空格/连字符
+        .trim()
+        .replace(/\s+/g, '-')        // 空格转-
+        .replace(/-+/g, '-')         // 合并多个-
+        .toLowerCase()
 }
 </script>
 

@@ -156,10 +156,10 @@
                                         <div
                                             class="bg-white rounded-lg flex flex-col items-center justify-center h-80 px-8">
                                             <p class="text-black">There are no more items in your cart</p>
-                                            <NuxtLink to="/"
+                                            <ULink to="/"
                                                 class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors mt-8">
                                                 Go shopping
-                                            </NuxtLink>
+                                            </ULink>
                                         </div>
                                     </td>
                                 </tr>
@@ -345,9 +345,17 @@ const updateSelection = () => {
 };
 
 const checkdetai = (id: string, sku: string, name: string) => {
-    router.push('/product/' + id + '/' + name.replace(/\s+/g, '-') + '?sku=' + sku);
+    router.push('/product/' + id + '/' + slugify(name) + '?sku=' + sku);
 };
-
+const slugify = (str) => {
+    return str
+        .normalize('NFKD')           // 去掉重音符号
+        .replace(/[^\w\s-]/g, '')    // 去掉非字母数字/下划线/空格/连字符
+        .trim()
+        .replace(/\s+/g, '-')        // 空格转-
+        .replace(/-+/g, '-')         // 合并多个-
+        .toLowerCase()
+}
 const deleteItem = async (item: any) => {
     const index = cart.itemList.indexOf(item);
     if (index > -1) {

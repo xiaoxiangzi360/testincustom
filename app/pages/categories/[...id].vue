@@ -68,8 +68,7 @@
 
                     <!-- Product List -->
                     <div v-show="products.length > 0 && !loading" class="grid grid-cols-4 gap-6 mb-12">
-                        <NuxtLink
-                            :to="`/product/${product.id}/${product.erpProduct.productEnglishName.replace(/\s+/g, '-')}`"
+                        <NuxtLink :to="`/product/${product.id}/${slugify(product.erpProduct.productEnglishName)}`"
                             v-for="(product, index) in products" :key="index"
                             class="bg-white rounded-lg cursor-pointer group">
                             <div class="aspect-square overflow-hidden rounded-t-lg">
@@ -199,7 +198,15 @@ const getlistlist = async () => {
 }
 
 getlistlist()
-
+const slugify = (str) => {
+    return str
+        .normalize('NFKD')           // 去掉重音符号
+        .replace(/[^\w\s-]/g, '')    // 去掉非字母数字/下划线/空格/连字符
+        .trim()
+        .replace(/\s+/g, '-')        // 空格转-
+        .replace(/-+/g, '-')         // 合并多个-
+        .toLowerCase()
+}
 </script>
 
 <style scoped>

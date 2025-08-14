@@ -1,5 +1,5 @@
 <template>
-    <div class="mt-[30px] md:mt-6 lg:mt-[30px]">
+    <div class="mt-[30px]">
         <div class="max-row">
             <!-- 标题 -->
             <h1
@@ -25,33 +25,10 @@
                     </div>
                 </div>
 
-                <!-- Swiper 轮播图 -->
-                <Swiper v-else :modules="swiperModules" :space-between="24" :breakpoints="{
-                    0: {
-                        slidesPerView: 2,
-                        slidesPerGroup: 2
-                    },
-                    640: {
-                        slidesPerView: 2,
-                        slidesPerGroup: 2
-                    },
-                    768: {
-                        slidesPerView: 3,
-                        slidesPerGroup: 3
-                    },
-                    1024: {
-                        slidesPerView: 4,
-                        slidesPerGroup: 4
-                    },
-                    1280: {
-                        slidesPerView: 5,
-                        slidesPerGroup: 5
-                    }
-                }" :autoplay="{ delay: 5000, disableOnInteraction: false }" :loop="true"
-                    :pagination="{ clickable: true }" :speed="1000" class="product-swiper">
-                    <SwiperSlide v-for="(product, index) in products" :key="index">
-                        <ULink
-                            :to="`/product/${product.id}/${product.erpProduct.productEnglishName.replace(/\s+/g, '-')}`"
+                <!-- Splide 轮播 -->
+                <Splide v-else class="product-splide" :options="splideOptions" aria-label="Popular Products">
+                    <SplideSlide v-for="(product, index) in products" :key="index">
+                        <ULink :to="`/product/${product.id}/${slugify(product.erpProduct.productEnglishName)}`"
                             class="rounded-lg overflow-hidden shadow-md bg-white transition-transform duration-300 hover:scale-[1.05] hover:-translate-y-1 hover:shadow-xl cursor-pointer">
                             <!-- 产品图片 -->
                             <div class="relative w-full aspect-square overflow-hidden">
@@ -63,8 +40,9 @@
 
                             <!-- 产品详情 -->
                             <div class="py-3">
-                                <h3 class="text-sm sm:text-base font-normal mb-2 line-clamp-2 min-h-[3em]">{{
-                                    product.erpProduct.productEnglishName }}</h3>
+                                <h3 class="text-sm sm:text-base font-normal mb-2 line-clamp-2 min-h-[3em]">
+                                    {{ product.erpProduct.productEnglishName }}
+                                </h3>
                                 <div class="flex items-center justify-between">
                                     <span class="text-customblack font-medium text-sm sm:text-lg dark:text-primary">
                                         $ {{ product.erpProduct.customPrice }}
@@ -73,97 +51,120 @@
                                 </div>
                             </div>
                         </ULink>
-                    </SwiperSlide>
-                </Swiper>
+                    </SplideSlide>
+                </Splide>
             </div>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { Swiper, SwiperSlide } from 'swiper/vue';
-import { Pagination, Autoplay } from 'swiper/modules';
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-const { getUserProductRollPage } = ProductAuth();
+import { Splide, SplideSlide } from '@splidejs/vue-splide'
+import '@splidejs/splide/dist/css/splide.min.css'
 
+const { getUserProductRollPage } = ProductAuth()
 const router = useRouter()
 
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/navigation';
+const products = ref<any[]>([])
+const isLoading = ref(true)
 
-const swiperModules = [Pagination, Autoplay];
-const selectedColors = ref<Record<number, string>>({});
-const products = ref([]);
-const isLoading = ref(true); // 添加加载状态
+/** Splide 配置（等价于你原先的 Swiper 配置） */
+const splideOptions = {
+    type: 'loop',
+    autoplay: true,
+    interval: 5000,          // 自动播放间隔
+    pauseOnHover: true,
+    arrows: false,
+    pagination: true,
+    speed: 1000,             // 动画速度
+    gap: '24px',             // 卡片间距
+    perPage: 5,
+    perMove: 5,              // 与 slidesPerGroup 等效
+    // 断点是“最大宽度”，从大到小写，覆盖默认 perPage/perMove
+    breakpoints: {
+        1279: { perPage: 4, perMove: 4 },
+        1023: { perPage: 3, perMove: 3 },
+        767: { perPage: 2, perMove: 2 },
+        639: { perPage: 2, perMove: 2 },
+    },
+}
 
 const getpopularlist = async () => {
     try {
-        isLoading.value = true; // 开始加载
-        let parmes = {
+        isLoading.value = true
+        const params = {
             sortKey: 'thirtyDaysSales',
             pageNum: 1,
             pageSize: 15,
             sortOrder: 'desc',
-            fields: "id,productState,erpProduct.productEnglishName,erpProduct.customPrice,erpProduct.mainPic,thirtyDaysSales",
-
+            fields:
+                'id,productState,erpProduct.productEnglishName,erpProduct.customPrice,erpProduct.mainPic,thirtyDaysSales',
         }
-        let res = await getUserProductRollPage(parmes);
-        products.value = res.result.list;
+        const res = await getUserProductRollPage(params)
+        products.value = res.result.list
     } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error fetching products:', error)
     } finally {
-        isLoading.value = false; // 加载完成
+        isLoading.value = false
     }
-};
-
+}
+const slugify = (str) => {
+    return str
+        .normalize('NFKD')           // 去掉重音符号
+        .replace(/[^\w\s-]/g, '')    // 去掉非字母数字/下划线/空格/连字符
+        .trim()
+        .replace(/\s+/g, '-')        // 空格转-
+        .replace(/-+/g, '-')         // 合并多个-
+        .toLowerCase()
+}
 getpopularlist()
 </script>
 
 <style scoped>
-/* 轮播图底部留出空间 */
-.product-swiper {
+/* 为分页留出下方空间（与原先 Swiper 一致） */
+.product-splide {
     padding-bottom: 60px;
 }
 
-/* Swiper 分页小圆点 */
-.product-swiper :deep(.swiper-pagination-bullet) {
+/* Splide 分页小圆点样式 */
+.product-splide :deep(.splide__pagination) {
+    margin-top: 30px;
+}
+
+.product-splide :deep(.splide__pagination__page) {
     width: 12px;
     height: 12px;
     background: #B9B9B9;
     opacity: 1;
+    border-radius: 9999px;
 }
 
-.product-swiper :deep(.swiper-pagination-bullet-active) {
+.product-splide :deep(.splide__pagination__page.is-active) {
     background: #222222;
-    width: 12px;
-    height: 12px;
+    transform: none;
+    /* 去掉默认缩放动画 */
 }
 
-.product-swiper :deep(.swiper-pagination) {
-    margin-top: 30px;
-}
-
+/* 移动端分页尺寸 */
 @media (max-width: 640px) {
-
-    .product-swiper :deep(.swiper-pagination-bullet),
-    .product-swiper :deep(.swiper-pagination-bullet-active) {
-        width: 8px;
-        height: 8px;
+    .product-splide {
+        padding-bottom: 20px;
     }
 
-    .product-swiper :deep(.swiper-pagination) {
+    .product-splide :deep(.splide__pagination) {
         margin-top: 20px;
     }
 
-    .product-swiper {
-        padding-bottom: 20px;
+    .product-splide :deep(.splide__pagination__page),
+    .product-splide :deep(.splide__pagination__page.is-active) {
+        width: 8px;
+        height: 8px;
     }
 }
 
-
-
+/* 维持 1:1 图片比例 */
 .aspect-square {
     aspect-ratio: 1 / 1;
 }
