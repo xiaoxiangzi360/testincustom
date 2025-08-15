@@ -64,7 +64,7 @@ getactivitylistlist()
     <!-- <Howwork /> -->
     <!-- <Integration /> -->
     <!-- <Integration2 /> -->
-    <Views />
+    <!-- <Views /> -->
     <Faq />
     <Business />
     <CouponIcon v-model:isshow="isshow" :curactivity="curactivity" />

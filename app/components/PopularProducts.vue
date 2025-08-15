@@ -110,15 +110,18 @@ const getpopularlist = async () => {
         isLoading.value = false
     }
 }
-const slugify = (str) => {
-    return str
-        .normalize('NFKD')           // 去掉重音符号
-        .replace(/[^\w\s-]/g, '')    // 去掉非字母数字/下划线/空格/连字符
-        .trim()
-        .replace(/\s+/g, '-')        // 空格转-
-        .replace(/-+/g, '-')         // 合并多个-
-        .toLowerCase()
+const slugify = (str: string) => {
+    return encodeURIComponent(
+        str
+            .normalize('NFKD')           // 去掉重音符号
+            .replace(/[^\w\s-]/g, '')    // 去掉非字母数字/下划线/空格/连字符
+            .trim()
+            .replace(/\s+/g, '-')        // 空格转-
+            .replace(/-+/g, '-')         // 合并多个-
+            .toLowerCase()
+    )
 }
+
 getpopularlist()
 </script>
 

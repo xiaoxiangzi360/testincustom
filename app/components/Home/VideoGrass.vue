@@ -108,8 +108,8 @@ const slugify = (str) => {
 <template>
     <ClientOnly>
         <section v-if="items.length" class="mt-6 md:mt-8">
-            <div class="max-row mx-auto">
-                <Splide :options="options" class="select-none video-splide" style="--vg-arrow-size: 44px">
+            <div class="max-row mx-auto ">
+                <Splide :options="options" class="select-none video-splide bg-white pb-1" style="--vg-arrow-size: 44px">
                     <SplideSlide v-for="(p, idx) in items" :key="p.id">
                         <div class="overflow-hidden">
                             <!-- 视频封面 -->

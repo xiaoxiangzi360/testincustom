@@ -441,8 +441,10 @@
 
           <div class="mx-auto p-5 px-0 rounded p-2 grid grid-cols-1 gap-6 bg-white"
             v-if="productinfo.erpProduct.remarks || productinfo.printPropertyList.length > 0 || reviews.length > 0">
-            <div v-show="tabindex === 1 && productinfo.erpProduct.remarks" class="overflow-hidden lg:col-span-3"
-              v-shadow-html="productinfo.erpProduct.remarks"></div>
+            <ClientOnly>
+              <div v-show="tabindex === 1 && productinfo.erpProduct.remarks" class="overflow-hidden lg:col-span-3"
+                v-shadow-html="productinfo.erpProduct.remarks"></div>
+            </ClientOnly>
             <div v-show="tabindex === 2 && productinfo.printPropertyList.length > 0"
               class="lg:col-span-3 mx-auto max-row p-6 grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-y-6 gap-x-8 text-gray-800 bg-[#F8F8F8] py-16 rounded p-2">
               <div class="flex justify-between" v-for="Propertyitem in productinfo.printPropertyList"

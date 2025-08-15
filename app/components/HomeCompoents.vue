@@ -21,11 +21,11 @@ const getpopularlist = async () => {
     try {
         let parmes = {
             pageNum: 1,
-            pageSize: 100,
+            pageSize: 5000,
+            status: 100
         }
         let res = await getconfigRollPage(parmes);
         compoents.value = res.result.list;
-        console.log(compoents.value);
     } catch (error) {
         console.error('Error fetching compoents:', error);
     } finally {

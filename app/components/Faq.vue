@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full">
+    <div class="w-full mt-[30px]">
         <div class="max-row py-5 ">
             <h1 class="text-xl md:text-[40px] text-blackcolor font-normal text-center mb-3 sm:mb-12 dark:text-white">
                 FAQ

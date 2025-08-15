@@ -9,12 +9,12 @@
 
         <div class="mb-6">
             <p class="font-semibold">Email:</p>
-            <ul class="list-disc ml-6 text-blue-600">
+            <ul class="list-disc ml-6 ">
                 <li>
-                    <a href="mailto:hello@incustom.com" class="hover:underline">hello@incustom.com</a>
+                    <div class="hover:underline">hello@incustom.com</div>
                 </li>
                 <li>
-                    <a href="mailto:service@incustom.com" class="hover:underline">service@incustom.com</a>
+                    <div class="hover:underline">service@incustom.com</div>
                 </li>
             </ul>
         </div>

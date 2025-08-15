@@ -50,8 +50,9 @@
                 </ol>
                 <p class="mt-4">
                     Contact us at
-                    <a href="mailto:service@incustom.com" class="text-blue-600 hover:underline">service@incustom.com</a>
-                    or submit the form on our <a href="/contact" class="text-blue-600 hover:underline">Contact Us</a>
+                    <span href="mailto:service@incustom.com" class="hover:underline">service@incustom.com</span>
+                    or submit the form on our <a href="/article/contact-us"
+                        class="text-blue-600 hover:underline">Contact Us</a>
                     page. Our team will respond within 12 hours.
                 </p>
             </div>
