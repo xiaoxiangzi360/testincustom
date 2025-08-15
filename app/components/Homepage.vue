@@ -52,10 +52,10 @@ import '@splidejs/vue-splide/css'
 
 const backgroundImages = [
   '/images/banner5.webp',
-  '/images/banner1.webp',
-  '/images/banner2.webp',
-  '/images/banner3.webp',
-  '/images/banner4.webp',
+  // '/images/banner1.webp',
+  // '/images/banner2.webp',
+  // '/images/banner3.webp',
+  // '/images/banner4.webp',
 ]
 
 const carouselRef = ref()
