@@ -1,22 +1,25 @@
 <template>
     <UModal :ui="{ width: 'sm:max-w-2xl', container: 'items-center' }" v-model="props.isshow">
+        <!-- ===== 邮箱订阅：couponReceiveMethod == 50 ===== -->
         <div v-show="props.curactivity.couponReceiveMethod == 50"
             class="bg-[#fff5dc] rounded-xl shadow-xl flex flex-col md:flex-row max-w-3xl w-full overflow-hidden relative">
-            <!-- ✅ Close button -->
+            <!-- ✅ Close button（邮箱订阅：点击关闭=今天不再弹） -->
             <div class="absolute top-3 right-3 z-50 text-gray-500 hover:text-black cursor-pointer" @click="handleget">
                 <img src="/close.png" class="w-6">
             </div>
 
             <!-- Left image - only on desktop -->
             <div class="hidden md:block md:w-1/2">
-                <img src="/activity.png" alt="Promo Image" class="w-full h-full object-cover" />
+                <img src="https://cdn.incustom.com/upload/web/activity.png" alt="Promo Image"
+                    class="w-full h-full object-cover" />
             </div>
 
             <!-- Right content - with mobile background -->
             <div class="w-full md:w-1/2 p-6 flex flex-col relative">
                 <!-- Mobile background image -->
                 <div class="md:hidden absolute inset-0 z-0 opacity-20 pointer-events-none">
-                    <img src="/activity.png" alt="Promo Background" class="w-full h-full object-cover" />
+                    <img src="https://cdn.incustom.com/upload/web/activity.png" alt="Promo Background"
+                        class="w-full h-full object-cover" />
                 </div>
 
                 <div class="relative mt-4">
@@ -29,10 +32,9 @@
                         Enter your email to subscribe to promotion and get up to
                     </p>
                     <p class="text-4xl font-bold text-arialblack mt-4 md:mt-6">
-                        <span class="text-[50px] md:text-[60px] leading-[1.2] md:leading-[85px]">{{ offvalue
-                            }}</span><span class="text-xl font-medium">{{
-                                props.curactivity.discountType == 100 ? 'USD' : '%'
-                            }} OFF</span>
+                        <span class="text-[50px] md:text-[60px] leading-[1.2] md:leading-[85px]">{{ offvalue }}</span>
+                        <span class="text-xl font-medium">{{ props.curactivity.discountType == 100 ? 'USD' : '%' }}
+                            OFF</span>
                     </p>
                 </div>
 
@@ -56,13 +58,13 @@
             </div>
         </div>
 
-        <!-- Coupon code section -->
+        <!-- ===== 领券展示：couponReceiveMethod == 10 ===== -->
         <div v-show="props.curactivity.couponReceiveMethod == 10"
             class="bg-[#FFF6E8] rounded-xl shadow-xl p-6 flex flex-col items-center relative text-center">
             <!-- SALE background text -->
             <div
                 class="w-[90%] mx-auto relative flex items-center justify-center font-bold text-[#00000010] pointer-events-none">
-                <img src="/acticitybg.png" alt="bg" />
+                <img src="https://cdn.incustom.com/upload/web/acticitybg.png" alt="bg" />
                 <div class="absolute inset-0 flex items-center justify-center text-base text-white">
                     <div>
                         <div>incustom</div>
@@ -121,132 +123,166 @@
 </template>
 
 <script setup>
-import { message } from 'ant-design-vue';
-import { ref, onBeforeUnmount, onMounted, watch } from 'vue';
-const { createMarketingActivityEmailSubscribe } = ActivityAuth();
+import { message } from 'ant-design-vue'
+import { ref, onBeforeUnmount, onMounted, watch } from 'vue'
+const { createMarketingActivityEmailSubscribe } = ActivityAuth()
 
 const props = defineProps({
     isshow: Boolean,
     curactivity: Object
-});
-const emit = defineEmits(['update:isshow']);
-const showtype = ref(2);
-const email = ref('');
-const offdesc = ref('');
-const offvalue = ref('');
-const loading = ref(false);
-const promoCode = ref([]);
-const showButtons = ref(false);
+})
+const emit = defineEmits(['update:isshow'])
 
+const showtype = ref(2)
+const email = ref('')
+const offdesc = ref('')
+const offvalue = ref('')
+const loading = ref(false)
+const promoCode = ref([])
+const showButtons = ref(false)
+
+/** ========== Cookie 工具 ========== */
+const getCookieName = () => 'hideactivity_' + (props.curactivity?.id || '')
+/** 今天不再弹（到次日 0 点） */
+const setCookieTodayOnly = () => {
+    const now = new Date()
+    const tomorrowMidnight = new Date()
+    tomorrowMidnight.setDate(now.getDate() + 1)
+    tomorrowMidnight.setHours(0, 0, 0, 0)
+    const cookie = useCookie(getCookieName(), { expires: tomorrowMidnight })
+    cookie.value = 1
+}
+/** 永久不再弹（长效 10 年） */
+const setCookiePermanent = () => {
+    const expires = new Date()
+    expires.setFullYear(expires.getFullYear() + 10)
+    const cookie = useCookie(getCookieName(), { expires })
+    cookie.value = 1
+}
+
+/** 复制券码 */
 function copyCode() {
-    const textToCopy = promoCode.value.join('');
+    const textToCopy = promoCode.value.join('')
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(textToCopy)
             .then(() => message.success('copy success'))
-            .catch(() => message.error('copy failed'));
+            .catch(() => message.error('copy failed'))
     } else {
-        const textArea = document.createElement('textarea');
-        textArea.value = textToCopy;
-        textArea.style.position = 'absolute';
-        textArea.style.opacity = '0';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
+        const textArea = document.createElement('textarea')
+        textArea.value = textToCopy
+        textArea.style.position = 'absolute'
+        textArea.style.opacity = '0'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
         try {
-            document.execCommand('copy');
-            message.success('copy success');
+            document.execCommand('copy')
+            message.success('copy success')
         } catch (err) {
-            message.error('copy failed');
+            message.error('copy failed')
         }
-        textArea.remove();
+        textArea.remove()
     }
 }
 
+/** 提交邮箱订阅：成功后永久不再弹 */
 const handleSubmit = async () => {
     if (!email.value) {
-        message.warning("Email is required.");
-        return;
+        message.warning('Email is required.')
+        return
     }
     if (!/^\S+@\S+\.\S+$/.test(email.value)) {
-        message.warning("Invalid email format.");
-        return;
+        message.warning('Invalid email format.')
+        return
     }
-    loading.value = true;
+    loading.value = true
     try {
-        const res = await createMarketingActivityEmailSubscribe({
+        await createMarketingActivityEmailSubscribe({
             email: email.value,
-            marketingActivityId: props.curactivity.id,
-        });
-        message.success("Subscription successful!");
-        emit('update:isshow', false);
+            marketingActivityId: props.curactivity.id
+        })
+        // ✅ 订阅成功：永久不再弹
+        setCookiePermanent()
+        message.success('Subscription successful!')
+        emit('update:isshow', false)
     } catch (error) {
-        console.error(error);
-        message.error("An error occurred while subscribing.");
+        console.error(error)
+        message.error('An error occurred while subscribing.')
     } finally {
-        loading.value = false;
+        loading.value = false
     }
-};
+}
 
+/** 领券页（10）右上角关闭：直接关闭 */
 const handleCloseAttempt = () => {
-    emit('update:isshow', false);
-};
+    emit('update:isshow', false)
+}
 
+/**
+ * 通用关闭按钮（多个地方复用）：
+ * - 邮箱订阅（50）：今天不再弹
+ * - 其他情况保留你原逻辑：当 popupTriggerEvent == 100 时到次日 0 点不再弹
+ */
 const handleget = () => {
-    if (props.curactivity.popupTriggerEvent == 100) {
-        const now = new Date();
-        const tomorrowMidnight = new Date();
-        tomorrowMidnight.setDate(now.getDate() + 1);
-        tomorrowMidnight.setHours(0, 0, 0, 0);
-        const cookie = useCookie('hideactivity_' + props.curactivity.id, {
-            expires: tomorrowMidnight
-        });
-        cookie.value = 1;
+    if (props.curactivity?.couponReceiveMethod == 50) {
+        // ✅ 邮箱订阅页：点击关闭 -> 今天不再弹
+        setCookieTodayOnly()
+    } else if (props.curactivity?.popupTriggerEvent == 100) {
+        // 你原本的逻辑：到次日 0 点
+        const now = new Date()
+        const tomorrowMidnight = new Date()
+        tomorrowMidnight.setDate(now.getDate() + 1)
+        tomorrowMidnight.setHours(0, 0, 0, 0)
+        const cookie = useCookie(getCookieName(), { expires: tomorrowMidnight })
+        cookie.value = 1
     }
-    console.log(111111);
-    emit('update:isshow', false);
-};
+    emit('update:isshow', false)
+}
 
+/** 离开按钮 */
 const handleExit = () => {
     window.close()
-};
+}
 
+/** 离开前阻拦（仅券码页生效） */
 const handleBeforeUnload = (event) => {
-    if (props.isshow && props.curactivity.couponReceiveMethod == 10) {
-        showButtons.value = true;
-        event.preventDefault();
-        event.returnValue = '';
+    if (props.isshow && props.curactivity?.couponReceiveMethod == 10) {
+        showButtons.value = true
+        event.preventDefault()
+        event.returnValue = ''
     }
-};
+}
 
 onMounted(() => {
-    window.addEventListener('beforeunload', handleBeforeUnload);
-});
+    window.addEventListener('beforeunload', handleBeforeUnload)
+})
 
 onBeforeUnmount(() => {
-    window.removeEventListener('beforeunload', handleBeforeUnload);
-});
+    window.removeEventListener('beforeunload', handleBeforeUnload)
+})
 
 watch(
     () => props.curactivity,
     (newVal) => {
         if (newVal && !isEmptyObject(newVal)) {
-            promoCode.value = props.curactivity.couponCodeNormalized.split('');
-            let lastdiscount = props.curactivity.discountRuleList[props.curactivity.discountRuleList.length - 1];
+            promoCode.value = (props.curactivity.couponCodeNormalized || '').split('')
+            const rules = props.curactivity.discountRuleList || []
+            const lastdiscount = rules[rules.length - 1] || { y: '' }
             if (props.curactivity.discountType == 100) {
-                offdesc.value = lastdiscount.y + 'USD OFF';
-                offvalue.value = lastdiscount.y;
+                offdesc.value = `${lastdiscount.y}USD OFF`
+                offvalue.value = lastdiscount.y
             } else {
-                offdesc.value = lastdiscount.y + '% OFF';
-                offvalue.value = lastdiscount.y;
+                offdesc.value = `${lastdiscount.y}% OFF`
+                offvalue.value = lastdiscount.y
             }
         }
     },
     { immediate: true }
-);
+)
 
 function isEmptyObject(obj) {
-    return obj && typeof obj === 'object' && !Array.isArray(obj) && Object.keys(obj).length === 0;
+    return obj && typeof obj === 'object' && !Array.isArray(obj) && Object.keys(obj).length === 0
 }
 </script>

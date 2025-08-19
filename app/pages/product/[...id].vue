@@ -419,19 +419,22 @@
           <div class="text-base font-normal bg-white">
             <div class="flex justify-start">
               <div class="w-auto" v-if="productinfo.erpProduct.remarks">
-                <div class="inline-block p-4 rounded-xl rounded-b-none cursor-pointer text-center text-sm sm:text-base"
+                <div
+                  class="inline-block p-4 rounded-xl rounded-b-none cursor-pointer text-center text-sm sm:text-base dark:text-black"
                   :class="{ 'border-b-2 border-black font-semibold': tabindex === 1 }" @click="changetab(1)">
                   Basic Information
                 </div>
               </div>
               <div class="w-auto" v-if="productinfo.printPropertyList.length > 0">
-                <div class="inline-block p-4 rounded-xl rounded-b-none cursor-pointer text-center text-sm sm:text-base"
+                <div
+                  class="inline-block p-4 rounded-xl rounded-b-none cursor-pointer text-center text-sm sm:text-base dark:text-black"
                   :class="{ 'border-b-2 border-black font-semibold': tabindex === 2 }" @click="changetab(2)">
                   Print Information
                 </div>
               </div>
               <div class="w-auto" v-if="reviews.length > 0">
-                <div class="inline-block p-4 rounded-xl rounded-b-none cursor-pointer text-center text-base"
+                <div
+                  class="inline-block p-4 rounded-xl rounded-b-none cursor-pointer text-center text-base dark:text-black"
                   :class="{ 'border-b-2 border-black font-semibold': tabindex === 3 }" @click="changetab(3)">
                   Reviews
                 </div>
@@ -560,7 +563,7 @@
 
       <!-- 推荐产品部分（原样） -->
       <div class="mt-[30px] md:mt-12 pb-4" v-if="products.length > 0">
-        <h1 class="text-lg font-semibold mb-3 md:mb-8">Recommended products</h1>
+        <h1 class="text-lg font-semibold mb-3 md:mb-8 dark:text-black">Recommended products</h1>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-12">
           <NuxtLink :to="`/product/${product.id}/${slugify(product.erpProduct.productEnglishName)}`"
             v-for="(product, index) in products" :key="index"
@@ -570,7 +573,9 @@
                 class="w-full h-full object-cover object-top">
             </div>
             <div class="mt-2">
-              <h3 class="text-sm font-normal mb-2 line-clamp-2">{{ product.erpProduct.productEnglishName }}</h3>
+              <h3 class="text-sm font-normal mb-2 line-clamp-2 dark:text-black">{{ product.erpProduct.productEnglishName
+                }}
+              </h3>
               <p class="text-sm font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}</p>
             </div>
           </NuxtLink>
@@ -640,7 +645,9 @@ import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import { message, Tooltip, Select, InputNumber, Button } from 'ant-design-vue'
 import { useCartStore } from '@/stores/cart'
 import { useRouter, useRoute } from 'vue-router'
-
+import { useFbq } from '~/composables/useFbq'
+const { addToCartEvent, initiateCheckout } = useFbq({ currency: 'USD' })
+const { viewItem, addToCart: trackAddToCart, beginCheckout } = useTrack()
 const { getProductById, getProductDetailsById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV3, erpTryToCreateSku, getmapProductByProductSkuList } = ProductAuth()
 const { createCart } = cartAuth()
 const { getspuCommentProductRollPage, getgroupComment } = CommentAuth()
@@ -751,7 +758,28 @@ function getCatalogId(arr) {
   if (arr.length >= 2) return arr[1]
   return arr[0]
 }
+const toGa4Item = (opts = {}) => {
+  const p = productinfo.value?.erpProduct
+  if (!p) return null
+  const qty = opts.withQuantity ? (opts.q ?? quantity.value ?? 1) : 1
+  return {
+    item_id: String(productinfo.value.id),
+    item_name: p.productEnglishName || '',
+    price: Number(skuprice.value ?? p.customPrice ?? 0),
+    currency: 'USD',
+    quantity: qty,
+    // 可选
+    item_brand: p.productName,
+    item_category: getCatalogId(productinfo.value.catalogIdPathList) || undefined,
+  }
+}
 
+//  查看详情：封装一个上报函数
+const reportViewItem = () => {
+  if (process.server) return
+  const item = toGa4Item()
+  if (item) viewItem(item)
+}
 const handleGetrelated = async () => {
   try {
     let catalogIdPathList = productinfo.value.catalogIdPathList
@@ -762,9 +790,118 @@ const handleGetrelated = async () => {
   } catch (error) { console.error(error) }
 }
 
+/* =========================
+   新增：双向联动通用函数
+   ========================= */
+
+/** 取某属性的所有候选项（统一为数组，兼容 needinput/noneedinput/detailList） */
+function getAllOptionsOfProp(prop) {
+  if (!prop) return []
+  if (prop.isneedinput) {
+    return [
+      ...(prop.noneedinputlist || []),
+      ...(prop.needinputlist || [])
+    ]
+  }
+  return prop.detailList || []
+}
+
+/** 取某属性当前生效的 skuList（若未选则返回该属性“可用候选项”的并集） */
+function getCurrentSkusOfProp(prop) {
+  if (!prop) return []
+  // 自定义输入模式
+  if (prop.isneedinput && prop.chooseindex === 2) {
+    const picked = (prop.needinputlist || []).find(i =>
+      prop.selectedproperty?.detailName ? i.detailName === prop.selectedproperty.detailName : false
+    )
+    if (picked?.skuList?.length) return picked.skuList
+    const actives = (prop.needinputlist || []).filter(i => i.isactive !== false && i.disabled !== true)
+    const union = new Set()
+    actives.forEach(i => (i.skuList || []).forEach(s => union.add(s)))
+    return Array.from(union)
+  }
+
+  // 普通模式
+  if (prop.selectedproperty?.skuList?.length) return prop.selectedproperty.skuList
+
+  // 未选择：返回可用候选项并集
+  const union = new Set()
+  getAllOptionsOfProp(prop)
+    .filter(o => o.isactive !== false && o.disabled !== true)
+    .forEach(o => (o.skuList || []).forEach(s => union.add(s)))
+  return Array.from(union)
+}
+
+/** 计算除第 i 个属性外，其它属性联合允许的 SKU 交集 */
+function getAcceptableSkusExcept(indexToSkip) {
+  const props = productinfo.value.normalPropertyList || []
+  let acc = null
+  props.forEach((p, idx) => {
+    if (idx === indexToSkip) return
+    const skus = getCurrentSkusOfProp(p)
+    if (!acc) acc = skus.slice(0)
+    else acc = acc.filter(s => skus.includes(s))
+  })
+  return acc || []
+}
+
+/** 依据其它属性约束，重算每个属性每个候选项是否可选（disabled） */
+function recomputeAvailability() {
+  const props = productinfo.value.normalPropertyList || []
+  props.forEach((prop, i) => {
+    const othersOk = new Set(getAcceptableSkusExcept(i))
+    const options = getAllOptionsOfProp(prop)
+
+    options.forEach(opt => {
+      const skus = opt.skuList || []
+      const has = skus.some(s => othersOk.has(s))
+      opt.disabled = (opt.isactive === false) ? true : !has
+    })
+
+    // needinput 子项也要联动
+    if (prop.isneedinput && prop.needinputlist?.length) {
+      prop.needinputlist.forEach(ni => {
+        const skus = ni.skuList || []
+        const has = skus.some(s => othersOk.has(s))
+        ni.disabled = (ni.isactive === false) ? true : !has
+      })
+    }
+  })
+}
+
+/** 如果某属性已选项被禁用，清空之，避免停留在无效状态 */
+function fixInvalidSelections() {
+  const props = productinfo.value.normalPropertyList || []
+  props.forEach(prop => {
+    if (!prop?.selectedproperty) return
+    if (prop.isneedinput && prop.chooseindex === 2) {
+      const picked = (prop.needinputlist || []).find(i => i.detailName === prop.selectedproperty.detailName)
+      if (picked?.disabled) {
+        prop.selectedproperty = {}
+      }
+    } else {
+      const options = getAllOptionsOfProp(prop)
+      const real = options.find(o => o.propertyDetailId === prop.selectedproperty.propertyDetailId)
+      if (real && real.disabled) {
+        prop.selectedproperty = {}
+      }
+    }
+  })
+}
+
+/** 一次性做：重算可用性 + 清理无效选择（上/下级都同步） */
+function recomputeAvailabilityAndFix() {
+  recomputeAvailability()
+  fixInvalidSelections()
+}
+
 let joinsku = []
+
+/** ====== 替换后的 selectproperty：在设置选中后调用双向联动 ====== */
 const selectproperty = (index, type) => {
   if (type.disabled) return
+
+  // ===== 你原有“顺推下一项”逻辑（保留） =====
   productinfo.value.normalPropertyList.forEach((element, index1) => {
     if (index1 < index && isUndefinedOrEmptyObject(element.selectedproperty)) {
       joinsku = joinsku.filter(item => element.selectedproperty.skuList.includes(item))
@@ -812,8 +949,14 @@ const selectproperty = (index, type) => {
       })
     }
   }
+
+  // 设置当前选择
   productinfo.value.normalPropertyList[index]['selectedproperty'] = type
 
+  // ===== 新增：双向联动（关键一行）=====
+  recomputeAvailabilityAndFix()
+
+  // ===== 你原有“定价/取 SKU 价”逻辑（保留）=====
   let inputvalue = []
   let hasEmpty = false
   let needinputproperty
@@ -935,6 +1078,24 @@ const addtocart = async () => {
     let data = { productQuantity: quantity.value, productSku: selectsku }
     await createCart(data)
     message.success('Add successful!')
+    addToCartEvent({
+      value: totalPrice.value,                  // 本次加入购物车的合计金额 = 单价 * 数量
+      currency: 'USD',
+      content_ids: [selectsku],                 // 用 SKU 做内容ID，和目录更好对齐
+      contents: [
+        {
+          id: selectsku,                        // 也可换成 productinfo.value.id（SPU）
+          quantity: quantity.value,
+          item_price: skuprice.value            // 单价
+        }
+      ],
+      content_type: 'product',
+      num_items: quantity.value
+    })
+    const gaItem = toGa4Item({ withQuantity: true })
+    if (gaItem) {
+      trackAddToCart(gaItem)
+    }
     closecartloding()
     cart.refreshCart()
   } catch (error) {
@@ -1030,6 +1191,28 @@ const createorder = async () => {
       openorderloding()
     }
     closeorderloding()
+    initiateCheckout({
+      value: totalPrice.value,                  // 结算时的金额（当前明细）
+      currency: 'USD',
+      content_ids: [selectsku],                 // 或者改成 productinfo.value.id
+      contents: [
+        {
+          id: selectsku,
+          quantity: quantity.value,
+          item_price: skuprice.value
+        }
+      ],
+      content_type: 'product',
+      num_items: quantity.value
+    })
+    const gaItem = toGa4Item({ withQuantity: true })
+    if (gaItem) {
+      beginCheckout({
+        items: [gaItem],
+        value: Number(totalPrice.value),
+        currency: 'USD'
+      })
+    }
     router.push('/checkout?from=detail&sku=' + selectsku + '&number=' + quantity.value)
   } catch (error) {
     let errormsg = JSON.parse(error.message || '{}')
@@ -1049,8 +1232,6 @@ if (lastpage) {
   if (collectionMatch) { lastLabel = collectionMatch[0].split('/')[2]; lastTo = lastpage }
   if (lastLabel && lastTo) { breadcrumbLinks.value.push({ label: lastLabel, to: lastTo, title: lastLabel }) }
 }
-
-
 const handleGetProudct = async () => {
   try {
     isLoading.value = true // 保持你原有写法
@@ -1083,13 +1264,17 @@ const handleGetProudct = async () => {
     })
     productinfo.value.normalPropertyList[0].showType = true
     mainImage.value = productinfo.value.erpProduct.mainPic
+
+    // 新增：首次拉取后做一次全量双向可用性计算
+    recomputeAvailabilityAndFix()
+
     await fetchComments()
   } catch (error) {
-    message.error('Failed to load product data')
     console.error(error)
   } finally {
-    isLoading.value = false
+    // 确保相关产品也加载
     handleGetrelated()
+    isLoading.value = false
   }
 }
 
@@ -1102,14 +1287,14 @@ const organizeproduct = () => {
       element.detailList.forEach(item => {
         item.isactive = true
         item.label = item.detailName
+        if (item.customDetailList) {
+          let sortedCustomDetailList = item.inputList.map(inputName =>
+            item.customDetailList.find(item => item.input === inputName)
+          )
+          item.customDetailList = sortedCustomDetailList
+        }
         if (item.inputList) {
           let inputvalue = []
-          if (item.customDetailList) {
-            let sortedCustomDetailList = item.inputList.map(inputName =>
-              item.customDetailList.find(item => item.input === inputName)
-            )
-            item.customDetailList = sortedCustomDetailList
-          }
           item.inputList.forEach(() => { inputvalue.push('') })
           item.inputvalue = inputvalue
           element.isneedinput = true
@@ -1126,8 +1311,9 @@ const organizeproduct = () => {
     productinfo.value.normalPropertyList[0].showType = true
   } catch (error) {
     console.error(error)
-    message.error('Failed to load product data')
   } finally {
+    // 新增：本地组织数据后也跑一遍双向计算
+    recomputeAvailabilityAndFix()
     isLoading.value = false
   }
 }
@@ -1206,8 +1392,6 @@ const hasRange = (item) => {
 const customFilter = (input, option) => {
   return option.detailName?.toLowerCase().includes(input.toLowerCase())
 }
-
-
 const changeshow = (index) => {
   productinfo.value.normalPropertyList.forEach((item, i) => {
     item.showType = i === index ? !item.showType : false
@@ -1394,6 +1578,7 @@ onMounted(() => {
   window.addEventListener('scroll', handleScroll)
   handleGetrelated()
   fetchComments()
+  reportViewItem()
 })
 onUnmounted(() => { window.removeEventListener('scroll', handleScroll) })
 const slugify = (str) => {

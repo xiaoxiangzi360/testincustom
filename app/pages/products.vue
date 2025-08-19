@@ -228,10 +228,10 @@ const slugify = (str) => {
                             v-for="(product, index) in products" :key="index"
                             class="bg-white rounded-lg cursor-pointer group">
                             <div class="aspect-square overflow-hidden rounded-t-lg">
-                                <img :src="product.erpProduct.mainPic ?? '/images/empty.jpg'"
+                                <NuxtImg :src="product.erpProduct.mainPic ?? '/images/empty.jpg'"
                                     :alt="product.erpProduct.productEnglishName"
                                     class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
-                                    style="aspect-ratio: 1 / 1;" />
+                                    style="aspect-ratio: 1 / 1;" loading="lazy" />
                             </div>
                             <div>
                                 <h3 class="text-sm sm:text-sm  text-customblack my-2 lg:my-4 line-clamp-2 cursor-default font-normal"

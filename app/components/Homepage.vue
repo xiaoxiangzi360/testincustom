@@ -12,7 +12,7 @@
       speed: 800,
     }" class="overflow-hidden">
       <SplideSlide v-for="(item, index) in backgroundImages" :key="index">
-        <img :src="item" class="w-full h-full object-cover block " draggable="false" />
+        <NuxtImg :src="item" class="w-full h-full object-cover block " loading="lazy" draggable="false" />
       </SplideSlide>
     </Splide>
 
@@ -51,7 +51,7 @@ import { Splide, SplideSlide } from '@splidejs/vue-splide'
 import '@splidejs/vue-splide/css'
 
 const backgroundImages = [
-  '/images/banner5.webp',
+  'https://cdn.incustom.com/upload/web/banner5.webp',
   // '/images/banner1.webp',
   // '/images/banner2.webp',
   // '/images/banner3.webp',

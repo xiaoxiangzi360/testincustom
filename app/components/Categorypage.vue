@@ -7,7 +7,7 @@
                 class="relative h-[160px] lg:h-[220px] rounded overflow-hidden group cursor-pointer transition-shadow duration-300">
                 <NuxtImg :src="item.image"
                     class="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                    format="webp" alt="InCustom" preload />
+                    format="webp" alt="InCustom" loading="lazy" />
                 <div class="absolute inset-0  flex items-center">
                     <div class=" flex flex-col gap-3 text-white left-12 absolute">
                         <h2
@@ -37,22 +37,22 @@ const items = ref([
     {
         title: 'Outdoor Shade Solutions',
         description: 'UV protection for outdoor living. >',
-        image: '/images/cate1.webp'
+        image: 'https://cdn.incustom.com/upload/web/cate1.webp'
     },
     {
         title: 'Privacy & Garden Decor',
         description: 'Stylish privacy for your backyard. >',
-        image: '/images/1.webp'
+        image: 'https://cdn.incustom.com/upload/web/1.webp'
     },
     {
         title: 'Indoor Window Shades',
         description: 'Elegant shading for modern homes. >',
-        image: '/images/2.webp'
+        image: 'https://cdn.incustom.com/upload/web/2.webp'
     },
     {
         title: 'Custom Printed Shade & Screen',
         description: 'Print your ideas on fabric. >',
-        image: '/images/3.webp'
+        image: 'https://cdn.incustom.com/upload/web/3.webp'
     },
 ]);
 const checklist = (title) => {

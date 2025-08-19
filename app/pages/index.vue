@@ -1,57 +1,86 @@
 <script setup lang="ts">
 import { heroImageUrl } from '@/utils/hero'
+
 definePageMeta({
-  // layout: 'default',
-  // name: 'index',
-  // alias: 'index',
   title: 'Home',
   description: 'New Arrivals, Big Savings!',
   navOrder: 1,
   type: 'primary',
   icon: 'i-mdi-home',
-  // ogImage: 'images/ogImage.png', // url or local images inside public folder, for eg, ~/public/images/ogImage.png
 })
+
 const { listInProgressMarketingActivity } = ActivityAuth()
-const isexpend = ref(false)
-const curactivity = ref({})
-const isshow = ref(false)
-let emailactivity = null
-let couponactivity = null
+
+const isexpend = ref(false)           // 你原变量，保留
+const curactivity = ref<any>({})      // 当前要展示/手动弹的活动对象
+const isshow = ref(false)             // 由自动逻辑或点击 CouponIcon 控制
+let emailactivity: any = null
+let couponactivity: any = null
+
+/** 判断是否已有“今天不再弹/永久不弹”的 cookie */
+function hasHideCookie(id?: string | number) {
+  if (!id) return false
+  const cookie = useCookie('hideactivity_' + id)
+  return !!cookie.value
+}
+
+function isEmptyObject(obj: any) {
+  return obj && typeof obj === 'object' && !Array.isArray(obj) && Object.keys(obj).length === 0
+}
+
+/**
+ * 自动选择活动 & 是否自动弹窗
+ * 规则：
+ * 1) 优先邮箱订阅（couponReceiveMethod == 50）
+ *    - 有 hide cookie：不自动弹，但 curactivity 仍然指向 emailactivity（点击图标可手动弹）
+ *    - 无 hide cookie：自动弹
+ * 2) 否则考虑券码弹窗（couponReceiveMethod == 10 且 popupTriggerEvent != 10）
+ *    - 无 hide cookie：自动弹
+ *    - 有 hide cookie：不自动弹
+ */
 const getactivitylistlist = async () => {
   const res = await listInProgressMarketingActivity()
-  let lists = res.result;
-  lists.forEach(element => {
+  const lists = res.result || []
+
+  // 采集两个候选活动
+  lists.forEach((element: any) => {
     if (element.couponReceiveMethod == 50) {
       emailactivity = element
     }
-    let couponcookiename = 'hideactivity_' + element.id
-    if (element.couponReceiveMethod == 10 && !useCookie(couponcookiename).value && !couponactivity && element.popupTriggerEvent != 10) {
+    if (
+      element.couponReceiveMethod == 10 &&
+      !hasHideCookie(element.id) &&
+      !couponactivity &&
+      element.popupTriggerEvent != 10
+    ) {
       couponactivity = element
     }
-  });
+  })
 
-  if (isexpend.value == false && couponactivity) {
-    curactivity.value = couponactivity
-  }
+  // 是否需要自动弹
+  let shouldAutoShow = false
+
   if (emailactivity) {
-    let cookiename = 'hideactivity_' + emailactivity.id
     curactivity.value = emailactivity
-
-    if (!useCookie(cookiename)) {
-      isexpend.value = true
+    // 邮箱订阅：有 cookie -> 不自动弹；无 cookie -> 自动弹
+    if (!hasHideCookie(emailactivity.id)) {
+      shouldAutoShow = true
+    } else {
+      shouldAutoShow = false
     }
+  } else if (isexpend.value === false && couponactivity) {
+    // 没有邮箱订阅时，再看券码
+    curactivity.value = couponactivity
+    shouldAutoShow = true // 上面已经确保没有 hide cookie
   }
-  if (!isEmptyObject(curactivity.value)) {
-    isshow.value = true
-  }
+
+  // 只有当需要自动弹时才置 true；否则保持 false（但点击图标仍可改为 true）
+  isshow.value = shouldAutoShow
 }
-function isEmptyObject(obj) {
-  return obj && typeof obj === 'object' && !Array.isArray(obj) && Object.keys(obj).length === 0;
-}
+
 getactivitylistlist()
-
-
 </script>
+
 <template>
   <div>
     <Homepage />

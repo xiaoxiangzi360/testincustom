@@ -115,7 +115,8 @@ const slugify = (str) => {
                             <!-- 视频封面 -->
                             <div class="relative aspect-[16/9] group cursor-pointer" @mouseenter="onEnter(idx)"
                                 @mouseleave="onLeave(idx)" @click="onTap(idx)">
-                                <img :src="p.img" alt="" class="h-full w-full object-cover rounded" />
+                                <NuxtImg :src="p.img" alt="" class="h-full w-full object-cover rounded"
+                                    loading="lazy" />
 
                                 <video v-if="p.video" :src="p.video"
                                     :ref="(el) => bindVideoRef(el as HTMLVideoElement | null, idx)" playsinline
@@ -135,7 +136,7 @@ const slugify = (str) => {
                                 <ULink :to="`/product/${p.id}/${slugify(p.title)}`" class="block">
                                     <div class="flex items-start gap-3">
                                         <div class="w-[72px] h-[72px] shrink-0 overflow-hidden border border-black/10">
-                                            <img :src="p.thumb" alt="" class="w-full h-full object-cover rounded"
+                                            <NuxtImg :src="p.thumb" alt="" class="w-full h-full object-cover rounded"
                                                 loading="lazy" />
                                         </div>
                                         <div class="min-w-0">

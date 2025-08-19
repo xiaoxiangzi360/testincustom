@@ -152,10 +152,15 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
         <div data-pg-name="Searchbox" style="grid-area: search;" class="max-w-100 lg:ml-4 mt-3 lg:mt-0 relative">
           <UFormGroup hint="Optional">
             <UInput v-model="searchInput" @keyup.enter="onEnterSearch" placeholder="Search..." size="md"
-              class="w-full border-none ring-0" autocomplete="off" :ui="{
+              class="w-full border-none ring-0 " autocomplete="off" :ui="{
                 base: '!shadow-none !ring-0 focus:ring-0 focus:ring-offset-0 focus:shadow-none rounded-b-none',
                 ring: 'focus:ring-0',
                 variant: { outline: 'shadow-none focus:ring-0' },
+                color: {
+                  white: {
+                    outline: 'bg-white dark:bg-white'
+                  }
+                }
               }"
               :input-class="isSearchHistoryVisible ? '!rounded-b-none border-b border-gray-100 focus:border-gray-100 focus:ring-0 focus:outline-none' : ''"
               @focus="isSearchHistoryVisible = true" @blur="closePanel">

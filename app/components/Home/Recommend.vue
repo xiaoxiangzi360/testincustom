@@ -74,17 +74,17 @@ const slugify = (str: string) =>
     <section class="mt-6 md:mt-8">
         <div class="max-row mx-auto">
             <!-- ✅ 关键：网格容器本身没问题，主要是子列需要 min-w-0 以允许收缩 -->
-            <div class="md:grid gap-4 md:gap-6 bg-white overflow-x-hidden" :class="isImageLeft
+            <div class="md:grid gap-2 md:gap-4 overflow-x-hidden bg-white" :class="isImageLeft
                 ? 'md:grid-cols-[7fr_3fr] lg:grid-cols-[7fr_3fr]'
                 : 'md:grid-cols-[3fr_7fr] lg:grid-cols-[3fr_7fr]'">
 
                 <!-- 大图列 -->
-                <div :class="isImageLeft ? 'md:order-1' : 'md:order-2'" class="min-w-0"> <!-- ✅ min-w-0 -->
+                <div :class="isImageLeft ? 'md:order-1' : 'md:order-2'" class="min-w-0 bg-white"> <!-- ✅ min-w-0 -->
                     <div class="relative w-full aspect-[16/9] overflow-hidden bg-gray-100 group rounded"
                         :class="hasVideo ? 'cursor-pointer' : ''" @mouseenter="onEnter" @mouseleave="onLeave">
-                        <img :src="coverImage" :alt="coverAlt"
+                        <NuxtImg :src="coverImage" :alt="coverAlt"
                             class="absolute inset-0 w-full h-full object-cover duration-500 group-hover:scale-105"
-                            draggable="false" />
+                            draggable="false" loading="lazy" />
                         <video v-if="hasVideo" ref="videoRef" :src="videoUrl" playsinline preload="metadata"
                             class="absolute inset-0 w-full h-full object-cover transition-opacity duration-200"
                             :class="isHovering ? 'opacity-100' : 'opacity-0'" />
@@ -97,7 +97,9 @@ const slugify = (str: string) =>
                 </div>
 
                 <!-- 产品列 -->
-                <div :class="isImageLeft ? 'md:order-2' : 'md:order-1'" class="mt-3 sm:mt-0 min-w-0"> <!-- ✅ min-w-0 -->
+                <div :class="isImageLeft ? 'md:order-2' : 'md:order-1'"
+                    class="mt-3 sm:mt-0 min-w-0 bg-white px-2 pt-2 sm:pt-0">
+                    <!-- ✅ min-w-0 -->
                     <div class="h-full grid grid-rows-[1fr_auto] min-w-0"> <!-- ✅ min-w-0 -->
                         <!-- 轮播体 -->
                         <div class="min-h-0 overflow-auto min-w-0"> <!-- ✅ min-w-0 -->
@@ -113,7 +115,7 @@ const slugify = (str: string) =>
                                                 <div
                                                     class="w-24 aspect-square shrink-0 md:w-full md:aspect-square overflow-hidden rounded">
                                                     <!-- ✅ overflow-hidden & rounded -->
-                                                    <img :src="p.image" :alt="p.alt || p.title"
+                                                    <NuxtImg :src="p.image" :alt="p.alt || p.title"
                                                         class="w-full h-full object-cover" draggable="false"
                                                         loading="lazy" />
                                                 </div>
@@ -126,7 +128,7 @@ const slugify = (str: string) =>
                                                         <span>${{ p.price.toFixed(2) }}</span>
                                                         <span v-if="p.originPrice"
                                                             class="text-gray-400 line-through ml-2">
-                                                            \${{ p.originPrice!.toFixed(2) }}
+                                                            ${{ p.originPrice!.toFixed(2) }}
                                                         </span>
                                                     </div>
                                                 </div>

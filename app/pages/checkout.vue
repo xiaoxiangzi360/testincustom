@@ -322,7 +322,9 @@
 <script lang="ts" setup>
 import { ref, computed, watch } from 'vue';
 import { Input, Select, Form, FormItem, Checkbox, Button, AutoComplete } from 'ant-design-vue'
-
+const { addPaymentInfo, purchase } = useFbq({ currency: 'USD' })
+const { purchaseorder } = useTrack()
+const fbqOnce = ref({ addPaymentInfo: false, purchase: false })
 const { getuserAddressRollPage, createUserAddress } = AddressAuth();
 const { getmapProductByProductSkuList } = ProductAuth();
 const { generateOrderId, createOrder, getUserOrderDocByOrderNumber, tryOrder } = OrderAuth();
@@ -389,7 +391,25 @@ const couponError = ref('')
 const discount = ref(0)
 const activeCoupon = ref('') // 当前有效优惠码
 const applyLoading = ref(false)
+function buildFbqPayload() {
+    const contents = productlists.value.map((it: any) => ({
+        id: it.productSku || it.productStyle || it.productName, // 尽量用 SKU
+        quantity: Number(it.qtyOrdered) || 1,
+        item_price: Number(it.productPrice) || 0
+    }))
+    const value = contents.reduce((s, c) => s + (c.item_price || 0) * (c.quantity || 1), 0)
+    const content_ids = contents.map(c => c.id)
+    const num_items = contents.reduce((s, c) => s + (c.quantity || 1), 0)
 
+    return {
+        value,
+        currency: 'USD',           // 你 useFbq 默认就是 USD，这里显式一下
+        content_ids,
+        contents,
+        content_type: 'product',
+        num_items
+    }
+}
 const applyCoupon = async () => {
     couponError.value = ''
     if (!couponCode.value) {
@@ -853,6 +873,17 @@ const handleSubmit = async () => {
 
         let createres = await createOrder(addparmes);
         orderNo.value = createres.result.orderNumber
+        if (!fbqOnce.value.addPaymentInfo) {
+            try {
+                addPaymentInfo({
+                    ...buildFbqPayload(),
+                    order_id: orderNo.value || orderId.value,
+                })
+                fbqOnce.value.addPaymentInfo = true
+            } catch (e) {
+                console.warn('fbq AddPaymentInfo error:', e)
+            }
+        }
         cart.refreshCart()
         let payparmes = {
             payType: 'paypal',
@@ -1072,12 +1103,45 @@ onMounted(async () => {
                     const referenceId = details.purchase_units?.[0]?.reference_id
                     const paypalOrderId = details.id
                     const payerName = details.payer.name.given_name
-                    const totalAmount = details.purchase_units[0].amount.value; // 总金额
+                    const totalAmount = details.purchase_units[0].amount.value as any; // 总金额
                     const currency = details.purchase_units[0].amount.currency_code; // 货币（例如 USD）
 
                     const paymentTime = formatPaypalUtcToLocal(details.purchase_units[0].payments.captures[0].create_time); // 支付时间
 
+                    if (!fbqOnce.value.purchase) {
+                        try {
+                            purchase({
+                                ...buildFbqPayload(),
+                                value: totalAmount,               // 以 PayPal 最终金额为准
+                                currency,                         // 以 PayPal 币种为准
+                                order_id: orderNo.value || orderId.value,
+                                paypal_order_id: paypalOrderId,
+                            })
+                            fbqOnce.value.purchase = true
+                        } catch (e) {
+                            console.warn('fbq Purchase error:', e)
+                        }
+                    }
+                    try {
+                        const gaItems = productlists.value.map((it: any) => ({
+                            item_id: it.productSku,
+                            item_name: it.productName,
+                            price: Number(it.productPrice) || 0,
+                            quantity: Number(it.qtyOrdered) || 1,
+                            currency: currency,
+                        }))
 
+                        purchaseorder({
+                            transaction_id: orderNo.value || orderId.value,
+                            value: Number(totalAmount),
+                            currency,
+                            items: gaItems,
+                            coupon: activeCoupon.value || undefined,
+                            shipping: Number(shipping.value) || 0,
+                        })
+                    } catch (e) {
+                        console.warn('GA4 purchaseorder error:', e)
+                    }
                     let res = payPalCaptureOrder(paypalOrderId)
                     // router.push('/myorders')
                     router.push({

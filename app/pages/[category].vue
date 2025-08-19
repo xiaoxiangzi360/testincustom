@@ -20,19 +20,19 @@ const categorybanner = ref('')
 const categorytitle = ref('')
 const categorydesc = ref('')
 const bannerLoading = ref(true)   // ✅ 背景图骨架屏状态
-const capitalize = (s) => (s && s[0].toUpperCase() + s.slice(1)) || ''
+const capitalize = (s: string) => (s && s[0].toUpperCase() + s.slice(1)) || ''
 
 useHead({
-  title: () => capitalize(route.params.category),
+  title: () => capitalize(String(route.params.category)),
 })
 
 useServerSeoMeta({
-  description: () => capitalize(route.params.category),
+  description: () => capitalize(String(route.params.category)),
 })
 
 const rawCategory = Array.isArray(route.params.category)
   ? route.params.category[0]
-  : route.params.category;
+  : (route.params.category as string);
 
 const catename = rawCategory?.split?.('-')?.[0] ?? ''
 const cateid = rawCategory?.split?.('-')?.[1] ?? ''
@@ -46,7 +46,7 @@ const sortarray = [
   'Date, New to Old'
 ]
 
-const sortarraymapping = {
+const sortarraymapping: Record<(typeof sortarray)[number], { value: string; sort: 'asc' | 'desc' }> = {
   'Name Alphabetic, a-z': {
     value: 'erpProduct.ProductEnglishName',
     sort: 'asc'
@@ -73,9 +73,9 @@ const sortarraymapping = {
   }
 }
 
-const selectedsort = ref(sortarray[0])
+const selectedsort = ref<(typeof sortarray)[number]>(sortarray[0])
 const selected = ref('')
-const products = ref([])
+const products = ref<any[]>([])
 const loading = ref(false)
 
 const { getUserProductRollPage, getProductCatalogById } = ProductAuth()
@@ -86,7 +86,8 @@ const breadcrumbLinks = [
   { label: catename, to: '/' + catename + '-' + cateid, title: catename },
 ]
 
-const handleChange = (value) => {
+// 监听筛选
+const handleChange = (value: string) => {
   selected.value = selected.value === value ? '' : value
   getlistlist()
 }
@@ -95,14 +96,15 @@ watch(selectedsort, () => {
   getlistlist()
 })
 
+// ====== 数据加载 ======
 const getlistlist = async () => {
   loading.value = true
   try {
-    const parmes = {
+    const parmes: Record<string, any> = {
       catalogIdPath: cateid,
       pageNum: 1,
       pageSize: 24,
-      fields: "id,erpProduct.productEnglishName,erpProduct.customPrice,erpProduct.mainPic",
+      fields: 'id,erpProduct.productEnglishName,erpProduct.customPrice,erpProduct.mainPic',
     }
     if (selectedsort.value) {
       parmes['sortKey'] = sortarraymapping[selectedsort.value].value
@@ -120,12 +122,9 @@ const getlistlist = async () => {
 
 const getcateinfo = async () => {
   try {
-    const parmes = {
-      id: cateid,
-    }
-
+    const parmes = { id: cateid }
     const res = await getProductCatalogById(parmes)
-    let result = res.result
+    const result = res.result
     if (result) {
       categorybanner.value = result.rootPictureUrl
       categorytitle.value = result.rootPictureTitle
@@ -139,7 +138,7 @@ const getcateinfo = async () => {
 getlistlist()
 getcateinfo()
 
-// ✅ 监听背景图加载
+// ✅ 背景图加载完再隐藏骨架
 watch(categorybanner, () => {
   if (categorybanner.value) {
     const img = new Image()
@@ -149,15 +148,65 @@ watch(categorybanner, () => {
     }
   }
 })
-const slugify = (str) => {
+
+const slugify = (str: string) => {
   return str
-    .normalize('NFKD')           // 去掉重音符号
-    .replace(/[^\w\s-]/g, '')    // 去掉非字母数字/下划线/空格/连字符
+    .normalize('NFKD')
+    .replace(/[^\w\s-]/g, '')
     .trim()
-    .replace(/\s+/g, '-')        // 空格转-
-    .replace(/-+/g, '-')         // 合并多个-
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
     .toLowerCase()
 }
+
+// ====================== 埋点：GA4 view_item_list / select_item ======================
+const { viewItemList, selectItem } = useTrack()
+
+// 列表ID/名称（发给 GA4 的 item_list_id / item_list_name）
+const listId = computed(() => `cate_${cateid}`)
+const listName = computed(() => categorytitle.value || catename || 'Category')
+
+// 转换接口返回的产品为 GA4 items
+const toGa4Items = (list: any[]) =>
+  (list || []).map((p, i) => ({
+    item_id: String(p.id),
+    item_name: p?.erpProduct?.productEnglishName || '',
+    price: Number(p?.erpProduct?.customPrice ?? 0),
+    index: i,
+    item_list_id: listId.value,
+    item_list_name: listName.value
+  }))
+
+// 上报“查看商品列表”
+const reportListImpression = () => {
+  if (process.server) return
+  if (!products.value?.length) return
+  console.log(1111123)
+  viewItemList(toGa4Items(products.value), listId.value, listName.value)
+}
+
+// 点击上报“选择了商品”
+const onSelectItem = (p: any, index: number) => {
+  selectItem(
+    [
+      {
+        item_id: String(p.id),
+        item_name: p?.erpProduct?.productEnglishName || '',
+        price: Number(p?.erpProduct?.customPrice ?? 0),
+        index,
+        item_list_id: listId.value,
+        item_list_name: listName.value
+      }
+    ],
+    listId.value,
+    listName.value
+  )
+}
+
+// 当“列表加载完成/排序改变/过滤改变”后，上报 view_item_list
+watch([products, loading, selectedsort, () => selected.value], () => {
+  if (!loading.value && products.value?.length) reportListImpression()
+})
 </script>
 
 <template>
@@ -174,7 +223,7 @@ const slugify = (str) => {
 
       <!-- Hero Section -->
       <div class="relative h-[180px] sm:h-[300px] overflow-hidden rounded-lg">
-        <!-- ✅ 骨架屏统一样式 -->
+        <!-- 骨架屏 -->
         <div v-if="bannerLoading" class="absolute inset-0 bg-gray-200 rounded-lg animate-pulse"></div>
 
         <!-- 背景图 -->
@@ -184,7 +233,7 @@ const slugify = (str) => {
         </div>
 
         <!-- 文字层 -->
-        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 h-full flex flex-col justify-center  sm:items-start "
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 h-full flex flex-col justify-center sm:items-start"
           style="text-shadow: 0px 2px 4px rgba(34,34,34,0.6);">
           <h1 class="text-xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 leading-snug">
             {{ categorytitle }}
@@ -227,7 +276,7 @@ const slugify = (str) => {
             <div class="text-gray-500 text-sm">Loading products...</div>
           </div>
 
-          <!-- ✅ Skeleton 卡片统一样式 -->
+          <!-- Skeleton -->
           <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
             <div v-for="n in 4" :key="n" class="bg-white rounded-lg shadow p-4">
               <div class="h-48 bg-gray-200 rounded-lg w-full mb-4 animate-pulse"></div>
@@ -240,7 +289,8 @@ const slugify = (str) => {
           <div v-show="products.length > 0 && !loading"
             class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
             <ULink :to="`/product/${product.id}/${slugify(product.erpProduct.productEnglishName)}`"
-              v-for="(product, index) in products" :key="index" class="bg-white rounded-lg cursor-pointer group">
+              @click="onSelectItem(product, index)" v-for="(product, index) in products" :key="index"
+              class="bg-white rounded-lg cursor-pointer group">
               <div class="aspect-square overflow-hidden rounded-t-lg">
                 <img :src="product.erpProduct.mainPic ?? '/images/empty.jpg'"
                   :alt="product.erpProduct.productEnglishName"
