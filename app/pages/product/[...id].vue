@@ -174,7 +174,7 @@
                       class="mr-3 w-[18px] h-[18px] flex items-center justify-center"
                       :ui="{ color: { black: { solid: 'dark:bg-gray-900 dark:text-white' } } }">{{ index + 1 }}</UBadge>
                     <span class="truncate-1-lines font-medium text-sm md:text-base">{{ property.propertyNameShop
-                    }}</span>
+                      }}</span>
                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" placement="topLeft"
                       v-if="property.desc" :title="property.desc"
                       :overlayStyle="{ maxWidth: '330px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
@@ -574,7 +574,7 @@
             </div>
             <div class="mt-2">
               <h3 class="text-sm font-normal mb-2 line-clamp-2 dark:text-black">{{ product.erpProduct.productEnglishName
-                }}
+              }}
               </h3>
               <p class="text-sm font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}</p>
             </div>
@@ -1001,109 +1001,174 @@ const openorderloding = () => { orderloding.value = true }
 const closecartloding = () => { cartloding.value = false }
 const closeorderloding = () => { orderloding.value = false }
 
+/** 公共：根据当前选择解析并返回可用 SKU（必要时先创建临时 SKU）
+ * 成功返回：{ sku, selectproperlist, needinputpropertyarr, propList }
+ * 失败会直接抛错，外层捕获后做 UI 提示
+ */
+const resolveSkuForAction = async () => {
+  // 统一从 normalPropertyList 收集用户选择
+  let ischoose = true
+  let hasEmpty = false
+
+  const needinputpropertyarr = []
+  const selectproperlist = []
+  const propList = []
+
+  productinfo.value.normalPropertyList.forEach((element) => {
+    // 是否全部已选
+    if (isUndefinedOrEmptyObject(element.selectedproperty)) ischoose = false
+
+    // 自定义输入模式：把 inputvalue 数组保存在 element.inputvalue，便于后续统一读取
+    if (element.isneedinput && element.chooseindex == 2) {
+      const actives = (element.needinputlist || []).filter((it) => it.isactive)
+      let picked = actives[element.chooseindex - 2]
+      if (!picked && element.selectedproperty?.detailName) {
+        picked = actives.find((it) => it.detailName === element.selectedproperty.detailName)
+      }
+      const arr = (picked?.inputvalue && Array.isArray(picked.inputvalue))
+        ? picked.inputvalue
+        : (Array.isArray(element.inputvalue) ? element.inputvalue : [])
+      element.inputvalue = arr.slice()
+      hasEmpty = hasEmpty || arr.some(v => v === '')
+      needinputpropertyarr.push(element)
+    }
+
+    // detailList（保持 inputvalue 数组带上，后端有些场景需要）
+    const detailitem = [{
+      isSelect: true,
+      isMissing: true,
+      detailName: element.selectedproperty?.detailName,
+      inputvalue: element.inputvalue ? element.inputvalue.slice() : [],
+      propertyId: element.selectedproperty?.propertyId
+    }]
+
+    selectproperlist.push({
+      detailList: detailitem,
+      specCode: element.specCode,
+      propertyId: element.propertyId,
+      propertyType: element.propertyType,
+      propertyName: element.propertyName,
+    })
+
+    // 参与试算的 propList（仅用于价格试算/可视化，不影响建 SKU）
+    const isCustomInput = element.isneedinput && element.chooseindex === 2
+    const propItem = { propertyNameShop: element.propertyNameShop, detailName: element.selectedproperty?.detailName }
+    if (isCustomInput && element.selectedproperty?.inputvalue) {
+      const inputArr = Array.isArray(element.selectedproperty.inputvalue)
+        ? element.selectedproperty.inputvalue
+        : String(element.selectedproperty.inputvalue).split('*')
+      propItem.inputList = inputArr.map((val, idx) => {
+        const inputKey = element.selectedproperty?.inputList?.[idx] || `side${idx + 1}`
+        return { input: inputKey, customPropValue: val }
+      })
+    }
+    propList.push(propItem)
+  })
+
+  if (hasEmpty) {
+    const err = new Error('No dimensions entered!')
+    err.name = 'EMPTY_DIMENSION'
+    throw err
+  }
+  if (!ischoose) {
+    const err = new Error('Please select properties!')
+    err.name = 'NOT_CHOSEN'
+    throw err
+  }
+
+  // 情况 A：存在自定义输入 —— 需创建临时 SKU
+  if (needinputpropertyarr.length > 0) {
+    // 把自定义输入的 detailName 用 * 拼接，同时保留 detailList[0].inputvalue（数组）
+    needinputpropertyarr.forEach((needProp) => {
+      const target = selectproperlist.find(x => x.propertyId === needProp.propertyId)
+      if (target && target.detailList?.[0]) {
+        target.detailList[0].detailName = (needProp.inputvalue || []).join('*')
+      }
+    })
+
+    const variationList = productinfo.value.erpProduct.variationList
+    const createData = {
+      productId: productid.value,
+      productStyle: productinfo.value.erpProduct.productStyle,
+      propertyList: selectproperlist,
+      variationList: variationList || []
+    }
+
+    // edge1..n —— 从第一个 needinput 属性读
+    const edges = needinputpropertyarr[0]?.inputvalue || []
+    edges.forEach((v, i) => { createData[`edge${i + 1}`] = v || 0 })
+
+    // 请求创建
+    const res = await erpTryToCreateSku(createData)
+    const sku = res.result?.skuSpec?.sku
+    if (!sku) throw new Error('Create SKU failed')
+    return { sku, selectproperlist, needinputpropertyarr, propList }
+  }
+
+  // 情况 B：普通属性 —— 求已选候选项的 SKU 交集
+  const skuLists = productinfo.value.normalPropertyList
+    .map(p => p.selectedproperty?.skuList)
+    .filter(list => Array.isArray(list) && list.length > 0)
+
+  if (skuLists.length === 0) {
+    const err = new Error('Please select all properties')
+    err.name = 'NOT_CHOSEN'
+    throw err
+  }
+
+  const innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)))
+  if (!innersku.length) {
+    const err = new Error('Please select all properties')
+    err.name = 'NOT_CHOSEN'
+    throw err
+  }
+  return { sku: innersku[0], selectproperlist, needinputpropertyarr, propList }
+}
+
+
 const addtocart = async () => {
   try {
-    if (!quantity.value || quantity.value <= 0) { message.error('Please enter quantity!'); return }
-    let ischoose = true
-    let hasEmpty = false
-    let inputvalue = []
-    let needinputproperty
-    let selectproperlist = []
-    productinfo.value.normalPropertyList.forEach(element => {
-      if (isUndefinedOrEmptyObject(element.selectedproperty)) { ischoose = false }
-      if (element.isneedinput && element.chooseindex == 2) {
-        let needinputlist = element.needinputlist.filter(item => item.isactive)
-        needinputlist.forEach(item => {
-          inputvalue = item.inputvalue
-          hasEmpty = inputvalue.some(item => item === "")
-        })
-        needinputproperty = element
-      }
-      let detailitem = [{
-        isSelect: true, isMissing: true,
-        detailName: element.selectedproperty?.detailName,
-        propertyId: element.selectedproperty?.propertyId
-      }]
-      selectproperlist.push({
-        detailList: detailitem, specCode: element.specCode, propertyId: element.propertyId,
-        propertyType: element.propertyType, propertyName: element.propertyName,
-      })
-    })
-    if (hasEmpty) { message.error('No dimensions entered!'); return }
-    if (!ischoose) { message.error('Please select properties!'); return }
-
-    let selectsku
-    if (inputvalue.length > 0) {
-      let target = selectproperlist.find(item => item.propertyId === needinputproperty.propertyId)
-      if (target) {
-        target.detailList = [{
-          isSelect: true, isMissing: true,
-          detailName: inputvalue.join("*"),
-          propertyId: needinputproperty.propertyId
-        }]
-      }
-      let variationList = productinfo.value.erpProduct.variationList
-      const targetProperty = productinfo.value.normalPropertyList.find(item => item.propertyNameShop === 'Shape')
-      let detailName = targetProperty?.selectedproperty?.detailName || ''
-      let createData = {
-        productId: productid.value,
-        productStyle: productinfo.value.erpProduct.productStyle,
-        propertyList: selectproperlist,
-        shape: detailName,
-        variationList: variationList ? variationList : []
-      }
-      for (let i = 0; i < inputvalue.length; i++) {
-        createData[`edge${i + 1}`] = inputvalue[i] || 0
-      }
-      try {
-        opencartloding()
-        let res = await erpTryToCreateSku(createData)
-        selectsku = res.result.skuSpec.sku
-      } catch (e) {
-        closecartloding()
-        const errormsg = JSON.parse(e.message || '{}')
-        message.error(errormsg.enDesc || 'Create SKU failed')
-        return
-      }
-    } else {
-      const skuLists = productinfo.value.normalPropertyList
-        .map(property => property.selectedproperty?.skuList)
-        .filter(list => Array.isArray(list) && list.length > 0)
-      if (skuLists.length === 0) return
-      let innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)))
-      if (innersku.length == 0) { message.error('Please select all properties'); return }
-      selectsku = innersku[0]
-      opencartloding()
+    if (!quantity.value || quantity.value <= 0) {
+      message.error('Please enter quantity!')
+      return
     }
-    let data = { productQuantity: quantity.value, productSku: selectsku }
+    opencartloding()
+
+    // ✅ 统一从这里拿到 sku（内部会根据是否自定义输入自动 创建/求交集）
+    const { sku: selectsku } = await resolveSkuForAction()
+
+    // 创建购物车
+    const data = { productQuantity: quantity.value, productSku: selectsku }
     await createCart(data)
     message.success('Add successful!')
+
+    // FB Pixel
     addToCartEvent({
-      value: totalPrice.value,                  // 本次加入购物车的合计金额 = 单价 * 数量
+      value: totalPrice.value,
       currency: 'USD',
-      content_ids: [selectsku],                 // 用 SKU 做内容ID，和目录更好对齐
-      contents: [
-        {
-          id: selectsku,                        // 也可换成 productinfo.value.id（SPU）
-          quantity: quantity.value,
-          item_price: skuprice.value            // 单价
-        }
-      ],
+      content_ids: [selectsku],
+      contents: [{ id: selectsku, quantity: quantity.value, item_price: skuprice.value }],
       content_type: 'product',
       num_items: quantity.value
     })
+
+    // GA4
     const gaItem = toGa4Item({ withQuantity: true })
-    if (gaItem) {
-      trackAddToCart(gaItem)
-    }
-    closecartloding()
+    if (gaItem) trackAddToCart(gaItem)
+
     cart.refreshCart()
   } catch (error) {
-    let errormsg = JSON.parse(error.message || '{}')
+    let msg = 'failed, please try again'
+    try { msg = JSON.parse(error.message || '{}').enDesc || msg } catch (_) {
+      if (error?.name === 'EMPTY_DIMENSION' || error?.name === 'NOT_CHOSEN') msg = error.message
+    }
+    message.error(msg)
+  } finally {
     closecartloding()
-    message.error(errormsg.enDesc || 'failed, please try again')
   }
 }
+
+
 
 const onQuantityInput = (e) => {
   let val = parseInt(e.target.value.replace(/[^\d]/g, '')) || 1
@@ -1118,108 +1183,42 @@ function isUndefinedOrEmptyObject(val) {
 
 const createorder = async () => {
   try {
-    if (!quantity.value || quantity.value <= 0) { message.error('Please enter quantity!'); return }
-    let ischoose = true
-    let hasEmpty = false
-    let inputvalue = []
-    let needinputproperty
-    let selectproperlist = []
-    productinfo.value.normalPropertyList.forEach(element => {
-      if (isUndefinedOrEmptyObject(element.selectedproperty)) { ischoose = false }
-      if (element.isneedinput && element.chooseindex == 2) {
-        let needinputlist = element.needinputlist.filter(item => item.isactive)
-        needinputlist.forEach(item => {
-          inputvalue = item.inputvalue
-          hasEmpty = inputvalue.some(item => item === "")
-        })
-        needinputproperty = element
-      }
-      let detailitem = [{
-        isSelect: true, isMissing: true,
-        detailName: element.selectedproperty?.detailName,
-        propertyId: element.selectedproperty?.propertyId
-      }]
-      selectproperlist.push({
-        detailList: detailitem, specCode: element.specCode, propertyId: element.propertyId,
-        propertyType: element.propertyType, propertyName: element.propertyName,
-      })
-    })
-    if (hasEmpty) { message.error('No dimensions entered!'); return }
-    if (!ischoose) { message.error('Please select properties!'); return }
-
-    let selectsku
-    if (inputvalue.length > 0) {
-      let target = selectproperlist.find(item => item.propertyId === needinputproperty.propertyId)
-      if (target) {
-        target.detailList = [{
-          isSelect: true, isMissing: true,
-          detailName: inputvalue.join("*"),
-          propertyId: needinputproperty.propertyId
-        }]
-      }
-      let variationList = productinfo.value.erpProduct.variationList
-      const targetProperty = productinfo.value.normalPropertyList.find(item => item.propertyNameShop === 'Shape')
-      let detailName = targetProperty?.selectedproperty?.detailName || ''
-      let createData = {
-        productId: productid.value,
-        productStyle: productinfo.value.erpProduct.productStyle,
-        propertyList: selectproperlist,
-        shape: detailName,
-        variationList: variationList ? variationList : []
-      }
-      for (let i = 0; i < inputvalue.length; i++) {
-        createData[`edge${i + 1}`] = inputvalue[i] || 0
-      }
-      try {
-        openorderloding()
-        let res = await erpTryToCreateSku(createData)
-        selectsku = res.result.skuSpec.sku
-      } catch (e) {
-        closeorderloding()
-        const errormsg = JSON.parse(e.message || '{}')
-        message.error(errormsg.enDesc || 'Create SKU failed')
-        return
-      }
-    } else {
-      const skuLists = productinfo.value.normalPropertyList
-        .map(property => property.selectedproperty?.skuList)
-        .filter(list => Array.isArray(list) && list.length > 0)
-      if (skuLists.length === 0) return
-      let innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)))
-      if (innersku.length == 0) { message.error('Please select all properties'); return }
-      selectsku = innersku[0]
-      openorderloding()
+    if (!quantity.value || quantity.value <= 0) {
+      message.error('Please enter quantity!')
+      return
     }
-    closeorderloding()
+    openorderloding()
+
+    // ✅ 与 addtocart 共用一套逻辑
+    const { sku: selectsku } = await resolveSkuForAction()
+
+    // 埋点
     initiateCheckout({
-      value: totalPrice.value,                  // 结算时的金额（当前明细）
+      value: totalPrice.value,
       currency: 'USD',
-      content_ids: [selectsku],                 // 或者改成 productinfo.value.id
-      contents: [
-        {
-          id: selectsku,
-          quantity: quantity.value,
-          item_price: skuprice.value
-        }
-      ],
+      content_ids: [selectsku],
+      contents: [{ id: selectsku, quantity: quantity.value, item_price: skuprice.value }],
       content_type: 'product',
       num_items: quantity.value
     })
     const gaItem = toGa4Item({ withQuantity: true })
     if (gaItem) {
-      beginCheckout({
-        items: [gaItem],
-        value: Number(totalPrice.value),
-        currency: 'USD'
-      })
+      beginCheckout({ items: [gaItem], value: Number(totalPrice.value), currency: 'USD' })
     }
+
+    // 跳转
     router.push('/checkout?from=detail&sku=' + selectsku + '&number=' + quantity.value)
   } catch (error) {
-    let errormsg = JSON.parse(error.message || '{}')
+    let msg = 'Failed'
+    try { msg = JSON.parse(error.message || '{}').enDesc || msg } catch (_) {
+      if (error?.name === 'EMPTY_DIMENSION' || error?.name === 'NOT_CHOSEN') msg = error.message
+    }
+    message.error(msg)
+  } finally {
     closeorderloding()
-    message.error(errormsg.enDesc || 'Failed')
   }
 }
+
 
 let lastLabel = null
 let lastTo = null
@@ -1374,7 +1373,7 @@ const getcustomprice = async (inputvalue) => {
     }
     propList.push(propItem)
   })
-  const params = { spu: productinfo.value.erpProduct.productStyle, shape, ...sideMap, propList }
+  const params = { spu: productinfo.value.erpProduct.productStyle, propList }
   try {
     const res = await trialPriceCalculationBySpuV3(params)
     skuprice.value = res.result.sellingPrice

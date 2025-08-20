@@ -45,7 +45,7 @@ export default defineNuxtConfig({
     preset: 'vercel',
     devProxy: {
       '/api/': {
-        target: 'https://mallapi.incustom.com',
+        target: 'http://192.168.8.52:50500',
         // target: 'http://192.168.8.52:50500',
         changeOrigin: true,
         prependPath: false,
@@ -137,7 +137,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://mallapi.incustom.com',
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://192.168.8.52:50500',
       paypalClientId: 'AZEq1Z4PN2jcETI7JFSFvXGwe0dX8xHKlUOKh9N53ysbzHeJ6OonvPHFd1L5XJz90xX1SPP3X6Xp_P__',
       // apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://192.168.8.52:50500',
     }

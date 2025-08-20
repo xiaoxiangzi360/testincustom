@@ -117,7 +117,7 @@ const medialist = ([
   {
     id: 3,
     img: '/images/media3',
-    url: 'https://www.linkedin.com/in/in-custom-38a132374/'
+    url: 'https://www.linkedin.com/company/incustom/'
   },
   // {
   //   id: 4,
