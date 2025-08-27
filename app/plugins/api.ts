@@ -52,7 +52,11 @@ export default defineNuxtPlugin((nuxtApp) => {
                         fullPath = event?.node?.req?.url || '/'
                     } catch { }
                 }
-                redirectCookie.value = fullPath
+                const isProductRoute = window.location.pathname.startsWith('/product')
+                if (!isProductRoute) {
+
+                    redirectCookie.value = fullPath
+                }
 
                 if (process.client) {
                     message.warning('Please log in')

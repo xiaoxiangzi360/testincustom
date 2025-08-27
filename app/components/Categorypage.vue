@@ -50,7 +50,7 @@ const items = ref([
         image: 'https://cdn.incustom.com/upload/web/2.webp'
     },
     {
-        title: 'Custom Printed Shade & Screen',
+        title: 'Printed Shade & Screen',
         description: 'Print your ideas on fabric. >',
         image: 'https://cdn.incustom.com/upload/web/3.webp'
     },

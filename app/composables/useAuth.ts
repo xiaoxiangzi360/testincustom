@@ -140,6 +140,18 @@ export const useAuth = () => {
         }
     }
 
+    const getUserInfo = async (params: any) => {
+        try {
+            const response = await $api('/user/user/getUserInfo', {
+                method: 'POST',
+                body: params,
+            })
+            return response
+        } catch (error) {
+            throw error
+        }
+    }
+
     const googleLogin = async (params: Record<string, string>) => {
         try {
             const query = new URLSearchParams(params).toString()
@@ -219,5 +231,6 @@ export const useAuth = () => {
         createContactUs,
         googleLogin,
         facebookLogin,
+        getUserInfo
     }
 }

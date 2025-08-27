@@ -13,65 +13,71 @@
                                 </div>
                                 <div class="border-t border-t-blackcolor/10">
                                     <div class="bg-white px-6 py-2 rounded w-2/3">
-                                        <Form layout="vertical">
+                                        <ClientOnly>
 
-                                            <FormItem name="country">
-                                                <Select v-model:value="form.country" show-search
-                                                    :options="countryarr.map(c => ({ label: c.countryName, value: c.countryCode }))"
-                                                    placeholder="Select Country/Region"
-                                                    :filter-option="filterOptionByLabel" allowClear />
-                                            </FormItem>
+                                            <Form layout="vertical">
 
-                                            <FormItem>
-                                                <Input v-model:value="form.firstName" placeholder="First name"
-                                                    size="large" />
-                                            </FormItem>
+                                                <FormItem name="country">
+                                                    <Select v-model:value="form.country" show-search
+                                                        :options="countryarr.map(c => ({ label: c.countryName, value: c.countryCode }))"
+                                                        placeholder="Select Country/Region"
+                                                        :filter-option="filterOptionByLabel" allowClear />
+                                                </FormItem>
 
-                                            <FormItem>
-                                                <Input v-model:value="form.lastName" placeholder="Last name"
-                                                    size="small" />
-                                            </FormItem>
+                                                <FormItem>
+                                                    <Input v-model:value="form.firstName" placeholder="First name"
+                                                        size="large" />
+                                                </FormItem>
 
-                                            <FormItem>
-                                                <Input v-model:value="form.address" placeholder="Street address" />
-                                            </FormItem>
+                                                <FormItem>
+                                                    <Input v-model:value="form.lastName" placeholder="Last name"
+                                                        size="small" />
+                                                </FormItem>
 
-                                            <FormItem name="province">
-                                                <Select allowClear v-model:value="form.province" show-search
-                                                    :options="provincearr.map(p => ({ label: p.regionName, value: p.regionName }))"
-                                                    placeholder="Select State/Province"
-                                                    :filter-option="filterOptionByLabel" />
-                                            </FormItem>
+                                                <FormItem>
+                                                    <Input v-model:value="form.address" placeholder="Street address" />
+                                                </FormItem>
 
-                                            <FormItem name="city">
-                                                <AutoComplete allowClear v-model:value="form.city" show-search
-                                                    :options="cityarr.map(c => ({ label: c.cityName, value: c.cityName }))"
-                                                    :filter-option="filterOptionByLabel" placeholder="Select City" />
-                                            </FormItem>
+                                                <FormItem name="province">
+                                                    <Select allowClear v-model:value="form.province" show-search
+                                                        :options="provincearr.map(p => ({ label: p.regionName, value: p.regionName }))"
+                                                        placeholder="Select State/Province"
+                                                        :filter-option="filterOptionByLabel" />
+                                                </FormItem>
 
-                                            <FormItem>
-                                                <Input v-model:value="form.postalCode" placeholder="Zip code" />
-                                            </FormItem>
+                                                <FormItem name="city">
+                                                    <AutoComplete allowClear v-model:value="form.city" show-search
+                                                        :options="cityarr.map(c => ({ label: c.cityName, value: c.cityName }))"
+                                                        :filter-option="filterOptionByLabel"
+                                                        placeholder="Select City" />
+                                                </FormItem>
 
-                                            <FormItem>
-                                                <Input v-model:value="form.email" placeholder="Email(optional)" />
-                                            </FormItem>
+                                                <FormItem>
+                                                    <Input v-model:value="form.postalCode" placeholder="Zip code" />
+                                                </FormItem>
 
-                                            <FormItem>
-                                                <div class="flex gap-2">
-                                                    <Select v-model:value="form.numberCode" class="!w-24" show-search
-                                                        :options="countries.map(code => ({ label: code, value: code }))" />
-                                                    <Input v-model:value="form.number" placeholder="Your number"
-                                                        class="flex-1" />
-                                                </div>
-                                            </FormItem>
+                                                <FormItem>
+                                                    <Input v-model:value="form.email" placeholder="Email(optional)" />
+                                                </FormItem>
 
-                                            <FormItem>
-                                                <Checkbox v-model:checked="form.master">Set as default address
-                                                </Checkbox>
-                                            </FormItem>
+                                                <FormItem>
+                                                    <div class="flex gap-2">
+                                                        <Select v-model:value="form.numberCode" class="!w-24"
+                                                            show-search
+                                                            :options="countries.map(code => ({ label: code, value: code }))" />
+                                                        <Input v-model:value="form.number" placeholder="Your number"
+                                                            class="flex-1" />
+                                                    </div>
+                                                </FormItem>
 
-                                        </Form>
+                                                <FormItem>
+                                                    <Checkbox v-model:checked="form.master">Set as default address
+                                                    </Checkbox>
+                                                </FormItem>
+
+                                            </Form>
+                                        </ClientOnly>
+
                                     </div>
                                 </div>
                             </section>
@@ -324,7 +330,6 @@ import { ref, computed, watch } from 'vue';
 import { Input, Select, Form, FormItem, Checkbox, Button, AutoComplete } from 'ant-design-vue'
 const { addPaymentInfo, purchase } = useFbq({ currency: 'USD' })
 const { purchaseorder } = useTrack()
-const fbqOnce = ref({ addPaymentInfo: false, purchase: false })
 const { getuserAddressRollPage, createUserAddress } = AddressAuth();
 const { getmapProductByProductSkuList } = ProductAuth();
 const { generateOrderId, createOrder, getUserOrderDocByOrderNumber, tryOrder } = OrderAuth();
@@ -873,17 +878,15 @@ const handleSubmit = async () => {
 
         let createres = await createOrder(addparmes);
         orderNo.value = createres.result.orderNumber
-        if (!fbqOnce.value.addPaymentInfo) {
-            try {
-                addPaymentInfo({
-                    ...buildFbqPayload(),
-                    order_id: orderNo.value || orderId.value,
-                })
-                fbqOnce.value.addPaymentInfo = true
-            } catch (e) {
-                console.warn('fbq AddPaymentInfo error:', e)
-            }
+        try {
+            addPaymentInfo({
+                ...buildFbqPayload(),
+                order_id: orderNo.value || orderId.value,
+            })
+        } catch (e) {
+            console.warn('fbq AddPaymentInfo error:', e)
         }
+
         cart.refreshCart()
         let payparmes = {
             payType: 'paypal',
@@ -1108,20 +1111,20 @@ onMounted(async () => {
 
                     const paymentTime = formatPaypalUtcToLocal(details.purchase_units[0].payments.captures[0].create_time); // 支付时间
 
-                    if (!fbqOnce.value.purchase) {
-                        try {
-                            purchase({
-                                ...buildFbqPayload(),
-                                value: totalAmount,               // 以 PayPal 最终金额为准
-                                currency,                         // 以 PayPal 币种为准
-                                order_id: orderNo.value || orderId.value,
-                                paypal_order_id: paypalOrderId,
-                            })
-                            fbqOnce.value.purchase = true
-                        } catch (e) {
-                            console.warn('fbq Purchase error:', e)
-                        }
+
+                    try {
+                        purchase({
+                            ...buildFbqPayload(),
+                            value: totalAmount,               // 以 PayPal 最终金额为准
+                            currency,                         // 以 PayPal 币种为准
+                            order_id: orderNo.value || orderId.value,
+                            paypal_order_id: paypalOrderId,
+                        })
+
+                    } catch (e) {
+                        console.warn('fbq Purchase error:', e)
                     }
+
                     try {
                         const gaItems = productlists.value.map((it: any) => ({
                             item_id: it.productSku,

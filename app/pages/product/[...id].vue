@@ -174,7 +174,7 @@
                       class="mr-3 w-[18px] h-[18px] flex items-center justify-center"
                       :ui="{ color: { black: { solid: 'dark:bg-gray-900 dark:text-white' } } }">{{ index + 1 }}</UBadge>
                     <span class="truncate-1-lines font-medium text-sm md:text-base">{{ property.propertyNameShop
-                      }}</span>
+                    }}</span>
                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" placement="topLeft"
                       v-if="property.desc" :title="property.desc"
                       :overlayStyle="{ maxWidth: '330px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
@@ -280,28 +280,36 @@
                               <label class="text-sm min-w-[52px]">{{ inputitem }}</label>
                               <template v-if="needinput.customDetailList && needinput.customDetailList[pindex]">
                                 <template v-if="needinput.customDetailList[pindex].viewType === 10">
-                                  <InputNumber v-model:value="needinput.inputvalue[pindex]"
-                                    @blur="changeinputvalue(property, needindex + 2, index)"
-                                    class="custom-input rounded text-sm w-28 px-2 focus:outline-none focus:ring-0"
-                                    style="height: 28px" :min="needinput.customDetailList[pindex].inputStart || 0"
-                                    :max="needinput.customDetailList[pindex].inputEnd || 999" step="1" />
-                                  <span v-if="hasRange(needinput.customDetailList[pindex])"
-                                    class="text-xs text-gray-500 ml-1">
-                                    ({{ needinput.customDetailList[pindex].inputStart }} - {{
-                                      needinput.customDetailList[pindex].inputEnd }}) {{
-                                      needinput.customDetailList[pindex].unit || '' }}
-                                  </span>
+                                  <ClientOnly>
+                                    <InputNumber v-model:value="needinput.inputvalue[pindex]"
+                                      @blur="changeinputvalue(property, needindex + 2, index)"
+                                      class="custom-input rounded text-sm w-28 px-2 focus:outline-none focus:ring-0"
+                                      style="height: 28px" :min="needinput.customDetailList[pindex].inputStart || 0"
+                                      :max="needinput.customDetailList[pindex].inputEnd || 999" step="1" />
+
+                                    <span v-if="hasRange(needinput.customDetailList[pindex])"
+                                      class="text-xs text-gray-500 ml-1">
+                                      ({{ needinput.customDetailList[pindex].inputStart }} - {{
+                                        needinput.customDetailList[pindex].inputEnd }}) {{
+                                        needinput.customDetailList[pindex].unit || '' }}
+                                    </span>
+                                  </ClientOnly>
+
                                 </template>
                                 <template v-else-if="needinput.customDetailList[pindex].viewType === 50">
-                                  <Select v-model:value="needinput.inputvalue[pindex]"
-                                    :options="needinput.customDetailList[pindex].ruleList.map(rule => ({ label: rule.start, value: rule.start }))"
-                                    size="middle" style="width: 112px; height: 28px; line-height: 28px"
-                                    :dropdownStyle="{ lineHeight: '28px' }" class="custom-select" placeholder="Select"
-                                    @change="() => changeinputvalue(property, needindex + 2, index)" />
-                                  <span v-if="needinput.customDetailList[pindex].unit"
-                                    class="text-xs text-gray-500 ml-1">
-                                    {{ needinput.customDetailList[pindex].unit }}
-                                  </span>
+                                  <ClientOnly>
+                                    <Select v-model:value="needinput.inputvalue[pindex]"
+                                      :options="needinput.customDetailList[pindex].ruleList.map(rule => ({ label: rule.start, value: rule.start }))"
+                                      size="middle" style="width: 112px; height: 28px; line-height: 28px"
+                                      :dropdownStyle="{ lineHeight: '28px' }" class="custom-select" placeholder="Select"
+                                      @change="() => changeinputvalue(property, needindex + 2, index)" />
+                                    <span v-if="needinput.customDetailList[pindex].unit"
+                                      class="text-xs text-gray-500 ml-1">
+                                      {{ needinput.customDetailList[pindex].unit }}
+                                    </span>
+                                  </ClientOnly>
+
+
                                 </template>
                               </template>
                               <template v-else>
@@ -574,7 +582,7 @@
             </div>
             <div class="mt-2">
               <h3 class="text-sm font-normal mb-2 line-clamp-2 dark:text-black">{{ product.erpProduct.productEnglishName
-              }}
+                }}
               </h3>
               <p class="text-sm font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}</p>
             </div>
@@ -651,6 +659,7 @@ const { viewItem, addToCart: trackAddToCart, beginCheckout } = useTrack()
 const { getProductById, getProductDetailsById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV3, erpTryToCreateSku, getmapProductByProductSkuList } = ProductAuth()
 const { createCart } = cartAuth()
 const { getspuCommentProductRollPage, getgroupComment } = CommentAuth()
+const { getUserInfo } = useAuth()
 const route = useRoute()
 const router = useRouter()
 const cart = useCartStore()
@@ -847,26 +856,30 @@ function getAcceptableSkusExcept(indexToSkip) {
 
 /** 依据其它属性约束，重算每个属性每个候选项是否可选（disabled） */
 function recomputeAvailability() {
-  const props = productinfo.value.normalPropertyList || []
+  const props = productinfo.value.normalPropertyList || [];
   props.forEach((prop, i) => {
-    const othersOk = new Set(getAcceptableSkusExcept(i))
-    const options = getAllOptionsOfProp(prop)
+    const othersOk = new Set(getAcceptableSkusExcept(i));
 
+    // 处理当前属性的选项
+    const options = getAllOptionsOfProp(prop);
     options.forEach(opt => {
-      const skus = opt.skuList || []
-      const has = skus.some(s => othersOk.has(s))
-      opt.disabled = (opt.isactive === false) ? true : !has
-    })
+      const skus = opt.skuList || [];
+      // 选项仅在非选中且与其它属性的 SKU 无交集时禁用
+      const isSelected = prop.selectedproperty?.propertyDetailId === opt.propertyDetailId;
+      const hasValidSku = skus.some(s => othersOk.has(s));
+      opt.disabled = !isSelected && (opt.isactive === false || !hasValidSku);
+    });
 
-    // needinput 子项也要联动
+    // 处理需要输入的子选项（如果适用）
     if (prop.isneedinput && prop.needinputlist?.length) {
       prop.needinputlist.forEach(ni => {
-        const skus = ni.skuList || []
-        const has = skus.some(s => othersOk.has(s))
-        ni.disabled = (ni.isactive === false) ? true : !has
-      })
+        const skus = ni.skuList || [];
+        const isSelected = prop.selectedproperty?.detailName === ni.detailName && prop.chooseindex === 2;
+        const hasValidSku = skus.some(s => othersOk.has(s));
+        ni.disabled = !isSelected && (ni.isactive === false || !hasValidSku);
+      });
     }
-  })
+  });
 }
 
 /** 如果某属性已选项被禁用，清空之，避免停留在无效状态 */
@@ -898,93 +911,60 @@ function recomputeAvailabilityAndFix() {
 let joinsku = []
 
 /** ====== 替换后的 selectproperty：在设置选中后调用双向联动 ====== */
+/** 设置属性选择并触发双向联动 */
 const selectproperty = (index, type) => {
-  if (type.disabled) return
-
-  // ===== 你原有“顺推下一项”逻辑（保留） =====
-  productinfo.value.normalPropertyList.forEach((element, index1) => {
-    if (index1 < index && isUndefinedOrEmptyObject(element.selectedproperty)) {
-      joinsku = joinsku.filter(item => element.selectedproperty.skuList.includes(item))
-    }
-    if (index === 0) { joinsku = type.skuList }
-  })
-  if (!joinsku) joinsku = []
-  if (productinfo.value.normalPropertyList[index + 1] && type.skuList) {
-    let curskulist = joinsku.length > 0 ? joinsku.filter(item => type.skuList.includes(item)) : type.skuList || []
-    let nextProperty = productinfo.value.normalPropertyList[index + 1]
-    let nextselectedproperty = nextProperty['selectedproperty']
-    let nextselectedid = '-1'
-    if (nextselectedproperty) { nextselectedid = nextselectedproperty.propertyDetailId }
-    if (nextProperty.isneedinput) {
-      let nextdetailList = nextProperty.noneedinputlist
-      nextdetailList.forEach(element => {
-        let skulist = element.skuList
-        let hasIntersection = skulist && skulist.some(item => curskulist.includes(item))
-        element.isactive = hasIntersection
-        element.disabled = !hasIntersection
-        if (nextselectedid == element.propertyDetailId && element.disabled) {
-          productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {}
-        }
-      })
-      let nextdetailList1 = nextProperty.needinputlist
-      nextdetailList1.forEach(element1 => {
-        let skulist = element1.skuList
-        let hasIntersection = skulist && skulist.some(item => curskulist.includes(item))
-        element1.isactive = hasIntersection
-        element1.disabled = !hasIntersection
-        if (nextselectedid == element1.propertyDetailId && element1.disabled) {
-          productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {}
-        }
-      })
-    } else {
-      let nextdetailList = nextProperty.detailList
-      nextdetailList.forEach(element => {
-        let skulist = element.skuList
-        let hasIntersection = skulist && skulist.some(item => curskulist.includes(item))
-        element.isactive = hasIntersection
-        element.disabled = !hasIntersection
-        if (nextselectedid == element.propertyDetailId && element.disabled) {
-          productinfo.value.normalPropertyList[index + 1]['selectedproperty'] = {}
-        }
-      })
-    }
-  }
+  if (type.disabled) return;
 
   // 设置当前选择
-  productinfo.value.normalPropertyList[index]['selectedproperty'] = type
+  productinfo.value.normalPropertyList[index]['selectedproperty'] = type;
 
-  // ===== 新增：双向联动（关键一行）=====
-  recomputeAvailabilityAndFix()
+  // 更新 joinsku 用于价格计算
+  joinsku = [];
+  productinfo.value.normalPropertyList.forEach((element, index1) => {
+    if (index1 <= index && element.selectedproperty?.skuList?.length) {
+      if (index1 === 0) {
+        joinsku = element.selectedproperty.skuList || [];
+      } else {
+        joinsku = joinsku.filter(item => element.selectedproperty.skuList.includes(item));
+      }
+    }
+  });
 
-  // ===== 你原有“定价/取 SKU 价”逻辑（保留）=====
-  let inputvalue = []
-  let hasEmpty = false
-  let needinputproperty
-  let ischoose = true
+  // 统一调用双向联动计算可用性
+  recomputeAvailabilityAndFix();
+
+  // 价格计算逻辑
+  let inputvalue = [];
+  let hasEmpty = false;
+  let needinputproperty;
+  let ischoose = true;
 
   productinfo.value.normalPropertyList.forEach(element => {
-    if (isUndefinedOrEmptyObject(element.selectedproperty)) { ischoose = false }
-    if (element.isneedinput && element.chooseindex == 2) {
-      let needinputlist = element.needinputlist.filter(item => item.isactive)
-      needinputlist.forEach(item => {
-        inputvalue = item.inputvalue
-        hasEmpty = inputvalue.some(item => item === "")
-      })
-      needinputproperty = element
+    if (isUndefinedOrEmptyObject(element.selectedproperty)) {
+      ischoose = false;
     }
-  })
+    if (element.isneedinput && element.chooseindex === 2) {
+      let needinputlist = element.needinputlist.filter(item => item.isactive);
+      needinputlist.forEach(item => {
+        inputvalue = item.inputvalue;
+        hasEmpty = inputvalue.some(item => item === "");
+      });
+      needinputproperty = element;
+    }
+  });
+
   if (needinputproperty && ischoose && !hasEmpty) {
-    getcustomprice(inputvalue)
+    getcustomprice(inputvalue);
   } else if (ischoose) {
     const skuLists = productinfo.value.normalPropertyList
       .map(property => property.selectedproperty?.skuList)
-      .filter(list => Array.isArray(list) && list.length > 0)
-    if (skuLists.length === 0) return
-    let innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)))
-    let firstsku = innersku[0]
-    if (firstsku) { getskuprice(firstsku) }
+      .filter(list => Array.isArray(list) && list.length > 0);
+    if (skuLists.length === 0) return;
+    let innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)));
+    let firstsku = innersku[0];
+    if (firstsku) getskuprice(firstsku);
   }
-}
+};
 
 const getskuprice = async (sku) => {
   try {
@@ -1187,6 +1167,10 @@ const createorder = async () => {
       message.error('Please enter quantity!')
       return
     }
+    const redirect_to = useCookie('redirect_to');
+
+    await getUserInfo();
+    //判断是否登录
     openorderloding()
 
     // ✅ 与 addtocart 共用一套逻辑
@@ -1205,15 +1189,12 @@ const createorder = async () => {
     if (gaItem) {
       beginCheckout({ items: [gaItem], value: Number(totalPrice.value), currency: 'USD' })
     }
-
+    let linkurl = '/checkout?from=detail&sku=' + selectsku + '&number=' + quantity.value
+    redirect_to.value = linkurl
     // 跳转
-    router.push('/checkout?from=detail&sku=' + selectsku + '&number=' + quantity.value)
+    router.push(linkurl)
   } catch (error) {
-    let msg = 'Failed'
-    try { msg = JSON.parse(error.message || '{}').enDesc || msg } catch (_) {
-      if (error?.name === 'EMPTY_DIMENSION' || error?.name === 'NOT_CHOSEN') msg = error.message
-    }
-    message.error(msg)
+
   } finally {
     closeorderloding()
   }
