@@ -167,9 +167,9 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
               <template #trailing>
                 <div class="pointer-events-auto">
                   <button aria-label="search" @click="onEnterSearch"
-                    class="flex items-center justify-center h-full px-2 text-gray-500 hover:text-black cursor-pointer font-bold"
+                    class="flex items-center justify-center h-full px-1 text-gray-500 hover:text-black cursor-pointer font-bold"
                     :class="searchInput.trim() ? 'text-primary' : 'text-gray-400'">
-                    <UIcon name="i-heroicons-magnifying-glass" class="w-5 h-5 font-bold" style="stroke-width: 3" />
+                    <BaseIcon name="i-heroicons-magnifying-glass" class="w-5 h-5 font-bold" style="stroke-width: 3" />
                   </button>
                 </div>
               </template>
@@ -205,9 +205,9 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
         <div data-pg-name="Profile" class="flex lg:space-x-1 justify-end lg:justify-start">
           <ProfileActions class="!hidden lg:!flex"></ProfileActions>
 
-          <UIcon name="i-heroicons-user-circle" class="lg:!hidden w-7 h-7" width="28" height="28"
+          <BaseIcon name="i-heroicons-user-circle" class="lg:!hidden w-7 h-7" width="28" height="28"
             @click="checklogin()" />
-          <UIcon name="i-heroicons:shopping-cart" class="lg:!hidden w-7 h-7 ml-3" width="28" height="28"
+          <BaseIcon name="i-heroicons:shopping-cart" class="lg:!hidden w-7 h-7 ml-3" width="28" height="28"
             @click="goToCart" />
 
 

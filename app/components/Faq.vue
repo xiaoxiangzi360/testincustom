@@ -1,27 +1,29 @@
 <template>
     <div class="w-full mt-[30px]">
         <div class="max-row py-5 ">
-            <h1 class="text-xl md:text-[40px] text-blackcolor font-normal text-center mb-3 sm:mb-12 dark:text-white">
+            <h1 class="text-xl md:text-[40px] text-primary font-semibold text-center mb-3 sm:mb-12 dark:text-primary">
                 FAQ
             </h1>
 
             <UAccordion variant="solid" size="xl" :items="faqItems" :ui="{
-                container: 'border-b border-[#00000014] dark:border-white dark:text-white'
-            }" class="text-title dark:text-white">
+                container: 'border-b border-[#00000014]'
+            }" class="text-title">
                 <template #default="{ item, index, open }">
                     <UButton color="gray" variant="ghost"
-                        class="text-arialblack w-full flex justify-between items-center text-base sm:text-lg dark:text-white font-noraml"
+                        class="text-arialblack w-full flex justify-between items-center text-base sm:text-lg font-normal
+         hover:bg-transparent dark:hover:bg-transparent dark:text-arialblack hover:text-primary dark:hover:text-primary"
                         :ui="{ rounded: 'rounded-none', padding: { sm: 'px-5 py-3 sm:py-4' } }">
-                        <span class="truncate text-blackcolor text-left dark:text-white font-normal">{{ index + 1 }}. {{
-                            item.label
-                            }}</span>
-                        <UIcon name="i-heroicons-chevron-down-20-solid"
+                        <span class="truncate hover:text-primary text-left font-normal">
+                            {{ item.label }}
+                        </span>
+                        <BaseIcon name="i-heroicons-chevron-down-20-solid"
                             class="w-5 h-5 transition-transform duration-200" :class="[open ? 'rotate-180' : '']" />
                     </UButton>
+
                 </template>
 
                 <template #item="{ item }">
-                    <div class="px-5 py-0 text-[#5A5B5B] dark:text-white text-sm sm:text-lg">
+                    <div class="px-5 py-0 text-[#4B5563]  sm:text-base">
                         <p class="content" v-html="item.content"></p>
 
                     </div>

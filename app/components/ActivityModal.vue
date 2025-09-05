@@ -286,3 +286,32 @@ function isEmptyObject(obj) {
     return obj && typeof obj === 'object' && !Array.isArray(obj) && Object.keys(obj).length === 0
 }
 </script>
+<style scoped>
+:deep(.ant-select:not(.ant-select-disabled):hover .ant-select-selector) {
+    border-color: #d9d9d9 !important;
+}
+
+:deep(.ant-select-focused .ant-select-selector) {
+    border-color: #d9d9d9 !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* 去掉 show-search 内部 input 的聚焦轮廓/阴影（内边框） */
+:deep(.ant-select .ant-select-selector .ant-select-selection-search-input),
+:deep(.ant-select .ant-select-selector .ant-select-selection-search-input:focus),
+:deep(.ant-select .ant-select-selector .ant-select-selection-search-input:focus-visible),
+:deep(.ant-select .ant-select-selector input[type="search"]),
+:deep(.ant-select .ant-select-selector input[type="search"]:focus),
+:deep(.ant-select .ant-select-selector input[type="search"]:focus-visible) {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* 有些版本用 ::after 做焦点边框，保险起见也关掉 */
+:deep(.ant-select .ant-select-selector::after) {
+    box-shadow: none !important;
+    outline: none !important;
+    border: 0 !important;
+}
+</style>

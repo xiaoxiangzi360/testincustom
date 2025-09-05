@@ -1,17 +1,33 @@
 <template>
   <div class="bg-[#F8F8F8]">
     <NuxtLoadingIndicator />
-    <NuxtLayout>
-      <NuxtPage />
-    </NuxtLayout>
+    <ConfigProvider :theme="{
+      token: {
+        colorPrimary: '#25B9EC',   // ✅ 主色，改这里
+        colorPrimaryHover: '#25B9EC',
+        colorPrimaryActive: '#25B9EC',
+        colorSuccess: '#11c0e5', // ✅ 成功色
+        colorSuccessBg: '#11c0e5', // ✅ 背景色（可选）
+        colorSuccessBorder: '#11c0e5', // ✅ 边框色（可选）
+        controlOutline: '#11c0e5'
+      },
+      // 切暗色可这样：algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm
+    }">
+      <NuxtLayout>
+        <NuxtPage />
+      </NuxtLayout>
+    </ConfigProvider>
     <UNotifications />
     <div v-if="loading" class="global-loading">
       <Spin size="large" :style="{ color: '#999' }" />
     </div>
+    <div class="hidden">
+      <UIcon name="i-heroicons-arrow-path-20-solid" class="hidden animate-spin" />
+    </div>
   </div>
 </template>
 <script setup lang="ts">
-import { Spin } from 'ant-design-vue'
+import { Spin, ConfigProvider } from 'ant-design-vue'
 
 const loading = useState<boolean>('global-loading')
 </script>
@@ -43,5 +59,20 @@ const loading = useState<boolean>('global-loading')
 .max-row {
   @apply max-w-[1440px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-16;
 
+}
+
+.ant-input:focus {
+  border-color: #25B9EC !important;
+  border: none;
+}
+
+/* 全局覆盖 */
+.ant-input:focus {
+  --tw-ring-color: #25B9EC !important;
+}
+
+/* 带 suffix/prefix 的情况 */
+.ant-input-affix-wrapper:focus-within {
+  --tw-ring-color: #25B9EC !important;
 }
 </style>

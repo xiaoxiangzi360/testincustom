@@ -3,6 +3,7 @@
 import { ref, computed } from 'vue'
 import { Splide, SplideSlide } from '@splidejs/vue-splide'
 import '@splidejs/splide/dist/css/splide.min.css'
+// ✅ 已移除：useOptimizedImages
 
 type Product = {
     id: string
@@ -14,6 +15,8 @@ type Product = {
 }
 type ModuleConfig = {
     componentType: number
+    name: string
+    desc: string
     show?: boolean
     contentConfig?: {
         productlist?: Product[]
@@ -22,7 +25,7 @@ type ModuleConfig = {
 
 const props = defineProps<{ item: ModuleConfig }>()
 
-/** 只保留视频和封面都有的 */
+/** 只保留视频和封面都有的 —— 保持你的原始结构字段：id/title/img/thumb/video/price */
 const items = computed(() => {
     return (props.item?.contentConfig?.productlist || [])
         .filter(p => p.video && p.videoCover)
@@ -36,6 +39,7 @@ const items = computed(() => {
         }))
 })
 
+/** 视频交互（保持你的原逻辑不变） */
 const videoRefs = ref<(HTMLVideoElement | null)[]>([])
 const isPlaying = ref<Record<number, boolean>>({})
 
@@ -65,6 +69,7 @@ const onTap = (idx: number) => {
     else playAt(idx)
 }
 
+/** 轮播设置（保持不变） */
 const options = {
     type: 'slide',
     perPage: 4,
@@ -94,31 +99,46 @@ const options = {
         },
     },
 }
-const slugify = (str) => {
+
+const slugify = (str: string) => {
     return str
-        .normalize('NFKD')           // 去掉重音符号
-        .replace(/[^\w\s-]/g, '')    // 去掉非字母数字/下划线/空格/连字符
+        .normalize('NFKD')
+        .replace(/[^\w\s-]/g, '')
         .trim()
-        .replace(/\s+/g, '-')        // 空格转-
-        .replace(/-+/g, '-')         // 合并多个-
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
         .toLowerCase()
 }
+
+/** 标题与副标题（带兜底） */
+const title = computed(() => props.item?.name?.trim() || '')
+const subtitle = computed(() => props.item?.desc?.trim() || '')
 </script>
 
 <template>
     <ClientOnly>
-        <section v-if="items.length" class="mt-6 md:mt-8">
-            <div class="max-row mx-auto ">
+        <section v-if="items.length" class="mt-6 md:mt-[56px]">
+            <h1
+                class="text-xl md:text-[40px] bg-clip-text font-semibold text-primary text-center dark:text-primary mb-3">
+                {{ title }}
+            </h1>
+            <div class="text-[#5A5B5B] text-base text-center">
+                {{ subtitle }}
+            </div>
+            <div class="max-row mx-auto mt-10">
                 <Splide :options="options" class="select-none video-splide bg-white pb-1" style="--vg-arrow-size: 44px">
                     <SplideSlide v-for="(p, idx) in items" :key="p.id">
                         <div class="overflow-hidden">
-                            <!-- 视频封面 -->
-                            <div class="relative aspect-[16/9] group cursor-pointer" @mouseenter="onEnter(idx)"
-                                @mouseleave="onLeave(idx)" @click="onTap(idx)">
-                                <NuxtImg :src="p.img" alt="" class="h-full w-full object-cover rounded"
+                            <!-- 视频封面（直接使用 p.img，带兜底） -->
+                            <div class="relative aspect-[16/9] group cursor-pointer rounded overflow-hidden"
+                                @mouseenter="onEnter(idx)" @mouseleave="onLeave(idx)" @click="onTap(idx)">
+                                <NuxtImg
+                                    :src="(p.img || '/images/empty.jpg') + '?x-oss-process=image/auto-orient,1/resize,w_600,limit_0'"
+                                    alt="" class="h-full w-full object-cover rounded duration-500 group-hover:scale-105"
                                     loading="lazy" />
 
                                 <video v-if="p.video" :src="p.video"
+                                    :poster="(p.img || '/images/empty.jpg') + '?x-oss-process=image/auto-orient,1/resize,w_600,limit_0'"
                                     :ref="(el) => bindVideoRef(el as HTMLVideoElement | null, idx)" playsinline
                                     preload="metadata"
                                     class="absolute inset-0 h-full w-full object-cover transition-opacity duration-200"
@@ -135,17 +155,20 @@ const slugify = (str) => {
                             <div class="mt-3">
                                 <ULink :to="`/product/${p.id}/${slugify(p.title)}`" class="block">
                                     <div class="flex items-start gap-3">
-                                        <div class="w-[72px] h-[72px] shrink-0 overflow-hidden border border-black/10">
-                                            <NuxtImg :src="p.thumb" alt="" class="w-full h-full object-cover rounded"
-                                                loading="lazy" />
+                                        <div
+                                            class="w-[72px] h-[72px] shrink-0 overflow-hidden border border-black/10 rounded">
+                                            <!-- 产品缩略图（直接使用 p.thumb，带兜底） -->
+                                            <NuxtImg
+                                                :src="(p.thumb || '/images/empty.jpg') + '?x-oss-process=image/auto-orient,1/resize,w_320,limit_0'"
+                                                alt="" class="w-full h-full object-cover" loading="lazy" />
                                         </div>
                                         <div class="min-w-0">
                                             <div class="text-sm text-gray-800 leading-5 min-h-[2.5rem] line-clamp-2">
                                                 {{ p.title }}
                                             </div>
                                             <div class="mt-2 flex items-baseline gap-2">
-                                                <span v-if="p.price" class="text-sm text-customblack">
-                                                    ${{ p.price.toFixed(2) }}
+                                                <span v-if="p.price != null" class="text-sm text-customblack">
+                                                    ${{ Number(p.price).toFixed(2) }}
                                                 </span>
                                             </div>
                                         </div>
@@ -159,6 +182,7 @@ const slugify = (str) => {
         </section>
     </ClientOnly>
 </template>
+
 <style scoped>
 /* 让箭头可以“探出”容器外半个箭头宽度 */
 .video-splide :deep(.splide__arrow) {

@@ -19,26 +19,31 @@
                 <div
                     class="relative flex flex-col sm:flex-row items-stretch  rounded shadow-md  transition-all duration-200">
                     <!-- 图标：仅在 sm 及以上设备显示 -->
-                    <div class="hidden sm:flex items-center px-3 py-2.5 text-gray-600 bg-white">
-                        <UIcon name="i-heroicons-envelope" class="w-5 h-5" />
+                    <div class="hidden sm:flex items-center px-3 py-2.5 text-gray-600 bg-white rounded-tl rounded-bl">
+                        <BaseIcon name="i-heroicons-envelope" class="w-5 h-5" />
                     </div>
+
 
                     <!-- 输入框 -->
                     <input type="email" v-model="email" placeholder="Enter your email"
                         @keydown.enter.prevent="handleSubmit"
-                        class="flex-1 min-w-0 bg-transparent outline-none px-3 py-2.5 text-gray-800 placeholder-gray-400 border-0 focus:ring-0 bg-white text-sm sm:text-base"
+                        class="flex-1 min-w-0 bg-transparent outline-none px-3 py-2.5 text-gray-800 placeholder-gray-400 border-0 focus:ring-0 bg-white text-sm sm:text-base rounded sm:rounded-none"
                         required />
 
                     <!-- 按钮 -->
-                    <button :disabled="loading" @click="handleSubmit"
-                        class="bg-bright hover:bg-secondary-600 text-sm sm:text-base text-white mt-2 sm:mt-0 px-5 py-2.5 rounded-b sm:rounded-r sm:rounded-bl-none transition-colors duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button :disabled="loading" @click="handleSubmit" class="bg-bright hover:bg-secondary-600 text-sm sm:text-base text-white mt-2 sm:mt-0 px-5 py-2.5 
+         rounded-md sm:rounded-none sm:rounded-tr-md sm:rounded-br-md
+         transition-colors duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
                         {{ loading ? 'Subscribing...' : 'Subscribe' }}
                     </button>
+
+
+
                 </div>
 
                 <p class="mt-4 text-xs text-white">
                     You can unsubscribe at any time. See our
-                    <a href="/article/privacy-policy" class="underline hover:text-blue-300 transition-colors">Privacy
+                    <a href="/article/privacy-policy" class="underline hover:text-primary">Privacy
                         Policy</a>.
                 </p>
             </div>

@@ -1,112 +1,204 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
-import { Tooltip } from 'ant-design-vue'
+import { Tooltip, Select } from 'ant-design-vue'
+import { ref, computed, watch } from 'vue'
+import { useCartStore } from '@/stores/cart'
 
+// ========= 类型 =========
+type CountryItem = { id: string | number; countryCode: string; countryName: string }
+type ProvinceItem = { id: string | number; regionName: string }
+type CityItem = { id: string | number; cityName: string }
+type LocationInfo = {
+  countryCode: string
+  countryName: string
+  provinceName: string | null
+  cityName: string | null
+}
+const savingLocation = ref(false)
 const router = useRouter()
 const usermenu = [
-  {
-    lable: 'Order',
-    url: '/myorders',
-    type: 'link',
-    img: '/order.png'
-  },
-  // {
-  //   lable: 'My Favorites',
-  //   url: '/',
-  //   type: 'link',
-  //   img: '/favorite.png'
-  // },
-  {
-    lable: 'Account Setting',
-    url: '/userinfo',
-    type: 'link',
-    img: '/setting.png'
-  },
-  {
-    lable: 'Sign Out',
-    url: '',
-    type: 'button',
-    img: '/loginout.png'
-  }
+  { lable: 'Order', url: '/myorders', type: 'link', img: '/order.png' },
+  // { lable: 'My Favorites', url: '/', type: 'link', img: '/favorite.png' },
+  { lable: 'Account Setting', url: '/userinfo', type: 'link', img: '/setting.png' },
+  { lable: 'Sign Out', url: '', type: 'button', img: '/loginout.png' }
 ]
 
-const countryarr = ref([
+// ========= 位置相关状态 =========
+const countryarr = ref<CountryItem[]>([])
+const provinceArr = ref<ProvinceItem[]>([])
+const cityArr = ref<CityItem[]>([])
 
-])
+const countryLoading = ref(false)
+const provinceLoading = ref(false)
+const cityLoading = ref(false)
+
+const selectedCountryId = ref<string | number | null>(null)
+const selectedProvinceId = ref<string | number | null>(null)
+const selectedCityId = ref<string | number | null>(null)
+
+const selectedCountryObj = computed<CountryItem | null>(() =>
+  countryarr.value.find(c => c.id === selectedCountryId.value) ?? null
+)
+const selectedProvinceObj = computed<ProvinceItem | null>(() =>
+  provinceArr.value.find(p => p.id === selectedProvinceId.value) ?? null
+)
+const selectedCityObj = computed<CityItem | null>(() =>
+  cityArr.value.find(ci => ci.id === selectedCityId.value) ?? null
+)
+
+// a-select 的 options（含 search 字段，用于本地过滤）
+const countryOptions = computed(() =>
+  countryarr.value.map(c => ({
+    label: `${c.countryName} (${c.countryCode})`,
+    value: c.id,
+    search: `${c.countryName} ${c.countryCode}`.toLowerCase(),
+  }))
+)
+const provinceOptions = computed(() =>
+  provinceArr.value.map(p => ({
+    label: p.regionName,
+    value: p.id,
+    search: p.regionName.toLowerCase(),
+  }))
+)
+const cityOptions = computed(() =>
+  cityArr.value.map(ci => ({
+    label: ci.cityName,
+    value: ci.id,
+    search: ci.cityName.toLowerCase(),
+  }))
+)
+
+// 通用：a-select 的模糊搜索
+const filterBySearch = (input: string, option?: any) =>
+  (option?.search ?? '').includes((input || '').toLowerCase())
+
+// 顶部展示用：国家/省/市 名称（来自 nowLocation）
+const joinNonEmpty = (arr: (string | null | undefined)[]) =>
+  arr.filter(Boolean).join(' , ')
+
+// 统一的位置信息（显示 & 写入 cookie）
+const nowLocation = ref<LocationInfo>({
+  countryCode: '',
+  countryName: '',
+  provinceName: null,
+  cityName: null
+})
+
+// 顶部右侧仅显示文本（国家/省/市）
+const displayLocationLabel = computed(() =>
+  joinNonEmpty([nowLocation.value.countryName, nowLocation.value.provinceName, nowLocation.value.cityName])
+)
+
+// 旧代码的 nowCountry 仍保留（兼容用途）
+const nowCountry = ref({ countryCode: nowLocation.value.countryCode, countryName: nowLocation.value.countryName })
 
 const token = useCookie('token')
-const isTokenValid = computed(() => !!token.value) // 如果有 token，返回 true
+const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' })
+const isTokenValid = computed(() => {
+  const isMember = userType.value === 1 || userType.value === '1'
+  return !!token.value && isMember
+})
 const menuOpen = ref(false);
 const infoOpen = ref(false);
 const langOpen = ref(false);
+
 const { getCart, deleteCart } = cartAuth();
-const { logout } = useAuth();
-const { getUserlPBylp2Location, listCountryAll } = LocationAuth();
-import { useCartStore } from '@/stores/cart'
-const locationinfo = useCookie('locationinfo') as any
+const { logout, updateUserInfo } = useAuth();
+const { getUserlPBylp2Location, listCountryAll, listProvinceByCountryId, listCityByRegionId } = LocationAuth();
 
-// 表单数据
-const selectedCountry = ref({
-  countryCode: 'US',
-  countryName: 'United States of America'
+/**
+ * 位置 Cookie（**改成强类型** + **长期有效** + **path=/**）
+ * 兼容老数据：有可能以前是 JSON 字符串
+ */
+const locationinfo = useCookie<LocationInfo | string | null>('locationinfo', {
+  sameSite: 'lax',
+  path: '/',
+  maxAge: 60 * 60 * 24 * 180 // 180天
 })
-const nowCountry = ref({
-  countryCode: 'US',
-  countryName: 'United States of America'
-})
-const cart = useCartStore()
-// const cart.itemList = cart.itemList;
-const handleGetCart = async () => {
 
+// 兼容读取：对象 或 旧版字符串
+function readLocationCookie(): LocationInfo | null {
+  const raw = locationinfo.value
+  if (!raw) return null
 
+  // 1) Nuxt 已反序列化为对象
+  if (typeof raw === 'object') {
+    const r = raw as any
+    if (r.countryCode && r.countryName) {
+      return {
+        countryCode: String(r.countryCode),
+        countryName: String(r.countryName),
+        provinceName: r.provinceName ? String(r.provinceName) : null,
+        cityName: r.cityName ? String(r.cityName) : null,
+      }
+    }
+    return null
+  }
+
+  // 2) 旧版字符串：尝试 JSON.parse
+  if (typeof raw === 'string') {
+    try {
+      const obj = JSON.parse(raw)
+      if (obj && obj.countryCode && obj.countryName) {
+        return {
+          countryCode: String(obj.countryCode),
+          countryName: String(obj.countryName),
+          provinceName: obj.provinceName ? String(obj.provinceName) : null,
+          cityName: obj.cityName ? String(obj.cityName) : null,
+        }
+      }
+    } catch { /* ignore */ }
+  }
+  return null
+}
+
+// 统一写入（不要再手写 JSON.stringify）
+function writeLocationCookie(data: LocationInfo) {
+  locationinfo.value = data
+  synclocation(data)
+}
+const synclocation = async (locationdata) => {
+  console.log(locationdata);
   try {
+    if (locationdata) {
+      const data = {
+        countryCode: locationdata.countryCode,
+        countryName: locationdata.countryName,
+        stateOrProvince: locationdata.provinceName,
+        city: locationdata.cityName
+      }
 
+      await updateUserInfo(data)
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+// ========= 购物车逻辑 =========
+const cart = useCartStore()
+const handleGetCart = async () => {
+  try {
     let res = await getCart();
     let result = res.result
     cart.updateCart(result)
-    // cart.itemList = result
-
-  } catch (error) {
-
-  }
+  } catch (error) { }
 };
-
-if (isTokenValid.value) {
-
-  handleGetCart()
-}
+if (isTokenValid.value) { handleGetCart() }
 const shipping = ref(0);
-
-const increaseproductQuantity = (index: number) => {
-  cart.increaseQuantity(index)
-
-};
-
-const decreaseproductQuantity = (index: number) => {
-  cart.decreaseQuantity(index)
-
-};
-
+const increaseproductQuantity = (index: number) => { cart.increaseQuantity(index) };
+const decreaseproductQuantity = (index: number) => { cart.decreaseQuantity(index) };
 const removeItem = async (index: number) => {
-
-  let data = {
-    idList: [cart.itemList[index].id],
-  }
-  let res = await deleteCart(data);
+  let data = { idList: [cart.itemList[index].id] }
+  await deleteCart(data);
   cart.updateCart(cart.itemList);
   cart.itemList.splice(index, 1);
-
   message.success('Delete successful')
 };
-
-const subtotal = computed(() => {
-  return cart.itemList.reduce((sum, item) => sum + item.product.skuSpec.customPrice * item.productQuantity, 0);
-});
-
-const total = computed(() => {
-  return subtotal.value + shipping.value;
-});
+const subtotal = computed(() => cart.itemList.reduce((sum, item) => sum + item.product.skuSpec.customPrice * item.productQuantity, 0));
+const total = computed(() => subtotal.value + shipping.value);
 const showDetails = ref(false);
 const min = 1
 const max = 999
@@ -116,110 +208,218 @@ const onInputNumber = (e: Event, index: number) => {
   if (val > 999) val = 999
   cart.itemList[index].productQuantity = val
 }
-
 const sanitizeInput = (index: number) => {
   const val = cart.itemList[index].productQuantity
-  cart.itemList[index].productQuantity = String(val).replace(/\D/g, '').slice(0, 3) // 最多3位数
+  cart.itemList[index].productQuantity = String(val).replace(/\D/g, '').slice(0, 3)
 }
+function goToCart() { router.push('/cart'); menuOpen.value = false }
+function goShopping() { router.push('/'); menuOpen.value = false }
+const checkdetai = (id: any, sku: any, name: string) => { router.push('/product/' + id + '/' + slugify(name) + '?sku=' + sku) }
 
-function goToCart() {
-  router.push('/cart')
-  menuOpen.value = false
-}
-function goShopping() {
-  router.push('/')
-  menuOpen.value = false
-}
-const checkdetai = (id, sku, name) => {
-
-  router.push('/product/' + id + '/' + slugify(name) + '?sku=' + sku)
-}
-const getlocation = async () => {
-
+// ========= 位置：请求函数 =========
+const getCountrylist = async () => {
+  countryLoading.value = true
   try {
-    if (locationinfo.value) {
+    const res = await listCountryAll();
+    countryarr.value = (res?.result ?? []) as CountryItem[]
+  } finally {
+    countryLoading.value = false
+  }
+}
 
-      nowCountry.value = {
-        countryCode: locationinfo.value.countryCode,
-        countryName: locationinfo.value.countryName,
-      }
-      selectedCountry.value = {
-        countryCode: locationinfo.value.countryCode,
-        countryName: locationinfo.value.countryName,
-      }
-    } else {
-      let res = await getUserlPBylp2Location();
-      if (res.result) {
-        nowCountry.value = {
-          countryCode: res.result.country_short,
-          countryName: res.result.country_long,
-        }
-        selectedCountry.value = {
-          countryCode: res.result.country_short,
-          countryName: res.result.country_long,
-        }
-      }
+const fetchProvincesByCountry = async (countryId: string | number) => {
+  provinceLoading.value = true
+  provinceArr.value = []
+  cityArr.value = []
+  selectedProvinceId.value = null
+  selectedCityId.value = null
+  try {
+    const res = await listProvinceByCountryId({ countryId })
+    provinceArr.value = (res?.result ?? []) as ProvinceItem[]
+  } finally {
+    provinceLoading.value = false
+  }
+}
 
-      // locationinfo.value = JSON.stringify(res.result)
+const fetchCitiesByProvince = async (provinceId: string | number) => {
+  cityLoading.value = true
+  cityArr.value = []
+  selectedCityId.value = null
+  try {
+    const res = await listCityByRegionId({ regionId: provinceId })
+    cityArr.value = (res?.result ?? []) as CityItem[]
+  } finally {
+    cityLoading.value = false
+  }
+}
 
+// ========= 初始化位置（优先 cookie，其次 IP）=========
+// 不拉国家列表（懒加载），只确定顶部展示 nowLocation
+const locationResolved = ref(false)
+const initLocation = async () => {
+  if (locationResolved.value) return
+  locationResolved.value = true
+
+  // 先尝试从 cookie 读取（兼容对象 & 旧字符串）
+  const cached = readLocationCookie()
+  if (cached) {
+    nowLocation.value = {
+      countryCode: cached.countryCode,
+      countryName: cached.countryName,
+      provinceName: cached.provinceName ?? null,
+      cityName: cached.cityName ?? null
+    }
+    nowCountry.value = { countryCode: cached.countryCode, countryName: cached.countryName }
+    return
+  }
+
+  // 无缓存：用 IP 默认
+  try {
+    const res = await getUserlPBylp2Location();
+    const r = res?.result
+    if (r) {
+      nowLocation.value = {
+        countryCode: r.country_short,
+        countryName: r.country_long,
+        provinceName: r.region || null,
+        cityName: r.city || null
+      }
+      nowCountry.value = { countryCode: r.country_short, countryName: r.country_long }
+
+      // 如果你希望“IP 也直接落盘”，就取消下一行注释
+      writeLocationCookie(nowLocation.value)
+    }
+  } catch (error) { /* 静默失败 */ }
+}
+
+// ========= 打开弹框时：懒加载国家，并按 nowLocation 默认选中 =========
+const countriesLoadedOnce = ref(false)
+
+const ensureOptionsOnOpen = async () => {
+  // 首次打开才拉国家列表
+  if (!countriesLoadedOnce.value) {
+    await getCountrylist()
+    countriesLoadedOnce.value = true
+  }
+
+  // 有国家列表后，根据 nowLocation 匹配默认选中
+  const c = countryarr.value.find(
+    k => k.countryCode === nowLocation.value.countryCode || k.countryName === nowLocation.value.countryName
+  )
+  if (c) {
+    // 若未选或不同，选择并级联省份
+    if (selectedCountryId.value !== c.id) {
+      selectedCountryId.value = c.id
+      await fetchProvincesByCountry(c.id)
     }
 
-  } catch (error) {
-
+    // 省份默认
+    if (nowLocation.value.provinceName) {
+      const p = provinceArr.value.find(p => p.regionName === nowLocation.value.provinceName!)
+      if (p) {
+        if (selectedProvinceId.value !== p.id) {
+          selectedProvinceId.value = p.id
+          await fetchCitiesByProvince(p.id)
+        }
+        // 城市默认
+        if (nowLocation.value.cityName) {
+          const ci = cityArr.value.find(ci => ci.cityName === nowLocation.value.cityName!)
+          if (ci) selectedCityId.value = ci.id
+        }
+      }
+    }
   }
 }
-const getCountrylist = async () => {
 
-  try {
+// ========= 监听：选择变化（名称写入 nowLocation）=========
+watch(selectedCountryId, async (val) => {
+  const c = countryarr.value.find(x => x.id === val)
+  if (!c) return
+  nowLocation.value.countryCode = c.countryCode
+  nowLocation.value.countryName = c.countryName
+  nowCountry.value = { countryCode: c.countryCode, countryName: c.countryName }
+  await fetchProvincesByCountry(c.id)
+})
 
-    let res = await listCountryAll();
-    let countrylist = res.result;
-    countryarr.value = countrylist
-
-  } catch (error) {
-
+watch(selectedProvinceId, async (val) => {
+  const p = provinceArr.value.find(x => x.id === val)
+  if (!p) {
+    nowLocation.value.provinceName = null
+    nowLocation.value.cityName = null
+    cityArr.value = []
+    selectedCityId.value = null
+    return
   }
-}
+  nowLocation.value.provinceName = p.regionName
+  await fetchCitiesByProvince(p.id)
+})
+
+watch(selectedCityId, (val) => {
+  const ci = cityArr.value.find(x => x.id === val)
+  nowLocation.value.cityName = ci ? ci.cityName : null
+})
+
+// ========= 弹框开关：在打开的那一刻加载并默认选中 =========
+watch(langOpen, async (open) => {
+  if (open) {
+    await ensureOptionsOnOpen()
+  }
+})
+
+// ========= 退出登录 =========
 const loginout = async () => {
-  let res = await logout();
-
+  await logout();
 }
-getCountrylist();
-getlocation();
 
-// 提交表单
+// ========= 提交（写 cookie，名称）=========
+// 改为通过 writeLocationCookie 统一写入
 const handleSubmit = () => {
+  const c = selectedCountryObj.value
+  const p = selectedProvinceObj.value
+  const ci = selectedCityObj.value
 
-  nowCountry.value = selectedCountry.value
-  locationinfo.value = JSON.stringify(nowCountry.value)
-
+  const data: LocationInfo = {
+    countryCode: c?.countryCode ?? nowLocation.value.countryCode,
+    countryName: c?.countryName ?? nowLocation.value.countryName,
+    provinceName: p?.regionName ?? null,
+    cityName: ci?.cityName ?? null
+  }
+  nowLocation.value = data
+  nowCountry.value = { countryCode: data.countryCode, countryName: data.countryName }
+  writeLocationCookie(data) // ✅ 不再手写 JSON.stringify
   langOpen.value = false
 }
+
 const checkout = () => {
-  // router.push('/checkout?from=cart')
   window.location.href = '/checkout?from=cart'
 }
-const slugify = (str) => {
+const slugify = (str: string) => {
   return str
-    .normalize('NFKD')           // 去掉重音符号
-    .replace(/[^\w\s-]/g, '')    // 去掉非字母数字/下划线/空格/连字符
+    .normalize('NFKD')
+    .replace(/[^\w\s-]/g, '')
     .trim()
-    .replace(/\s+/g, '-')        // 空格转-
-    .replace(/-+/g, '-')         // 合并多个-
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
     .toLowerCase()
+}
+
+// ========= 启动 =========
+// 仅客户端执行，避免 SSR 阶段触发 IP
+if (process.client) {
+  await initLocation()
 }
 </script>
 
 <template>
   <div class="flex flex-nowrap items-center justify-center px-4 rounded-lg ">
-    <UPopover color="white" v-model:open="menuOpen" trigger="manual" mode="hover" :ui="{
-      base: 'border-none shadow-2xl bg-white rounded-md focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow'
-    }" :popper="{ placement: 'bottom' }">
+    <!-- Cart Popover -->
+    <UPopover color="white" v-model:open="menuOpen" trigger="manual" mode="hover"
+      :ui="{ base: 'border-none shadow-2xl bg-white rounded-md focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow' }"
+      :popper="{ placement: 'bottom' }">
       <template #default>
         <div class="flex items-center px-4 py-2  rounded-lg transition relative">
           <!-- 购物车图标 -->
           <NuxtImg src="/cart.png" alt="cart" class="h-9" />
-
           <UBadge v-if="cart.itemCount > 0" :label="cart.itemCount" color="primary" variant="solid"
             class="absolute top-2 right-4 w-4 h-4 flex items-center justify-center rounded-full ring-0 text-white text-xxs font-semibold" />
         </div>
@@ -251,31 +451,25 @@ const slugify = (str) => {
                     </Tooltip>
 
                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" :title="item.product.skuSpec.specAttr"
-                      :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
-                      <div class="text-sm text-[#8E8E8E]  truncate-1-lines w-52 mt-1">{{
-                        item.product.skuSpec.specAttr
-                      }}</div>
+                      :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'word-break' }">
+                      <div class="text-sm text-[#8E8E8E]  truncate-1-lines w-52 mt-1">
+                        {{ item.product.skuSpec.specAttr }}
+                      </div>
                     </Tooltip>
 
                     <div class="flex items-center mt-2">
-
                       <div class="mr-6">
                         <div class="flex items-center">
                           <div class="flex items-center border rounded-md w-26 justify-between px-2">
                             <button @click="decreaseproductQuantity(index)"
                               class="text-gray-500 hover:text-black disabled:text-gray-300"
-                              :disabled="item.productQuantity <= min">
-                              -
-                            </button>
+                              :disabled="item.productQuantity <= min">-</button>
                             <input v-model.number="item.productQuantity" @input="onInputNumber($event, index)"
-                              class="w-16 h-8 text-center outline-none border-none focus:ring-0 focus:outline-none"
+                              class="w-16 h-8 text-center outline-none border-none focus:ring-0 focus:outline-none text-black"
                               :min="min" :max="max" />
-
                             <button @click="increaseproductQuantity(index)"
                               class="text-gray-500 hover:text-black disabled:text-gray-300"
-                              :disabled="item.productQuantity >= max">
-                              +
-                            </button>
+                              :disabled="item.productQuantity >= max">+</button>
                           </div>
                         </div>
                       </div>
@@ -286,7 +480,6 @@ const slugify = (str) => {
                   </div>
 
                   <div class="ml-6 flex flex-col items-end">
-
                     <img @click="removeItem(index)" src="/del.png" class="w-6 cursor-pointer">
                   </div>
                 </div>
@@ -296,15 +489,13 @@ const slugify = (str) => {
                 <div class="flex items-center justify-between mb-6">
                   <span class="font-semibold text-black text-base">Total</span>
                   <span class="text-base font-semibold text-black cursor-pointer flex"
-                    @click="showDetails = !showDetails">${{
-                      total.toFixed(2) }}
-                    <UIcon name="i-heroicons-chevron-down-20-solid" width="24px" height="24px"
+                    @click="showDetails = !showDetails">
+                    ${{ total.toFixed(2) }}
+                    <BaseIcon name="i-heroicons-chevron-down-20-solid" width="24px" height="24px"
                       class="transition-transform duration-200 h-6 w-6" :class="{ 'rotate-180': showDetails }" />
                   </span>
-
                 </div>
 
-                <!-- 详情内容 -->
                 <div v-if="showDetails">
                   <div class="flex items-center justify-between mb-4">
                     <span class="text-black text-base">Subtotal</span>
@@ -329,11 +520,10 @@ const slugify = (str) => {
               </div>
 
             </div>
+
             <div v-if="cart.itemList.length === 0"
               class="bg-white rounded-lg  flex flex-col items-center justify-center h-80 px-8 ">
-
               <p class="text-black">There are no more items in your cart</p>
-
               <button @click="goShopping"
                 class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors mt-8">
                 Go shopping
@@ -345,23 +535,22 @@ const slugify = (str) => {
       </template>
     </UPopover>
 
+    <!-- 登录按钮 / 用户信息 -->
     <NuxtLink class="text-white cursor-pointer" to="/login" v-if="!isTokenValid">
       <NuxtImg src="/user.png" alt="user" class="h-9" />
-
     </NuxtLink>
-    <div class="text-white cursor-pointer" v-if="isTokenValid">
-      <UPopover color="white" v-model:open="infoOpen" mode="hover" :ui="{
-        base: 'border-none shadow-2xl bg-white rounded-md focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow'
-      }" :popper="{ placement: 'bottom' }">
-        <template #default>
-          <NuxtLink to="/userinfo"><img src="/userfill.png" class="h-9" />
-          </NuxtLink>
 
+    <div class="text-white cursor-pointer" v-if="isTokenValid">
+      <UPopover color="white" v-model:open="infoOpen" mode="hover"
+        :ui="{ base: 'border-none shadow-2xl bg-white rounded-md focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow' }"
+        :popper="{ placement: 'bottom' }">
+        <template #default>
+          <NuxtLink to="/userinfo"><img src="/userfill.png" class="h-9" /></NuxtLink>
         </template>
 
         <template #panel>
           <div class="text-customblack p-1">
-            <div v-for="item in usermenu" class="p-2 text-gray-400 hover:bg-primary-50">
+            <div v-for="item in usermenu" :key="item.lable" class="p-2 text-gray-400 hover:bg-primary-50">
               <NuxtLink v-if="item.type == 'link'" :to="item.url">
                 <div class="flex items-center">
                   <img :src="item.img" class="w-4 mr-2 h-4" />
@@ -378,57 +567,68 @@ const slugify = (str) => {
           </div>
         </template>
       </UPopover>
-
     </div>
 
-    <UPopover color="white" v-model:open="langOpen" mode="hover" trigger="manual" :ui="{
-      base: 'overflow-visible border-none shadow-2xl  focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow'
-    }" :popper="{ placement: 'bottom' }">
+    <!-- 位置选择 -->
+    <UPopover color="white" v-model:open="langOpen" mode="click" trigger="manual"
+      :ui="{ base: 'overflow-visible border-none shadow-2xl  focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow' }"
+      :popper="{ placement: 'bottom' }">
       <template #default>
         <div class="flex items-center space-x-2 px-4 py-2 rounded-lg transition">
-          <NuxtImg src="/location.png" alt="location" class="h-6" />
+          <!-- <NuxtImg src="/location.png" alt="location" class="h-6" /> -->
+          <!-- 顶部显示 国家 / 省 / 市（缓存优先；无缓存则 IP 定位） -->
+          <UTooltip :text="displayLocationLabel || 'Select location'">
+            <div class="truncate max-w-[120px] text-sm cursor-pointer">
+              <div class="text-gray-100">Delivering to</div>
+              <div class="truncate">
+                {{ displayLocationLabel || 'Select location' }}
+              </div>
+            </div>
+          </UTooltip>
 
-          <div>{{ nowCountry.countryCode }}</div>
-          <UIcon name="i-heroicons-chevron-down-16-solid"
+
+          <BaseIcon name="i-heroicons-chevron-down-16-solid"
             class="w-5 h-5 transition-transform text-gray-400 dark:text-gray-500 "
             :class="[langOpen && 'transform rotate-180']" />
-
         </div>
       </template>
 
       <template #panel>
-        <div class="flex items-center justify-center bg-gray-100 bg-white rounded-md">
-          <UCard class="w-full max-w-xs py-0 h-44" :ui="{
-            ring: 'ring-0'
-          }">
-            <div class="text-sm text-gray-500 mb-4">
-              Select the country/region you prefer for shopping.
+        <div class="flex items-center justify-center bg-white rounded-md ">
+          <UCard class="w-full max-w-xs py-0 w-[480px]" :ui="{ ring: 'ring-0' }">
+            <div class="text-base font-semibold text-black mb-4">
+              Choose Your Location
             </div>
             <form @submit.prevent="handleSubmit">
-              <!-- 国家选择 -->
-              <div class="mb-2">
-                <USelectMenu v-model="selectedCountry" :search-attributes="['countryCode', 'countryName']" searchable
-                  :options="countryarr" placeholder="Select Country" class="w-full">
-                  <template #label>
-                    <div class="flex items-center">
-                      <span class="w-5 h-5">{{ selectedCountry.countryCode }}</span>
-                      <span class="mx-1">/</span>
-                      <span>{{ selectedCountry.countryName }}</span>
-                    </div>
-                  </template>
-                  <template #option="{ option }">
-                    <div class="flex items-center">
-                      <!-- <img :src="option.flag" alt="flag" class="w-5 h-5 mr-2" /> -->
-                      <span class="w-5 h-5">{{ option.countryCode }}</span>
-                      <span class="mx-1">/</span>
-                      <span>{{ option.countryName }}</span>
-                    </div>
-                  </template>
-                </USelectMenu>
+              <!-- 国家（AntD Select） -->
+              <div class="mb-4">
+                <label class="block text-sm text-gray-400 mb-1">Select Country/Region</label>
+                <Select v-model:value="selectedCountryId" :options="countryOptions" show-search
+                  :filter-option="filterBySearch" :loading="countryLoading" placeholder="Select Country/Region"
+                  style="width: 100%;" />
+              </div>
+
+              <!-- 省（AntD Select） -->
+              <div class="mb-4">
+                <label class="block text-sm text-gray-400 mb-1">Select State/Province</label>
+                <Select v-model:value="selectedProvinceId" :options="provinceOptions" show-search
+                  :filter-option="filterBySearch" :loading="provinceLoading" placeholder="Select State/Province"
+                  style="width: 100%;" />
+              </div>
+
+              <!-- 市（AntD Select） -->
+              <div class="mb-4">
+                <label class="block text-sm text-gray-400 mb-1">City</label>
+                <Select v-model:value="selectedCityId" :options="cityOptions" show-search
+                  :filter-option="filterBySearch" :loading="cityLoading" placeholder="Select City"
+                  style="width: 100%;" />
               </div>
 
               <!-- 提交按钮 -->
-              <UButton type="submit" color="primary" block>Submit</UButton>
+              <div class="flex justify-end mt-4">
+                <UButton type="submit" color="primary" class="rounded-md">Done</UButton>
+              </div>
+
             </form>
           </UCard>
         </div>
@@ -436,6 +636,7 @@ const slugify = (str) => {
     </UPopover>
   </div>
 </template>
+
 <style scoped>
 :deep(.bg-gray-100) {
   background-color: #F1F1F1 !important;
@@ -459,5 +660,34 @@ const slugify = (str) => {
 
 .text-xxs {
   font-size: 0.625rem;
+}
+
+/* 去掉 antd Select 的 hover / focus 外边框与阴影 */
+:deep(.ant-select:not(.ant-select-disabled):hover .ant-select-selector) {
+  border-color: #d9d9d9 !important;
+}
+
+:deep(.ant-select-focused .ant-select-selector) {
+  border-color: #d9d9d9 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* 去掉 show-search 内部 input 的聚焦轮廓/阴影（内边框） */
+:deep(.ant-select .ant-select-selector .ant-select-selection-search-input),
+:deep(.ant-select .ant-select-selector .ant-select-selection-search-input:focus),
+:deep(.ant-select .ant-select-selector .ant-select-selection-search-input:focus-visible),
+:deep(.ant-select .ant-select-selector input[type="search"]),
+:deep(.ant-select .ant-select-selector input[type="search"]:focus),
+:deep(.ant-select .ant-select-selector input[type="search"]:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* 有些版本用 ::after 做焦点边框，保险起见也关掉 */
+:deep(.ant-select .ant-select-selector::after) {
+  box-shadow: none !important;
+  outline: none !important;
+  border: 0 !important;
 }
 </style>

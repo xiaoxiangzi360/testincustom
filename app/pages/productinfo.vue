@@ -91,7 +91,7 @@
                                     @click="prevMainImage">
                                     <div
                                         class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
-                                        <UIcon name="i-raphael:arrowleft2" class="text-primary w-6 h-6" />
+                                        <BaseIcon name="i-raphael:arrowleft2" class="text-primary w-6 h-6" />
                                     </div>
                                 </div>
 
@@ -100,7 +100,7 @@
                                     :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }" @click="nextMainImage">
                                     <div
                                         class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
-                                        <UIcon name="i-raphael:arrowright2" class="text-primary w-6 h-6" />
+                                        <BaseIcon name="i-raphael:arrowright2" class="text-primary w-6 h-6" />
                                     </div>
                                 </div>
 
@@ -132,7 +132,7 @@
                                     :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }">
                                     <div
                                         class="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow text-primary">
-                                        <UIcon name="i-raphael:arrowleft2" class="text-primary w-4 h-4" />
+                                        <BaseIcon name="i-raphael:arrowleft2" class="text-primary w-4 h-4" />
                                     </div>
                                 </div>
 
@@ -140,7 +140,7 @@
                                     :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }">
                                     <div
                                         class="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow text-primary">
-                                        <UIcon name="i-raphael:arrowright2" class="text-primary w-4 h-4" />
+                                        <BaseIcon name="i-raphael:arrowright2" class="text-primary w-4 h-4" />
                                     </div>
                                 </div>
 
@@ -183,7 +183,7 @@
                                                 property.selectedproperty.inputvalue :
                                                 property.selectedproperty.detailName
                                         }}</span>
-                                        <UIcon
+                                        <BaseIcon
                                             :name="property.showType ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
                                             class="w-5 h-5 text-gray-500 font-medium transition-all duration-300" />
                                     </div>
@@ -251,7 +251,7 @@
                                                         <input type="radio" v-model="property.chooseindex"
                                                             :value="needindex + 2" />
                                                         <span class="font-semibold text-sm">{{ needinput.detailName
-                                                        }}</span>
+                                                            }}</span>
                                                     </div>
                                                     <div class="mt-4"
                                                         v-for="(inputitem, pindex) in needinput.inputList">
@@ -309,7 +309,7 @@
                                     </UBadge>
                                     PRINT ON DEMAND
                                 </h2>
-                                <UIcon :name="showDimensions ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+                                <BaseIcon :name="showDimensions ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
                                     class="w-5 h-5 text-gray-500 transition-all duration-300" />
                             </div>
                             <div :class="[
@@ -430,7 +430,7 @@
                         </div>
                         <div class="mt-2">
                             <h3 class="text-base font-normal mb-2 line-clamp-2">{{ product.erpProduct.productEnglishName
-                            }}</h3>
+                                }}</h3>
                             <p class="text-xl font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}
                             </p>
                         </div>

@@ -51,7 +51,8 @@ const loginout = async () => {
     <aside class="w-full bg-white">
         <div class="text-customblack p-2 ">
             <div class="w-full text-right text-gray-400 border-b border-b-blackcolor/10">
-                <UIcon name="i-material-symbols:close-small-rounded" width="30" height="30" @click="close()"></UIcon>
+                <BaseIcon name="i-material-symbols:close-small-rounded" width="30" height="30" @click="close()">
+                </BaseIcon>
             </div>
             <div v-for="item in usermenu"
                 class="py-2 text-gray-400 hover:bg-primary-50 border-b border-b-blackcolor/10">

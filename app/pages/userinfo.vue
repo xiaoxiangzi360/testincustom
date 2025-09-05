@@ -41,7 +41,7 @@
             <div @click="addnewaddress"
               class="flex items-center justify-center border border-blackcolor/10 rounded-lg cursor-pointer hover:bg-gray-50 text-gray-400 min-h-36 text-center">
               <div>
-                <UIcon name="i-material-symbols:add" class="text-red-400 text-base"></UIcon>
+                <BaseIcon name="i-material-symbols:add" class="text-red-400 text-base"></BaseIcon>
                 <div class="text-gray-400">Add Address</div>
               </div>
             </div>

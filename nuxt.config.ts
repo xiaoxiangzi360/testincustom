@@ -127,6 +127,11 @@ export default defineNuxtConfig({
         filePath: '@/components/BaseIcon.vue',
         priority: 100,
       })
+      addComponent({
+        name: 'BaseIcon',
+        filePath: '@/components/BaseIcon.vue',
+        priority: 100,
+      })
     },
   ],
   routeRules: {

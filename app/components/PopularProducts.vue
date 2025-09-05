@@ -1,19 +1,20 @@
 <template>
-    <div class="mt-[30px]">
+    <div class="mt-4 md:mt-[56px]">
         <div class="max-row">
             <!-- 标题 -->
             <h1
-                class="text-xl md:text-[30px] mb-3 lg:mb-5 bg-clip-text font-medium text-blackcolor text-center dark:text-white">
-                Most Popular Products
+                class="text-xl md:text-[40px] bg-clip-text font-semibold text-primary dark:text-primary text-center mb-3">
+                {{ title }}
             </h1>
+            <div class="text-[#5A5B5B] text-base text-center">
+                {{ subtitle }}
+            </div>
 
-            <div class="relative">
+            <div class="relative mt-1 md:mt-10">
                 <!-- 骨架屏 -->
                 <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                     <div v-for="n in 5" :key="n" class="rounded-lg overflow-hidden shadow-md bg-white">
-                        <!-- 图片骨架 -->
                         <div class="relative w-full aspect-square bg-gray-200 animate-pulse"></div>
-                        <!-- 内容骨架 -->
                         <div class="py-4">
                             <div class="h-4 bg-gray-200 rounded w-3/4 mb-2 animate-pulse"></div>
                             <div class="h-4 bg-gray-200 rounded w-1/2 mb-2 animate-pulse"></div>
@@ -25,29 +26,32 @@
                     </div>
                 </div>
 
-                <!-- Splide 轮播 -->
-                <Splide v-else class="product-splide" :options="splideOptions" aria-label="Popular Products">
-                    <SplideSlide v-for="(product, index) in products" :key="index">
+                <!-- Splide 轮播（不足一屏时不会重复/克隆） -->
+                <Splide v-else class="product-splide" :options="computedSplideOptions" aria-label="Popular Products">
+                    <SplideSlide v-for="product in products" :key="product.id || product.erpProduct?.productEnglishName"
+                        class="px-[14px] pt-3 rounded-[8px] bg-white transition-transform transition-shadow duration-300 shadow-[0_4px_10px_0_rgba(167,167,167,0.2)] hover:scale-[1.02] md:hover:-translate-y-0.5">
                         <ULink :to="`/product/${product.id}/${slugify(product.erpProduct.productEnglishName)}`"
-                            class="rounded-lg overflow-hidden shadow-md bg-white transition-transform duration-300 hover:scale-[1.05] hover:-translate-y-1 hover:shadow-xl cursor-pointer">
+                            class="block rounded-[8px] cursor-pointer focus:outline-none">
                             <!-- 产品图片 -->
-                            <div class="relative w-full aspect-square overflow-hidden">
-                                <NuxtImg format="webp" :src="product.erpProduct.mainPic ?? '/images/empty.jpg'"
-                                    :alt="product.erpProduct.productEnglishName" loading="lazy" :width="400"
-                                    :height="400" quality="70"
-                                    class="w-full h-full object-cover object-top transition-all duration-300 hover:rounded-[8px]" />
+                            <div class="relative w-full aspect-square overflow-hidden rounded-[8px]">
+                                <NuxtImg format="webp"
+                                    :src="`${product.erpProduct.mainPic || '/images/empty.jpg'}?x-oss-process=image/auto-orient,1/resize,w_360,limit_0`"
+                                    :alt="product.erpProduct.productEnglishName" loading="lazy" :width="360"
+                                    :height="360" quality="70"
+                                    class="w-full h-full object-cover object-top transition-all duration-300" />
+
                             </div>
 
                             <!-- 产品详情 -->
-                            <div class="py-3">
-                                <h3 class="text-sm sm:text-base font-normal mb-2 line-clamp-2 min-h-[3em]">
+                            <div class="pt-[14px] pb-[10px]">
+                                <h3 class="text-sm font-normal mb-2 truncate dark:text-neutral-900">
                                     {{ product.erpProduct.productEnglishName }}
                                 </h3>
+
                                 <div class="flex items-center justify-between">
-                                    <span class="text-customblack font-medium text-sm sm:text-lg dark:text-primary">
+                                    <span class="text-primary font-medium text-sm sm:text-lg dark:text-primary">
                                         $ {{ product.erpProduct.customPrice }}
                                     </span>
-                                    <!-- <span class="text-[#4A4A4A] text-sm">{{ product.thirtyDaysSales }} sold</span> -->
                                 </div>
                             </div>
                         </ULink>
@@ -59,135 +63,179 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { Splide, SplideSlide } from '@splidejs/vue-splide'
-import '@splidejs/splide/dist/css/splide.min.css'
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { useRouter } from "vue-router";
+import { Splide, SplideSlide } from "@splidejs/vue-splide";
+import "@splidejs/splide/dist/css/splide.min.css";
 
-const { getUserProductRollPage } = ProductAuth()
-const router = useRouter()
+const { getUserProductRollPage } = ProductAuth();
+const router = useRouter();
 
-const products = ref<any[]>([])
-const isLoading = ref(true)
+const props = defineProps<{
+    title: string;
+    subtitle: string;
+    tag: string;
+}>();
 
-/** Splide 配置（等价于你原先的 Swiper 配置） */
-const splideOptions = {
-    type: 'loop',
-    autoplay: true,
-    interval: 5000,          // 自动播放间隔
+const products = ref<any[]>([]);
+const isLoading = ref(true);
+
+/** ------- 保持与你原来一致的基础配置（只用于计算，不直接传给 Splide） ------- */
+const baseOptions = {
+    autoplay: false,
+    interval: 5000,
     pauseOnHover: true,
     arrows: false,
     pagination: true,
-    speed: 1000,             // 动画速度
-    gap: '24px',             // 卡片间距
+    speed: 1000,
+    gap: "12px",
     perPage: 5,
-    perMove: 5,              // 与 slidesPerGroup 等效
-    // 断点是“最大宽度”，从大到小写，覆盖默认 perPage/perMove
+    perMove: 5,
+    padding: { left: "20px", right: "20px" },
     breakpoints: {
-        1279: { perPage: 4, perMove: 4 },
-        1023: { perPage: 3, perMove: 3 },
-        767: { perPage: 2, perMove: 2 },
-        639: { perPage: 2, perMove: 2 },
+        1279: { perPage: 4, perMove: 4, padding: { left: "20px", right: "20px" } },
+        1023: { perPage: 3, perMove: 3, padding: { left: "20px", right: "20px" } },
+        767: { perPage: 2, perMove: 2, padding: { left: "20px", right: "20px" } },
+        639: {
+            perPage: 1,
+            perMove: 1,
+            focus: "center",
+            trimSpace: false,
+            pagination: false,
+            padding: { left: "15%", right: "15%" },
+        },
     },
+};
+
+/** ------- 计算当前 viewport 下实际的 perPage & padding ------- */
+const viewport = ref<number>(typeof window !== "undefined" ? window.innerWidth : 1280);
+function onResize() {
+    if (typeof window !== "undefined") viewport.value = window.innerWidth;
 }
+onMounted(() => {
+    onResize();
+    window.addEventListener("resize", onResize, { passive: true });
+});
+onUnmounted(() => {
+    window.removeEventListener("resize", onResize);
+});
+
+const currentPerPage = computed(() => {
+    const w = viewport.value;
+    if (w <= 639) return 1;
+    if (w <= 767) return 2;
+    if (w <= 1023) return 3;
+    if (w <= 1279) return 4;
+    return 5;
+});
+const currentPadding = computed(() => {
+    const w = viewport.value;
+    if (w <= 639) return { left: "15%", right: "15%" };
+    return { left: "20px", right: "20px" };
+});
+
+/** ------- 不足一屏：不 loop、不克隆、可禁用拖拽与分页 ------- */
+const notFull = computed(() => products.value.length <= currentPerPage.value);
+
+const computedSplideOptions = computed(() => {
+    const common = {
+        gap: baseOptions.gap,
+        speed: baseOptions.speed,
+        arrows: baseOptions.arrows,
+        pauseOnHover: baseOptions.pauseOnHover,
+        interval: baseOptions.interval,
+        perPage: currentPerPage.value,
+        perMove: Math.min(currentPerPage.value, 5),
+    };
+
+    if (notFull.value) {
+        return {
+            ...common,
+            type: "slide",
+            clones: 0,
+            rewind: false,
+            drag: false,
+            pagination: false,
+            trimSpace: true,
+            focus: false,
+            padding: { left: "10px", right: "10px" },
+        };
+    }
+
+    const isTiny = viewport.value <= 639;
+    return {
+        ...common,
+        type: "loop",
+        clones: undefined,
+        rewind: false,
+        drag: true,
+        pagination: isTiny ? false : true,
+        trimSpace: !isTiny,
+        focus: isTiny ? "center" : false,
+        padding: isTiny ? currentPadding.value : { left: "20px", right: "20px" },
+    };
+});
+
 
 const getpopularlist = async () => {
     try {
-        isLoading.value = true
+        isLoading.value = true;
         const params = {
-            sortKey: 'thirtyDaysSales',
-            pageNum: 1,
-            pageSize: 15,
-            sortOrder: 'desc',
+            sortOrder: "desc",
+            tag: props.tag,
             fields:
-                'id,productState,erpProduct.productEnglishName,erpProduct.customPrice,erpProduct.mainPic,thirtyDaysSales',
-        }
-        const res = await getUserProductRollPage(params)
-        products.value = res.result.list
+                "id,productState,erpProduct.productEnglishName,erpProduct.customPrice,erpProduct.mainPic,thirtyDaysSales",
+        };
+        const res = await getUserProductRollPage(params);
+        products.value = res.result.list || [];
     } catch (error) {
-        console.error('Error fetching products:', error)
+        console.error("Error fetching products:", error);
     } finally {
-        isLoading.value = false
+        isLoading.value = false;
     }
-}
+};
+
 const slugify = (str: string) => {
     return encodeURIComponent(
         str
-            .normalize('NFKD')           // 去掉重音符号
-            .replace(/[^\w\s-]/g, '')    // 去掉非字母数字/下划线/空格/连字符
+            .normalize("NFKD")
+            .replace(/[^\w\s-]/g, "")
             .trim()
-            .replace(/\s+/g, '-')        // 空格转-
-            .replace(/-+/g, '-')         // 合并多个-
+            .replace(/\s+/g, "-")
+            .replace(/-+/g, "-")
             .toLowerCase()
-    )
-}
+    );
+};
 
-getpopularlist()
+getpopularlist();
 </script>
 
 <style scoped>
-/* 为分页留出下方空间（与原先 Swiper 一致） */
-.product-splide {
-    padding-bottom: 60px;
-}
-
-/* Splide 分页小圆点样式 */
-.product-splide :deep(.splide__pagination) {
+/* ✅ Splide 分页小圆圈移到底部居中 */
+:deep(.product-splide .splide__pagination) {
+    position: static !important;
     margin-top: 30px;
+    display: flex;
+    justify-content: center;
 }
 
-.product-splide :deep(.splide__pagination__page) {
+:deep(.splide__pagination__page.is-active) {
+    background: #0C1013;
+    transform: scale(1);
+}
+
+:deep(.splide__pagination__page) {
     width: 12px;
     height: 12px;
-    background: #B9B9B9;
-    opacity: 1;
-    border-radius: 9999px;
 }
 
-.product-splide :deep(.splide__pagination__page.is-active) {
-    background: #222222;
-    transform: none;
-    /* 去掉默认缩放动画 */
+:deep(.splide__track) {
+    padding-bottom: 10px;
+    padding-top: 10px;
 }
 
-/* 移动端分页尺寸 */
-@media (max-width: 640px) {
-    .product-splide {
-        padding-bottom: 20px;
-    }
-
-    .product-splide :deep(.splide__pagination) {
-        margin-top: 20px;
-    }
-
-    .product-splide :deep(.splide__pagination__page),
-    .product-splide :deep(.splide__pagination__page.is-active) {
-        width: 8px;
-        height: 8px;
-    }
-}
-
-/* 维持 1:1 图片比例 */
-.aspect-square {
-    aspect-ratio: 1 / 1;
-}
-
-/* 骨架屏动画 */
-@keyframes pulse {
-    0% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.5;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
-
-.animate-pulse {
-    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+/* 只有一页时（只有 1 个小圆点）隐藏分页 */
+:deep(.product-splide .splide__pagination:not(:has(button:nth-child(2)))) {
+    display: none !important;
 }
 </style>

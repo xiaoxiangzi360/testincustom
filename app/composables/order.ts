@@ -81,6 +81,21 @@ export const OrderAuth = () => {
             throw error
         }
     }
+
+    const getOrderByOrderNumberWithAuthorizationCode = async (params) => {
+        try {
+            const query = new URLSearchParams(params).toString()
+
+            const response = await $api(`/order/order/getOrderByOrderNumberWithAuthorizationCode?${query}`, {
+                method: 'GET',
+            })
+
+            return response
+        } catch (error) {
+
+            throw error
+        }
+    }
     const cancleOrder = async (params) => {
         try {
             const response = await $api('/order/order/cancelOrderDocById', {
@@ -108,5 +123,5 @@ export const OrderAuth = () => {
             throw error
         }
     }
-    return { generateOrderId, createOrder, getOrderlists, groupUserOrderStatusCount, cancleOrder, getUserOrderDocByOrderNumber, tryOrder, groupOrderTrackInfo }
+    return { generateOrderId, createOrder, getOrderlists, groupUserOrderStatusCount, cancleOrder, getUserOrderDocByOrderNumber, tryOrder, groupOrderTrackInfo, getOrderByOrderNumberWithAuthorizationCode }
 }

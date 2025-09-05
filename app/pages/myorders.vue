@@ -68,7 +68,7 @@
                                             Order Number:
                                             <span class="text-[#AEAEAE] mx-2">{{ order.orderNumber }}</span>
                                             <UTooltip text="Copy the order number" :popper="{ arrow: true }">
-                                                <UIcon @click="copyToClipboard(order.orderNumber)"
+                                                <BaseIcon @click="copyToClipboard(order.orderNumber)"
                                                     name="i-ri:file-copy-2-line"
                                                     class="w-5 h-5 cursor-pointer hover:text-primary" />
                                             </UTooltip>
@@ -129,7 +129,7 @@
                                         <div class="md:col-span-3 flex items-center justify-start md:justify-center">
                                             <span class="font-medium text-base mt-1 md:mt-0 dark:text-gray-900">${{
                                                 order.paymentAmount
-                                                }}</span>
+                                            }}</span>
                                         </div>
 
                                         <!-- Actions -->
@@ -193,11 +193,8 @@ import { formatTimestamp } from '~/utils/format';
 import { message, Modal, Tooltip } from 'ant-design-vue';
 const { createPayment } = PayAuth();
 const { cancleOrder } = OrderAuth();
-import { useUI } from '#imports';
 import { useRouter } from 'vue-router'
-
 const router = useRouter()
-const { confirm } = useUI();
 
 const orders = ref([]);
 const tabs = ref([]);

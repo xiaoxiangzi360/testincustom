@@ -18,7 +18,7 @@
                             <div>
                                 <h5 class="font-semibold text-title text-sm md:text-base">{{ review.name }}</h5>
                                 <div class="flex text-primary">
-                                    <UIcon v-for="star in 5" :key="star" name="i-material-symbols-star"
+                                    <BaseIcon v-for="star in 5" :key="star" name="i-material-symbols-star"
                                         class="text-xl md:text-2xl" />
                                 </div>
                             </div>

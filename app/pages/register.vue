@@ -8,15 +8,15 @@
             <img src="/images/homelogin.png" alt="Custom Design" class="mt-6 w-full max-w-xl shadow-lg rounded-lg" />
             <ul class="mt-6 space-y-3 text-base">
                 <li class="flex items-center gap-2">
-                    <UIcon name="i-material-symbols-check-circle-rounded" class="text-2xl" />
+                    <BaseIcon name="i-material-symbols-check-circle-rounded" class="text-2xl" />
                     Quick Access – Manage orders, track shipments & customize designs
                 </li>
                 <li class="flex items-center gap-2">
-                    <UIcon name="i-material-symbols-check-circle-rounded" class="text-2xl" />
+                    <BaseIcon name="i-material-symbols-check-circle-rounded" class="text-2xl" />
                     Exclusive Deals – Special offers & discounts for members
                 </li>
                 <li class="flex items-center gap-2">
-                    <UIcon name="i-material-symbols-check-circle-rounded" class="text-2xl" />
+                    <BaseIcon name="i-material-symbols-check-circle-rounded" class="text-2xl" />
                     New Features – Try our latest design tools & products
                 </li>
             </ul>
@@ -48,7 +48,7 @@
                         @blur="validatePassword">
                         <template #trailing>
                             <UButton @click="togglePassword" variant="ghost" class="text-gray-500">
-                                <UIcon :name="showPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
+                                <BaseIcon :name="showPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
                                     class="w-5 h-5" />
                             </UButton>
                         </template>

@@ -6,6 +6,42 @@
                     <!-- Cart Items -->
                     <div class="flex-1">
                         <main class="flex-1">
+                            <section class="rounded bg-white">
+                                <div
+                                    class="p-2 md:p-3 px-4 sm:px-6 text-customblack font-semibold text-base sm:text-lg flex items-center justify-between">
+                                    <span>Contact Email <span class="text-red-500">*</span></span>
+
+                                    <!-- 仅未登录显示 -->
+                                    <button v-if="!isLoggedIn" class="text-sm text-gray-500" @click="showSignIn = true">
+                                        I have an account to
+                                        <span class="text-primary underline ml-1">Sign In</span>
+                                    </button>
+                                </div>
+
+                                <div class="border-t border-t-blackcolor/10 p-3 sm:p-6">
+                                    <FormItem :colon="false" :validateStatus="contactEmailError ? 'error' : ''"
+                                        :help="contactEmailError || ''"
+                                        :labelCol="{ xs: { span: 24 }, sm: { span: 4 } }"
+                                        :wrapperCol="{ xs: { span: 24 }, sm: { span: 16 } }"
+                                        class="flex flex-col sm:flex-row sm:items-center sm:gap-4 w-full">
+                                        <template #label>
+                                            <span class="flex items-center">
+                                                Email
+                                                <Tooltip
+                                                    title="We will send a message to this email address when there is new progress on the order"
+                                                    color="white"
+                                                    :overlayInnerStyle="{ color: '#333', maxWidth: '300px', whiteSpace: 'pre-line' }">
+                                                    <img src="/question.png" class="w-4 h-4 ml-1 cursor-pointer" />
+                                                </Tooltip>
+                                            </span>
+                                        </template>
+
+                                        <Input v-model:value="contactEmail" placeholder="Enter your contact email"
+                                            class="w-full sm:w-[360px]" @blur="validateContactEmail"
+                                            @change="validateContactEmail" />
+                                    </FormItem>
+                                </div>
+                            </section>
                             <section class="border border-blackcolor/10 rounded bg-white mt-3"
                                 v-if="addressarr.length == 0">
                                 <div class="p-2 px-6 text-customblack font-semibold text-lg">Address
@@ -56,9 +92,9 @@
                                                     <Input v-model:value="form.postalCode" placeholder="Zip code" />
                                                 </FormItem>
 
-                                                <FormItem>
+                                                <!-- <FormItem>
                                                     <Input v-model:value="form.email" placeholder="Email(optional)" />
-                                                </FormItem>
+                                                </FormItem> -->
 
                                                 <FormItem>
                                                     <div class="flex gap-2">
@@ -82,10 +118,11 @@
                                 </div>
                             </section>
                             <!-- Account Info -->
-                            <section class="rounded bg-white" v-if="addressarr.length > 0">
+
+                            <section class="rounded bg-white mt-3" v-if="addressarr.length > 0">
                                 <div
                                     class="p-2 md:p-3 px-4 sm:px-6 text-customblack font-semibold text-base sm:text-lg">
-                                    Address <span class="text-red-500">*</span>
+                                    Delivery address <span class="text-red-500">*</span>
                                 </div>
 
                                 <div
@@ -123,12 +160,11 @@
                                         </div>
                                         <div class="text-primary cursor-pointer text-sm sm:text-base mt-3"
                                             @click="addnewaddress()">
-                                            Add new address
+                                            Edit address
                                         </div>
                                     </div>
                                 </div>
                             </section>
-
 
                             <section class="rounded bg-white mt-3">
                                 <div
@@ -154,7 +190,7 @@
                                                         'Select Shipping Method'
                                                     }}
                                                 </span>
-                                                <UIcon name="i-heroicons-chevron-down" />
+                                                <BaseIcon name="i-heroicons-chevron-down" />
                                             </UButton>
                                         </template>
 
@@ -253,7 +289,7 @@
                                 style="background-color: #F0F0F0; color: #333;">
                                 <img src="/tag.png" class="w-4 h-4 mr-2">
                                 <span class="mr-2 text-xs">{{ activeCoupon }}</span>
-                                <UIcon name="i-material-symbols-close-rounded"
+                                <BaseIcon name="i-material-symbols-close-rounded"
                                     class="w-4 h-4 text-gray-100 hover:text-red-500 cursor-pointer"
                                     @click="removeCoupon" />
                             </div>
@@ -323,7 +359,66 @@
         </div>
 
     </UModal>
-    <AddressModal :isshow="isshow" @close="isshow = false" @updateData="updateAddresslist()" />
+    <!-- Sign In Modal -->
+    <UModal v-model="showSignIn" :ui="{ width: 'sm:max-w-md', rounded: 'rounded-xl' }">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="text-xl font-semibold">
+                    <NuxtImg class="h-6" src="/images/incustom2.png" />
+                </div>
+                <button class="text-gray-400 hover:text-gray-600" @click="showSignIn = false">✕</button>
+            </div>
+            <div class="text-center text-xl font-bold mb-6">Sign in</div>
+            <div>
+                <UInput v-model="signinForm.email" placeholder="Please enter email" size="lg" />
+                <UInput v-model="signinForm.password"
+                    :ui="{ icon: { trailing: { pointer: '' }, }, base: 'dark:!bg-white dark:!text-gray-900' }"
+                    placeholder="Please enter password" :type="showPassword ? 'text' : 'password'" size="lg"
+                    class="mt-6">
+                    <template #trailing>
+                        <UButton @click="togglePassword" variant="ghost" class="text-gray-500">
+                            <BaseIcon :name="showPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
+                                class="w-5 h-5" />
+                        </UButton>
+                    </template>
+                </UInput>
+                <UButton block color="primary" size="lg" class="mt-6" :loading="signingIn" @click="handleSignIn">Sign in
+                </UButton>
+            </div>
+
+            <div class="flex items-center my-4">
+                <div class="flex-1 h-px bg-customblack"></div>
+                <span class="mx-2 text-gray-400 text-sm">or</span>
+                <div class="flex-1 h-px bg-customblack"></div>
+            </div>
+
+            <div class="space-y-2">
+                <UButton block variant="outline" size="lg" :ui="{
+                    variant: {
+                        outline: 'ring-0 shadow-none bg-white hover:bg-gray-50 border !border-[#D9D9D9]'
+                    }
+                }" @click="socialLogin('google')">
+                    <div class="flex items-center justify-center text-customblack font-normal">
+                        <img src="/images/google.png" class="w-5 h-5 mr-2" />
+                        <span>Sign in With Google</span>
+                    </div>
+                </UButton>
+                <UButton block variant="outline" :ui="{
+                    variant: {
+                        outline: 'ring-0 shadow-none bg-white hover:bg-gray-50 border !border-[#D9D9D9]'
+                    }
+                }" size="lg" @click="socialLogin('facebook')">
+                    <div class="flex items-center justify-center text-customblack font-normal">
+                        <img src="/images/facebook.png" class="w-5 h-5 mr-2" />
+                        <span>Sign in With Facebook</span>
+                    </div>
+                </UButton>
+            </div>
+        </div>
+    </UModal>
+
+    <AddressModal :isshow="isshow" @close="isshow = false" :addressinfo="addressinfo"
+        @updateData="updateAddresslist()" />
 </template>
 <script lang="ts" setup>
 import { ref, computed, watch } from 'vue';
@@ -336,11 +431,42 @@ const { generateOrderId, createOrder, getUserOrderDocByOrderNumber, tryOrder } =
 const { getlistOldShippingRule } = ShippingAuth();
 const { createPayment } = PayAuth();
 const { getUserlPBylp2Location, listCountryAll, listProvinceByCountryId, listCityByRegionId } = LocationAuth();
+const { login } = useAuth();
+const showPassword = ref(false);
+
+const togglePassword = () => {
+    showPassword.value = !showPassword.value;
+};
+// 只判断 userType，不为 1 就当未登录
+const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' })
+const isLoggedIn = computed(() => userType.value === 1 || userType.value === '1')
 
 const { completePayment, getAvailablePaymentByBindId } = PayAuth();
 import { formatPaypalUtcToLocal } from '~/utils/format'
 const locationinfo = useCookie('locationinfo') as any
+const userinfoCookie = useCookie<any | null>('userinfo', { sameSite: 'lax', path: '/' })
 
+const contactEmail = ref<string>('')
+const contactEmailError = ref<string>('')
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+const signingIn = ref(false)
+const showSignIn = ref(false)
+const signinForm = reactive({
+    email: '',
+    password: ''
+})
+function validateContactEmail() {
+    contactEmailError.value = ''
+    if (!contactEmail.value) {
+        contactEmailError.value = 'Contact email is required'
+        return false
+    }
+    if (!emailRegex.test(contactEmail.value)) {
+        contactEmailError.value = 'Please enter a valid email address'
+        return false
+    }
+    return true
+}
 import { loadScript } from '@paypal/paypal-js'
 import { useCartStore } from '@/stores/cart'
 const paypalpaymentid = ref(0)
@@ -434,7 +560,7 @@ const applyCoupon = async () => {
         buyerCity: addressinfo.value.city,
         buyerCountryCode: addressinfo.value.country,
         buyerCountryName: addressinfo.value.countryName,
-        buyerEmail: addressinfo.value.email,
+        buyerEmail: addressinfo.value?.email || contactEmail.value,
         buyerFirstName: addressinfo.value.firstName,
         buyerAddress: addressinfo.value.address,
         buyerLastName: addressinfo.value.lastName,
@@ -595,7 +721,7 @@ const handleGetOrder = async () => {
         addressinfo.value.number = result.buyerPhoneNumber;
         addressinfo.value.postalCode = result.buyerPostalCode;
         addressinfo.value.province = result.buyerStateOrProvince;
-        addressarr.value = [addressinfo]
+        addressarr.value = [{ ...addressinfo.value }]
         templates.value = [result.shippingRule]
         templates.value.forEach(item => {
             item.label = `${item.feeEnName}　　${item.daysFrom}–${item.daysTo} days　　$${item.calFee.toFixed(2)}`
@@ -724,7 +850,7 @@ const addnewaddress = () => {
 
 }
 function isEmptyObject(obj) {
-    return obj && typeof obj === 'object' && !Array.isArray(obj) && Object.keys(obj).length === 0;
+    return obj && typeof obj === 'object' && !Array.isArray(obj) && Object.keys(obj).length === 0
 }
 const addaddress = async () => {
     if (!form.value.firstName) {
@@ -782,16 +908,24 @@ const addaddress = async () => {
 const paynow = async () => {
     try {
         if (isEmptyObject(addressinfo.value)) {
+            const countryName = countryarr.value.find(c => c.countryCode === form.value.country)?.countryName || '';
 
-            let res = await addaddress()
-            if (!res) {
-                return;
-            }
             addressinfo.value = form.value
+            console.log('addressinfo222', addressinfo.value)
+            addressinfo.value.countryName = countryName
 
-            getAddresslist()
+            const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' })
+            if (userType.value == 1 || userType.value === '1') {
+                let res = await addaddress()
+                if (!res) {
+                    return;
+                }
+
+                getAddresslist()
+            }
+
         }
-
+        console.log('addressinfo----', addressinfo.value);
         if (!addressinfo.value.address) {
             message.error('Please add a address')
             return null;
@@ -848,7 +982,7 @@ const handleSubmit = async () => {
         buyerCity: addressinfo.value.city,
         buyerCountryCode: addressinfo.value.country,
         buyerCountryName: addressinfo.value.countryName,
-        buyerEmail: addressinfo.value.email,
+        buyerEmail: addressinfo.value?.email || contactEmail.value,
         buyerFirstName: addressinfo.value.firstName,
         buyerAddress: addressinfo.value.address,
         buyerLastName: addressinfo.value.lastName,
@@ -925,17 +1059,15 @@ const handleSubmit = async () => {
 const closeModal = () => {
     showModal.value = false;
 };
-const selectaddress = (index) => {
-    addressarr.value
-        .forEach(element => {
-            element.selected = false
-        });
-    addressarr.value[index].selected = true
-    addressinfo.value = addressarr.value[index]
+const selectaddress = (index: number) => {
+    addressarr.value.forEach(el => (el.selected = false))
+    const picked = addressarr.value[index]
+    picked.selected = true
+    addressinfo.value = { ...picked }   // 拷贝纯对象
     shipping.value = 0
-    showModal.value = false;
-
+    showModal.value = false
 }
+
 getAddresslist();
 const shipping = ref(0);
 const selectedItems = computed(() => cart.itemList.filter(item => item.selected));
@@ -993,16 +1125,102 @@ const getCity = async () => {
 
     }
 }
+// 兼容读取 locationinfo：支持对象或旧版 JSON 字符串
+function readLocationCookie(): null | {
+    countryCode: string
+    countryName?: string
+    provinceName?: string | null
+    cityName?: string | null
+} {
+    const raw = locationinfo.value
+    if (!raw) return null
+
+    if (typeof raw === 'object') {
+        const r: any = raw
+        if (r.countryCode) {
+            return {
+                countryCode: String(r.countryCode),
+                countryName: r.countryName ? String(r.countryName) : undefined,
+                provinceName: r.provinceName ? String(r.provinceName) : null,
+                cityName: r.cityName ? String(r.cityName) : null
+            }
+        }
+        return null
+    }
+
+    if (typeof raw === 'string') {
+        try {
+            const obj = JSON.parse(raw)
+            if (obj?.countryCode) {
+                return {
+                    countryCode: String(obj.countryCode),
+                    countryName: obj.countryName ? String(obj.countryName) : undefined,
+                    provinceName: obj.provinceName ? String(obj.provinceName) : null,
+                    cityName: obj.cityName ? String(obj.cityName) : null
+                }
+            }
+        } catch {
+            /* ignore */
+        }
+    }
+
+    return null
+}
+
 const getdefaultcountry = async () => {
-    if (locationinfo.value) {
-        const countryCode = locationinfo.value.countryCode;
-        if (form.value.country !== countryCode) {
-            form.value.country = null
-            await nextTick()
-            form.value.country = countryCode
+    const cached = readLocationCookie()
+    if (!cached) return
+
+    // 1) 先回填国家（country 用 countryCode）
+    const countryCode = cached.countryCode
+    if (countryCode && form.value.country !== countryCode) {
+        form.value.country = countryCode
+    }
+
+    // 2) 拉省列表，回填省
+    await getProvince() // 依赖 form.value.country 和 countryarr
+    if (cached.provinceName) {
+        const hitProvince = provincearr.value.find(p => p.regionName === cached.provinceName)
+        if (hitProvince) {
+            form.value.province = hitProvince.regionName
+        }
+    }
+
+    // 3) 拉市列表，回填市
+    await getCity() // 依赖 form.value.province 和 provincearr
+    if (cached.cityName) {
+        const hitCity = cityarr.value.find(c => c.cityName === cached.cityName)
+        if (hitCity) {
+            form.value.city = hitCity.cityName
         }
     }
 }
+
+const handleSignIn = async () => {
+    if (signingIn.value) return // 防重复点击
+    try {
+        if (!signinForm.email || !signinForm.password) {
+            return message.error('Please enter email and password')
+        }
+
+        signingIn.value = true
+        if (login) {
+            await login(signinForm.email, signinForm.password)
+            showSignIn.value = false
+            window.location.reload()
+
+            // 成功后可选：刷新页面/拉取购物车/回填 email
+        }
+    } catch (error: any) {
+
+        let errormsg = JSON.parse(error.message)
+
+        message.error(errormsg.enDesc || 'Login failed, please try again')
+    } finally {
+        signingIn.value = false
+    }
+}
+
 const Invalidlist = ref([
 ])
 watch(() => addressinfo.value, (newvalue, oldvalue) => {
@@ -1019,6 +1237,12 @@ watch(() => form.value.country, (newvalue, oldvalue) => {
 
     }
 });
+watch(contactEmail, (val) => {
+    // 只有当 addressinfo 本身不是空对象时，才同步 email
+    if (!isEmptyObject(addressinfo.value)) {
+        addressinfo.value.email = val
+    }
+})
 watch(() => form.value.province, (newvalue, oldvalue) => {
 
     if (newvalue) {
@@ -1050,6 +1274,14 @@ const payPalCaptureOrder = async (token) => {
     }
 }
 onMounted(async () => {
+    const regEmail =
+        (userinfoCookie.value && (userinfoCookie.value.email || userinfoCookie.value.userEmail)) || ''
+    if (regEmail) contactEmail.value = regEmail
+
+    // 如果地址信息里已有 email，兜底回填
+    if (!contactEmail.value && addressinfo.value?.email) {
+        contactEmail.value = addressinfo.value.email
+    }
     getCountrylist()
     const config = useRuntimeConfig()
 
@@ -1167,6 +1399,19 @@ onMounted(async () => {
 function refreshPage() {
     window.location.reload()
 }
+const socialLogin = (provider) => {
+
+    if ('google' == provider) {
+        window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=894615293806-08cs1bithgteb9acpa6v471ru0n2lrqk.apps.googleusercontent.com&redirect_uri=https://www.incustom.com/googleauthorize&response_type=code&scope=openid%20email%20profile'
+    }
+    if ('facebook' == provider) {
+        window.location.href = 'https://www.facebook.com/v23.0/dialog/oauth?client_id=946458614020677&redirect_uri=https://www.incustom.com/facebookauthorize&state=rockAyl&scope=public_profile%20email'
+    }
+    if ('apple' == provider) {
+        message.warning('Not supported yet')
+    }
+    // 这里可以添加实际的社交登录逻辑
+};
 </script>
 <style scoped>
 input[type="number"]::-webkit-inner-spin-button,
@@ -1232,5 +1477,34 @@ tbody tr {
 
 .ant-form-item {
     margin-bottom: 12px;
+}
+
+/* 去掉 antd Select 的 hover / focus 外边框与阴影 */
+:deep(.ant-select:not(.ant-select-disabled):hover .ant-select-selector) {
+    border-color: #d9d9d9 !important;
+}
+
+:deep(.ant-select-focused .ant-select-selector) {
+    border-color: #d9d9d9 !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* 去掉 show-search 内部 input 的聚焦轮廓/阴影（内边框） */
+:deep(.ant-select .ant-select-selector .ant-select-selection-search-input),
+:deep(.ant-select .ant-select-selector .ant-select-selection-search-input:focus),
+:deep(.ant-select .ant-select-selector .ant-select-selection-search-input:focus-visible),
+:deep(.ant-select .ant-select-selector input[type="search"]),
+:deep(.ant-select .ant-select-selector input[type="search"]:focus),
+:deep(.ant-select .ant-select-selector input[type="search"]:focus-visible) {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* 有些版本用 ::after 做焦点边框，保险起见也关掉 */
+:deep(.ant-select .ant-select-selector::after) {
+    box-shadow: none !important;
+    outline: none !important;
+    border: 0 !important;
 }
 </style>

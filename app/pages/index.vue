@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { heroImageUrl } from '@/utils/hero'
+import type { title } from 'process'
 
 definePageMeta({
   title: 'Home',
@@ -82,11 +83,15 @@ getactivitylistlist()
 </script>
 
 <template>
-  <div>
+
+  <div class="bg-white font-hind">
     <Homepage />
     <Tags />
     <Categorypage />
-    <PopularProducts />
+    <PopularProducts tag="Most Loved Picks" title="Most Loved Picks"
+      subtitle="Custom shades celebrated by design enthusiasts everywhere" />
+    <PopularProducts tag="New Arrivals" title="New Arrivals"
+      subtitle="Fresh custom shades designed for your home and garden" />
     <!-- <Needs /> -->
 
     <HomeCompoents />

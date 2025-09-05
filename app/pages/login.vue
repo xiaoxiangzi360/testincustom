@@ -8,15 +8,15 @@
             <img src="/images/homelogin.png" alt="Custom Design" class="mt-6 w-full max-w-xl shadow-lg rounded-lg" />
             <ul class="mt-6 space-y-3 text-base">
                 <li class="flex items-center gap-2">
-                    <UIcon name="i-material-symbols-check-circle-rounded" class="text-2xl" />
+                    <BaseIcon name="i-material-symbols-check-circle-rounded" class="text-2xl" />
                     Quick Access – Manage orders, track shipments & customize designs
                 </li>
                 <li class="flex items-center gap-2">
-                    <UIcon name="i-material-symbols-check-circle-rounded" class="text-2xl" />
+                    <BaseIcon name="i-material-symbols-check-circle-rounded" class="text-2xl" />
                     Exclusive Deals – Special offers & discounts for members
                 </li>
                 <li class="flex items-center gap-2">
-                    <UIcon name="i-material-symbols-check-circle-rounded" class="text-2xl" />
+                    <BaseIcon name="i-material-symbols-check-circle-rounded" class="text-2xl" />
                     New Features – Try our latest design tools & products
                 </li>
             </ul>
@@ -32,7 +32,7 @@
                     <UInput :ui="{ base: 'dark:!bg-white dark:!text-gray-900' }" v-model="formState.email" size="xl"
                         placeholder="Your email address" type="email" @blur="validateEmail" />
                     <span v-if="formErrors.email" class="text-red-500 text-sm mb-2">{{ formErrors.email
-                        }}</span>
+                    }}</span>
                 </UFormGroup>
 
                 <UFormGroup name="password" required class="mb-4">
@@ -42,13 +42,13 @@
                         @blur="validatePassword">
                         <template #trailing>
                             <UButton @click="togglePassword" variant="ghost" class="text-gray-500">
-                                <UIcon :name="showPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
+                                <BaseIcon :name="showPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
                                     class="w-5 h-5" />
                             </UButton>
                         </template>
                     </UInput>
                     <span v-if="formErrors.password" class="text-red-500 text-sm mb-2">{{ formErrors.password
-                        }}</span>
+                    }}</span>
                 </UFormGroup>
 
                 <div class="flex items-center justify-between w-full mb-6 text-sm text-gray-600">
@@ -205,10 +205,15 @@ const handleLogin = async () => {
         }
         $hideLoading()
         message.success('Login successful!')
-        const redirectCookie = useCookie('redirect_to', { path: '/' })
-        const backTo = redirectCookie.value || '/'   // 没有就回首页
-        redirectCookie.value = null                  // 清除，避免下次误跳
-        await navigateTo(backTo, { replace: true })
+        let ref = document.referrer || ''   // 来源页 URL
+        let target = '/myorders'            // 默认去个人中心
+
+        if (ref.includes('/cart') || ref.includes('/checkout')) {
+            // 如果是购物车/结账页过来的，返回来源页
+            target = ref
+        }
+
+        await navigateTo(target, { replace: true })
     } catch (error) {
         console.log(error);
         $hideLoading()

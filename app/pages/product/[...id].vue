@@ -102,13 +102,13 @@
                   <div class="main-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
                     :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }" @click="prevMainImage">
                     <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
-                      <UIcon name="i-raphael:arrowleft2" class="text-primary w-6 h-6" />
+                      <BaseIcon name="i-raphael:arrowleft2" class="text-primary w-6 h-6" />
                     </div>
                   </div>
                   <div class="main-button-next absolute right-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
                     :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }" @click="nextMainImage">
                     <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
-                      <UIcon name="i-raphael:arrowright2" class="text-primary w-6 h-6" />
+                      <BaseIcon name="i-raphael:arrowright2" class="text-primary w-6 h-6" />
                     </div>
                   </div>
                 </Swiper>
@@ -130,7 +130,7 @@
                     <div class="flex items-center justify-center h-full w-full">
                       <div
                         class="w-full h-20 rounded overflow-hidden relative cursor-pointer bg-black/5 flex items-center justify-center">
-                        <UIcon name="i-mdi:play-circle" class="w-6 h-6 text-primary" />
+                        <BaseIcon name="i-mdi:play-circle" class="w-6 h-6 text-primary" />
                       </div>
                     </div>
                   </SwiperSlide>
@@ -138,13 +138,13 @@
                   <div class="custom-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
                     :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }">
                     <div class="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow text-primary">
-                      <UIcon name="i-raphael:arrowleft2" class="text-primary w-4 h-4" />
+                      <BaseIcon name="i-raphael:arrowleft2" class="text-primary w-4 h-4" />
                     </div>
                   </div>
                   <div class="custom-button-next absolute right-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
                     :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }">
                     <div class="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow text-primary">
-                      <UIcon name="i-raphael:arrowright2" class="text-primary w-4 h-4" />
+                      <BaseIcon name="i-raphael:arrowright2" class="text-primary w-4 h-4" />
                     </div>
                   </div>
                 </Swiper>
@@ -166,15 +166,15 @@
 
             <!-- Section 1: THE TYPE（原样） -->
             <div v-if="productinfo.normalPropertyList">
-              <div class="border-b border-b-[#D1D1D1] py-3" v-for="(property, index) in productinfo.normalPropertyList"
-                :key="index">
+              <div class="border-b border-b-[#D1D1D1] py-3" :data-prop-block="index"
+                v-for="(property, index) in productinfo.normalPropertyList" :key="index">
                 <div class="flex justify-between items-center cursor-pointer" @click="changeshow(index)">
                   <h2 class="font-normal text-base flex items-center mb-0">
                     <UBadge size="sm" color="black" variant="solid"
                       class="mr-3 w-[18px] h-[18px] flex items-center justify-center"
                       :ui="{ color: { black: { solid: 'dark:bg-gray-900 dark:text-white' } } }">{{ index + 1 }}</UBadge>
                     <span class="truncate-1-lines font-medium text-sm md:text-base">{{ property.propertyNameShop
-                    }}</span>
+                      }}</span>
                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" placement="topLeft"
                       v-if="property.desc" :title="property.desc"
                       :overlayStyle="{ maxWidth: '330px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
@@ -186,26 +186,29 @@
                       {{ property.isneedinput && property.chooseindex == 2 ? property.selectedproperty.inputvalue :
                         property.selectedproperty.detailName }}
                     </span>
-                    <UIcon :name="property.showType ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+                    <BaseIcon :name="property.showType ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
                       class="w-5 h-5 text-gray-500 font-medium transition-all duration-300" />
                   </div>
                 </div>
 
                 <div :class="[
                   'transition-all duration-300 ease-in-out grid gap-1',
-                  property.showType ? 'max-h-[500px] mt-4' : 'overflow-hidden max-h-0',
+                  property.showType ? 'max-h-[500px] mt-4 overflow-y-auto' : 'overflow-hidden max-h-0',
                   !property.isneedinput && property.productPropertyDetailType != 'text' ? 'grid-cols-8 md:grid-cols-10 lg:grid-cols-12' : ''
                 ]">
                   <div v-if="!property.isneedinput && property.productPropertyDetailType != 'text'"
                     v-for="(type, propertyindex) in property.detailList" :key="type.propertyDetailId"
                     @click="selectproperty(index, type)" :class="[
                       'p-0 rounded-xl flex flex-col items-center transition-all',
-                      type.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                      type.disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
                     ]">
                     <Tooltip :title="type.detailName" placement="bottom">
                       <div :class="[
-                        'w-full aspect-square overflow-hidden relative hover:border hover:border-primary',
-                        property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'rounded border border-primary' : ''
+                        'w-full aspect-square overflow-hidden relative',
+                        (!type.disabled ? 'hover:border hover:border-primary cursor-pointer' : 'opacity-60 cursor-not-allowed'),
+                        property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId
+                          ? 'rounded border border-primary'
+                          : ''
                       ]" v-if="type.imageLink">
                         <img :src="type.imageLink" class="w-full h-full object-contain rounded" />
                         <div
@@ -213,7 +216,7 @@
                           class="absolute bottom-0 right-0 w-5 h-5">
                           <div class="absolute w-5 h-5 text-white"
                             style="clip-path: polygon(100% 100%, 0 100%, 100% 0); background-color: #00B2E3;">
-                            <UIcon name="i-mdi:check" class="text-white w-4 h-4 absolute"
+                            <BaseIcon name="i-mdi:check" class="text-white w-4 h-4 absolute"
                               style="bottom: 0px; right: 0px;" width="12" height="12" />
                           </div>
                         </div>
@@ -224,13 +227,17 @@
                   <div class="w-full flex flex-wrap max-h-[160px] overflow-y-auto"
                     v-if="!property.isneedinput && property.productPropertyDetailType == 'text'">
                     <div v-for="(type, propertyindex) in property.detailList" :key="type.propertyDetailId"
-                      @click="selectproperty(index, type)" :class="[
+                      @click="!type.disabled && selectproperty(index, type)" :class="[
                         'p-2 rounded-xl flex flex-col items-center transition-all max-w-[33.3333%] min-w-[16.6%]',
-                        type.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                        type.disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
                       ]">
+                      <!-- 图片类型 -->
                       <div :class="[
-                        'w-full aspect-square overflow-hidden relative hover:border hover:border-primary',
-                        property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'bg-primary-50 border border-primary' : ''
+                        'w-full aspect-square overflow-hidden relative',
+                        !type.disabled ? 'hover:border hover:border-primary' : '',
+                        property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId
+                          ? 'bg-primary-50 border border-primary'
+                          : ''
                       ]" v-if="type.imageLink">
                         <img :src="type.imageLink" class="w-full h-full object-cover" />
                         <div
@@ -238,15 +245,20 @@
                           class="absolute bottom-0 right-0 w-6 h-6">
                           <div class="absolute w-6 h-6"
                             style="clip-path: polygon(100% 100%, 0 100%, 100% 0); background-color: #00B2E3;">
-                            <UIcon name="i-mdi:check" class="text-white w-3 h-3"
+                            <BaseIcon name="i-mdi:check" class="text-white w-3 h-3"
                               style="position: absolute; bottom: 2px; right: 2px;" width="12" height="12" />
                           </div>
                         </div>
                       </div>
+
+                      <!-- 文本类型 -->
                       <div :class="[
-                        'p-2 w-full text-sm relative hover:border hover:border-primary hover:text-primary',
+                        'p-2 w-full text-sm relative',
+                        !type.disabled ? 'hover:border hover:border-primary hover:text-primary' : '',
                         !type.imageLink ? 'border border-customblack w-full rounded-md' : '',
-                        !type.imageLink && property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId ? 'text-primary bg-primary-50 border border-primary w-full' : '',
+                        !type.imageLink && property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId
+                          ? 'text-primary bg-primary-50 border border-primary w-full'
+                          : ''
                       ]" v-if="!type.imageLink">
                         <div class="truncate-1-lines text-center">{{ type.detailName }}</div>
                         <div
@@ -254,13 +266,14 @@
                           class="absolute bottom-0 right-0 w-5 h-5 text-white">
                           <div class="absolute w-5 h-5"
                             style="clip-path: polygon(100% 100%, 0 100%, 100% 0); background-color: #00B2E3;">
-                            <UIcon name="i-mdi:check" class="text-white w-4 h-4"
+                            <BaseIcon name="i-mdi:check" class="text-white w-4 h-4"
                               style="position: absolute; bottom: 0px; right: 0px;" width="12" height="12" />
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
+
 
                   <div class="flex flex-col md:flex-row md:items-start gap-6 relative w-full"
                     v-if="property.isneedinput">
@@ -329,23 +342,30 @@
                               @change="onChange(property.selectedproperty?.propertyDetailId, property, index)" />
                             <span class="font-bold text-sm">Standard size:</span>
                           </label>
-                          <Select :value="property.selectedproperty?.propertyDetailId" style="width: 200px"
-                            class="myselect" :options="property.noneedinputlist"
-                            :field-names="{ label: 'detailName', value: 'propertyDetailId' }"
-                            placeholder="Please select attributes" show-search :filter-option="customFilter"
-                            @change="val => onChange(val, property, index)" option-label-prop="label">
-                            <template #option="{ detailName, imageLink, disabled }">
-                              <div class="flex items-center gap-2" :class="{ 'opacity-50': disabled }">
-                                <img v-if="imageLink" :src="imageLink" class="w-6 h-6 mr-2" />
-                                <span>{{ detailName }}</span>
-                              </div>
-                            </template>
-                          </Select>
+                          <ClientOnly>
+
+                            <Select :value="property.selectedproperty?.propertyDetailId" style="width: 200px"
+                              class="myselect" :options="property.noneedinputlist"
+                              :field-names="{ label: 'detailName', value: 'propertyDetailId' }"
+                              placeholder="Please select attributes" show-search :filter-option="customFilter"
+                              @change="val => onChange(val, property, index)" option-label-prop="label">
+                              <template #option="{ detailName, imageLink, disabled }">
+                                <div class="flex items-center gap-2" :class="{ 'opacity-50': disabled }">
+                                  <img v-if="imageLink" :src="imageLink" class="w-6 h-6 mr-2" />
+                                  <span>{{ detailName }}</span>
+                                </div>
+                              </template>
+                            </Select>
+                          </ClientOnly>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
+                <p v-if="propErrors[index]" class="mt-2 text-red-500 text-sm">
+                  {{ propErrors[index] }}
+                </p>
+
               </div>
             </div>
 
@@ -358,11 +378,11 @@
                   </UBadge>
                   PRINT ON DEMAND
                 </h2>
-                <UIcon :name="showDimensions ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+                <BaseIcon :name="showDimensions ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
                   class="w-5 h-5 text-gray-500 transition-all duration-300" />
               </div>
               <div
-                :class="['overflow-hidden transition-all duration-300 ease-in-out grid gap-4', showDimensions ? 'max-h-[500px] mt-4' : 'max-h-0']">
+                :class="['overflow-hidden transition-all duration-300 ease-in-out grid gap-4', showDimensions ? 'max-h-[500px] mt-4 overflow-y-auto' : 'max-h-0']">
                 <div class="flex flex-col md:flex-row md:items-start gap-12 relative justify-between">
                   <div class="flex-1 space-y-4">
                     <p class="font-semibold text-sm">
@@ -484,10 +504,10 @@
                     <p class="text-3xl font-bold text-gray-900"><span>{{ averageRating.toFixed(1) }}</span></p>
                     <div class="my-2 flex justify-center">
                       <span v-for="star in 5" :key="star" class="text-2xl text-[#FFD359]">
-                        <UIcon v-if="getStarStatus(star) === 'full'" name="i-mdi:star" class="text-[#FFD359]" />
-                        <UIcon v-else-if="getStarStatus(star) === 'half'" name="i-mdi:star-half-full"
+                        <BaseIcon v-if="getStarStatus(star) === 'full'" name="i-mdi:star" class="text-[#FFD359]" />
+                        <BaseIcon v-else-if="getStarStatus(star) === 'half'" name="i-mdi:star-half-full"
                           class="text-[#FFD359]" />
-                        <UIcon v-else name="i-mdi:star-outline" class="text-gray-300" />
+                        <BaseIcon v-else name="i-mdi:star-outline" class="text-gray-300" />
                       </span>
                     </div>
                     <p class="text-lg text-gray-300">{{ totalReviews }} global ratings</p>
@@ -509,8 +529,8 @@
                     </div>
                     <div class="ml-auto flex">
                       <span v-for="star in 5" :key="star" class="text-xl text-[#FFD359]">
-                        <UIcon v-if="star <= review.rating" name="i-mdi:star" class="text-[#FFD359]" />
-                        <UIcon v-else name="i-mdi:star-outline" class="text-gray-300" />
+                        <BaseIcon v-if="star <= review.rating" name="i-mdi:star" class="text-[#FFD359]" />
+                        <BaseIcon v-else name="i-mdi:star-outline" class="text-gray-300" />
                       </span>
                     </div>
                   </div>
@@ -553,7 +573,7 @@
                       <video class="w-full h-full object-cover" :src="video" muted
                         @error="onVideoError(index, review)"></video>
                       <div class="absolute inset-0 flex items-center justify-center bg-primary bg-opacity-10">
-                        <UIcon name="i-mdi:play-circle" width="32" height="32" class="text-white w-8 h-8" />
+                        <BaseIcon name="i-mdi:play-circle" width="32" height="32" class="text-white w-8 h-8" />
                       </div>
                     </div>
                   </div>
@@ -582,7 +602,7 @@
             </div>
             <div class="mt-2">
               <h3 class="text-sm font-normal mb-2 line-clamp-2 dark:text-black">{{ product.erpProduct.productEnglishName
-                }}
+              }}
               </h3>
               <p class="text-sm font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}</p>
             </div>
@@ -601,19 +621,19 @@
         <button v-if="mediaList.length > 1" class="absolute left-4 top-1/2 -translate-y-1/2 z-10 cursor-pointer"
           :class="{ 'opacity-30 pointer-events-none': selectedMediaIndex === 0 }" @click="prevMedia">
           <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
-            <UIcon name="i-raphael:arrowleft2" class="text-primary w-6 h-6" />
+            <BaseIcon name="i-raphael:arrowleft2" class="text-primary w-6 h-6" />
           </div>
         </button>
         <button v-if="mediaList.length > 1" class="absolute right-4 top-1/2 -translate-y-1/2 z-10 cursor-pointer"
           :class="{ 'opacity-30 pointer-events-none': selectedMediaIndex === mediaList.length - 1 }" @click="nextMedia">
           <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
-            <UIcon name="i-raphael:arrowright2" class="text-primary w-6 h-6" />
+            <BaseIcon name="i-raphael:arrowright2" class="text-primary w-6 h-6" />
           </div>
         </button>
         <button
           class="absolute top-4 right-4 text-gray-500 w-8 h-8 flex items-center justify-center bg-transparent text-white"
           @click="closeImageModal">
-          <UIcon name="i-mdi:close" width="32" height="32" class="w-8 h-8 text-white" />
+          <BaseIcon name="i-mdi:close" width="32" height="32" class="w-8 h-8 text-white" />
         </button>
       </div>
     </div>
@@ -639,8 +659,26 @@
         <UButton color="primary" size="md" @click="addtocart" class="rounded-lg">Add to Cart</UButton>
       </div>
     </div>
+    <UModal v-model="addSuccessOpen" :ui="{ width: 'lg:max-w-sm sm:max-w-sm' }">
+      <div class="p-6 text-center">
+        <div class="mb-10 text-gray-400">
+          The product has been successfully added to the shopping cart
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center w-full max-w-sm mx-auto">
+          <UButton variant="outline" color="gray" class="flex-1 justify-center" @click="closeAddSuccess">
+            Continue Shopping
+          </UButton>
+          <UButton color="primary" class="flex-1 justify-center" @click="goCart">
+            View Cart
+          </UButton>
+        </div>
+      </div>
+    </UModal>
+
+
+    <Faq />
+
   </div>
-  <Faq />
 </template>
 
 <script setup>
@@ -663,6 +701,21 @@ const { getUserInfo } = useAuth()
 const route = useRoute()
 const router = useRouter()
 const cart = useCartStore()
+const propErrors = ref([]) // 每个属性一条错误文案
+const addSuccessOpen = ref(false)
+
+const closeAddSuccess = () => { addSuccessOpen.value = false }
+const goCart = () => {
+  addSuccessOpen.value = false
+  router.push('/cart') // 按你的实际购物车路径改
+}
+
+function resetPropErrors() {
+  const len = (productinfo.value && productinfo.value.normalPropertyList)
+    ? productinfo.value.normalPropertyList.length
+    : 0
+  propErrors.value = Array.from({ length: len }, () => '')
+}
 
 /** ===== 新增：Swiper 主图/缩略图引用 & 控制器 ===== **/
 const swiperRefMain = ref()
@@ -723,6 +776,7 @@ const showDimensions = ref(true)
 const designimage = ref('')
 const mainImage = ref('')
 const productinfo = ref(serverProductData.value?.result ?? {})
+
 if (productinfo.value.erpProduct?.mainPic) {
   mainImage.value = productinfo.value.erpProduct.mainPic
 }
@@ -842,11 +896,16 @@ function getCurrentSkusOfProp(prop) {
 }
 
 /** 计算除第 i 个属性外，其它属性联合允许的 SKU 交集 */
+/** 计算除第 i 个属性外，其它属性联合允许的 SKU 交集 */
 function getAcceptableSkusExcept(indexToSkip) {
   const props = productinfo.value.normalPropertyList || []
+  const others = props.filter((_, idx) => idx !== indexToSkip)
+
+  // ✅ 单属性或“除自己外没有其它属性” → 返回 null 表示“无约束”
+  if (others.length === 0) return null
+
   let acc = null
-  props.forEach((p, idx) => {
-    if (idx === indexToSkip) return
+  others.forEach((p) => {
     const skus = getCurrentSkusOfProp(p)
     if (!acc) acc = skus.slice(0)
     else acc = acc.filter(s => skus.includes(s))
@@ -854,33 +913,39 @@ function getAcceptableSkusExcept(indexToSkip) {
   return acc || []
 }
 
+
 /** 依据其它属性约束，重算每个属性每个候选项是否可选（disabled） */
 function recomputeAvailability() {
-  const props = productinfo.value.normalPropertyList || [];
+  const props = productinfo.value.normalPropertyList || []
   props.forEach((prop, i) => {
-    const othersOk = new Set(getAcceptableSkusExcept(i));
+    const others = getAcceptableSkusExcept(i)
+    const unconstrained = (others === null)               // ✅ 无其它属性 → 无约束
+    const othersOk = new Set(Array.isArray(others) ? others : [])
 
-    // 处理当前属性的选项
-    const options = getAllOptionsOfProp(prop);
+    const options = getAllOptionsOfProp(prop)
     options.forEach(opt => {
-      const skus = opt.skuList || [];
-      // 选项仅在非选中且与其它属性的 SKU 无交集时禁用
-      const isSelected = prop.selectedproperty?.propertyDetailId === opt.propertyDetailId;
-      const hasValidSku = skus.some(s => othersOk.has(s));
-      opt.disabled = !isSelected && (opt.isactive === false || !hasValidSku);
-    });
+      const skus = opt.skuList || []
+      const isSelected =
+        prop.selectedproperty?.propertyDetailId === opt.propertyDetailId
 
-    // 处理需要输入的子选项（如果适用）
+      // ✅ 无约束：只要自己有 sku 就可选
+      const hasValidSku = unconstrained ? (skus.length > 0) : skus.some(s => othersOk.has(s))
+
+      // 不是当前选中项时，按有效性与 isactive 决定是否禁用
+      opt.disabled = !isSelected && (opt.isactive === false || !hasValidSku)
+    })
+
     if (prop.isneedinput && prop.needinputlist?.length) {
       prop.needinputlist.forEach(ni => {
-        const skus = ni.skuList || [];
-        const isSelected = prop.selectedproperty?.detailName === ni.detailName && prop.chooseindex === 2;
-        const hasValidSku = skus.some(s => othersOk.has(s));
-        ni.disabled = !isSelected && (ni.isactive === false || !hasValidSku);
-      });
+        const skus = ni.skuList || []
+        const isSelected = prop.selectedproperty?.detailName === ni.detailName && prop.chooseindex === 2
+        const hasValidSku = unconstrained ? (skus.length > 0) : skus.some(s => othersOk.has(s))
+        ni.disabled = !isSelected && (ni.isactive === false || !hasValidSku)
+      })
     }
-  });
+  })
 }
+
 
 /** 如果某属性已选项被禁用，清空之，避免停留在无效状态 */
 function fixInvalidSelections() {
@@ -913,6 +978,8 @@ let joinsku = []
 /** ====== 替换后的 selectproperty：在设置选中后调用双向联动 ====== */
 /** 设置属性选择并触发双向联动 */
 const selectproperty = (index, type) => {
+  propErrors.value[index] = '' // 选了就清除该项错误
+
   if (type.disabled) return;
 
   // 设置当前选择
@@ -934,35 +1001,43 @@ const selectproperty = (index, type) => {
   recomputeAvailabilityAndFix();
 
   // 价格计算逻辑
-  let inputvalue = [];
-  let hasEmpty = false;
-  let needinputproperty;
-  let ischoose = true;
+  let inputvalue = []
+  let hasEmpty = false
+  let needinputproperty
+  let ischoose = true
 
-  productinfo.value.normalPropertyList.forEach(element => {
+  productinfo.value.normalPropertyList.forEach((element) => {
     if (isUndefinedOrEmptyObject(element.selectedproperty)) {
-      ischoose = false;
+      ischoose = false
     }
-    if (element.isneedinput && element.chooseindex === 2) {
-      let needinputlist = element.needinputlist.filter(item => item.isactive);
-      needinputlist.forEach(item => {
-        inputvalue = item.inputvalue;
-        hasEmpty = inputvalue.some(item => item === "");
-      });
-      needinputproperty = element;
-    }
-  });
 
+    if (element.isneedinput && element.chooseindex === 2) {
+      // 仅找“当前选中的那一项”
+      const actives = (element.needinputlist || []).filter(i => i.isactive !== false)
+      // 优先用 chooseindex（= 2 起），回退用 selectedproperty.detailName 对齐
+      const picked =
+        actives[element.chooseindex - 2] ||
+        actives.find(i => i.detailName === element.selectedproperty?.detailName)
+
+      inputvalue = (picked?.inputvalue || []).slice()
+      hasEmpty = inputvalue.some(v => v === '')
+
+      needinputproperty = element
+    }
+  })
+
+  // ✅ 条件满足才调用
   if (needinputproperty && ischoose && !hasEmpty) {
-    getcustomprice(inputvalue);
+    getcustomprice()    // 参数可省略
   } else if (ischoose) {
+    // 原有 SKU 路径…
     const skuLists = productinfo.value.normalPropertyList
-      .map(property => property.selectedproperty?.skuList)
-      .filter(list => Array.isArray(list) && list.length > 0);
-    if (skuLists.length === 0) return;
-    let innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)));
-    let firstsku = innersku[0];
-    if (firstsku) getskuprice(firstsku);
+      .map(p => p.selectedproperty?.skuList)
+      .filter(list => Array.isArray(list) && list.length > 0)
+    if (skuLists.length === 0) return
+    const innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)))
+    const firstsku = innersku[0]
+    if (firstsku) getskuprice(firstsku)
   }
 };
 
@@ -981,10 +1056,6 @@ const openorderloding = () => { orderloding.value = true }
 const closecartloding = () => { cartloding.value = false }
 const closeorderloding = () => { orderloding.value = false }
 
-/** 公共：根据当前选择解析并返回可用 SKU（必要时先创建临时 SKU）
- * 成功返回：{ sku, selectproperlist, needinputpropertyarr, propList }
- * 失败会直接抛错，外层捕获后做 UI 提示
- */
 const resolveSkuForAction = async () => {
   // 统一从 normalPropertyList 收集用户选择
   let ischoose = true
@@ -1071,6 +1142,7 @@ const resolveSkuForAction = async () => {
       productId: productid.value,
       productStyle: productinfo.value.erpProduct.productStyle,
       propertyList: selectproperlist,
+      propList,
       variationList: variationList || []
     }
 
@@ -1112,6 +1184,20 @@ const addtocart = async () => {
       message.error('Please enter quantity!')
       return
     }
+    if (!validateSelectionsInline()) {
+      // 展开第一个有错误的属性块 + 平滑滚动过去
+      var firstErrIndex = propErrors.value.findIndex(function (e) { return e })
+      if (firstErrIndex !== -1) {
+        productinfo.value.normalPropertyList.forEach(function (p, i) { p.showType = i === firstErrIndex })
+        nextTick(function () {
+          var blocks = document.querySelectorAll('[data-prop-block]')
+          var el = blocks && blocks[firstErrIndex]
+          if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        })
+      }
+      return
+    }
+
     opencartloding()
 
     // ✅ 统一从这里拿到 sku（内部会根据是否自定义输入自动 创建/求交集）
@@ -1120,7 +1206,6 @@ const addtocart = async () => {
     // 创建购物车
     const data = { productQuantity: quantity.value, productSku: selectsku }
     await createCart(data)
-    message.success('Add successful!')
 
     // FB Pixel
     addToCartEvent({
@@ -1137,6 +1222,7 @@ const addtocart = async () => {
     if (gaItem) trackAddToCart(gaItem)
 
     cart.refreshCart()
+    addSuccessOpen.value = true
   } catch (error) {
     let msg = 'failed, please try again'
     try { msg = JSON.parse(error.message || '{}').enDesc || msg } catch (_) {
@@ -1167,13 +1253,28 @@ const createorder = async () => {
       message.error('Please enter quantity!')
       return
     }
-    const redirect_to = useCookie('redirect_to');
+    if (!validateSelectionsInline()) {
+      // 展开第一个有错误的属性块 + 平滑滚动过去
+      var firstErrIndex = propErrors.value.findIndex(function (e) { return e })
+      if (firstErrIndex !== -1) {
+        productinfo.value.normalPropertyList.forEach(function (p, i) { p.showType = i === firstErrIndex })
+        nextTick(function () {
+          var blocks = document.querySelectorAll('[data-prop-block]')
+          var el = blocks && blocks[firstErrIndex]
+          if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        })
+      }
+      return
+    }
 
-    await getUserInfo();
-    //判断是否登录
+    const redirect_to = useCookie('redirect_to')
+
     openorderloding()
 
-    // ✅ 与 addtocart 共用一套逻辑
+    await getUserInfo()
+
+
+    // ✅ 这里可能抛出 EMPTY_DIMENSION / NOT_CHOSEN
     const { sku: selectsku } = await resolveSkuForAction()
 
     // 埋点
@@ -1186,15 +1287,24 @@ const createorder = async () => {
       num_items: quantity.value
     })
     const gaItem = toGa4Item({ withQuantity: true })
-    if (gaItem) {
-      beginCheckout({ items: [gaItem], value: Number(totalPrice.value), currency: 'USD' })
-    }
-    let linkurl = '/checkout?from=detail&sku=' + selectsku + '&number=' + quantity.value
+    if (gaItem) beginCheckout({ items: [gaItem], value: Number(totalPrice.value), currency: 'USD' })
+
+    const linkurl = '/checkout?from=detail&sku=' + selectsku + '&number=' + quantity.value
     redirect_to.value = linkurl
-    // 跳转
     router.push(linkurl)
   } catch (error) {
+    console.log(error)
 
+    let msg = 'failed, please try again'
+    try {
+      msg = JSON.parse(error.message || '{}').enDesc || msg
+    } catch (_) {
+      if (error?.name === 'EMPTY_DIMENSION' || error?.name === 'NOT_CHOSEN') {
+        msg = error.message   // 'No dimensions entered!' / 'Please select properties!'
+      }
+    }
+    message.error(msg)
+    return
   } finally {
     closeorderloding()
   }
@@ -1255,6 +1365,8 @@ const handleGetProudct = async () => {
     // 确保相关产品也加载
     handleGetrelated()
     isLoading.value = false
+    resetPropErrors()
+
   }
 }
 
@@ -1295,8 +1407,41 @@ const organizeproduct = () => {
     // 新增：本地组织数据后也跑一遍双向计算
     recomputeAvailabilityAndFix()
     isLoading.value = false
+    resetPropErrors()
+
   }
 }
+function validateSelectionsInline() {
+  var ok = true
+  for (var i = 0; i < propErrors.value.length; i++) propErrors.value[i] = ''
+
+  var props = (productinfo.value && productinfo.value.normalPropertyList) ? productinfo.value.normalPropertyList : []
+  props.forEach(function (prop, idx) {
+    // 未选择
+    if (isUndefinedOrEmptyObject(prop.selectedproperty)) {
+      propErrors.value[idx] = 'Please select ' + (prop.propertyNameShop || 'this option') + '.'
+      ok = false
+      return
+    }
+
+    // 自定义输入但未填全
+    if (prop.isneedinput && prop.chooseindex === 2) {
+      var actives = (prop.needinputlist || []).filter(function (i) { return i.isactive !== false && !i.disabled })
+      var picked = actives[prop.chooseindex - 2]
+      if (!picked && prop.selectedproperty && prop.selectedproperty.detailName) {
+        picked = actives.find(function (i) { return i.detailName === prop.selectedproperty.detailName })
+      }
+      var arr = (picked && Array.isArray(picked.inputvalue)) ? picked.inputvalue : []
+      if (!arr.length || arr.some(function (v) { return v === '' || v === null || v === undefined })) {
+        propErrors.value[idx] = 'Please fill in all dimensions for ' + (prop.propertyNameShop || 'custom size') + '.'
+        ok = false
+      }
+    }
+  })
+
+  return ok
+}
+
 organizeproduct()
 
 const handleSelectChange = (propertyIndex, selected) => {

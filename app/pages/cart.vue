@@ -167,7 +167,7 @@
                         </table>
                         <!-- Invalid Items -->
                         <div class="flex justify-between items-center my-6" v-show="Invalidlist.length > 0">
-                            <div>Discontinued product</div>
+                            <div>Out of Stock & Invalid Items</div>
                             <div>
                                 <button class="text-primary hover:text-primary-600 mr-4" @click="deleteInvalid">Delete
                                     All</button>

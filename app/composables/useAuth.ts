@@ -1,22 +1,46 @@
+// composables/useAuth.ts
 import { useCartStore } from '@/stores/cart'
 
 export const useAuth = () => {
     const { $api } = useNuxtApp()
 
-    const token = useCookie<string | null>('token', {
-        maxAge: 60 * 60 * 24 * 7,
-        sameSite: 'lax',
+    // 统一的“永久”过期时间（近似永久）
+    const PERMA_EXPIRES = new Date('2099-12-31T23:59:59Z')
+    const commonCookieOpts = {
+        sameSite: 'lax' as const,
         path: '/',
-    })
+        expires: PERMA_EXPIRES,
+        // secure: process.dev ? false : true, // 生产强烈建议开启
+    }
 
-    const userinfo = useCookie<string | null>('userinfo', {
-        maxAge: 60 * 60 * 24 * 7,
-        sameSite: 'lax',
-        path: '/',
-    })
+    const token = useCookie<string | null>('token', commonCookieOpts)
+    const userinfo = useCookie<string | null>('userinfo', commonCookieOpts)
+    const userType = useCookie<string | null>('userType', commonCookieOpts) // '1'=注册用户, '2'=游客
+
+    // 🔒 防抖：避免并发多次拉 guest token
+    const isEnsuring = useState<boolean>('__ensuring_token__', () => false)
+
+    // ✅ 核心：确保有 token（无则向后端领取一个）并标记 userType=2
+    const ensureToken = async () => {
+        if (token.value || isEnsuring.value) return
+        isEnsuring.value = true
+        try {
+            const res = await $api('/user/user/getNonRegisteredUser', { method: 'POST' })
+            if (res?.code === 0 && res?.result?.token) {
+                token.value = res.result.token
+                // 游客身份标记
+                userType.value = '2'
+                // 游客通常没有用户资料，这里不写 userinfo
+            }
+        } catch (e) {
+            if (process.dev) console.warn('[ensureToken] failed:', e)
+        } finally {
+            isEnsuring.value = false
+        }
+    }
 
     // ✅ 更健壮：支持 "/path?x=1#y" 或完整 URL
-    const forceHomePaths = ['/cart', '/userinfo', '/myorders', '/orderinfo']
+    const forceHomePaths = ['/userinfo', '/myorders', '/orderinfo']
 
     const isForceHomePath = (input: string) => {
         if (!input) return false
@@ -36,8 +60,7 @@ export const useAuth = () => {
         return forceHomePaths.includes(pathname)
     }
 
-
-    // ✅ 登录
+    // ✅ 登录（设置 token/userinfo & userType=1）
     const login = async (email: string, password: string) => {
         try {
             const response = await $api('/user/user/loginByEmail', {
@@ -46,7 +69,8 @@ export const useAuth = () => {
             })
             if (response.code === 0) {
                 token.value = response.result.token
-                userinfo.value = JSON.stringify(response.result.user)
+                userinfo.value = JSON.stringify(response.result.user || null)
+                userType.value = '1'
             }
             return response
         } catch (error) {
@@ -55,13 +79,13 @@ export const useAuth = () => {
         }
     }
 
-    // ✅ 注册（并登录）
+    // ✅ 注册（并登录）→ userType=1
     const register = async (
         fullName: string,
         email: string,
         password: string,
         numberAreaCode: string,
-        number: Number
+        number: number
     ) => {
         try {
             const response = await $api('/user/user/createWithLogin', {
@@ -70,7 +94,8 @@ export const useAuth = () => {
             })
             if (response.code === 0) {
                 token.value = response.result.token
-                userinfo.value = JSON.stringify(response.result.user)
+                userinfo.value = JSON.stringify(response.result.user || null)
+                userType.value = '1'
             }
             return response
         } catch (error) {
@@ -79,21 +104,22 @@ export const useAuth = () => {
         }
     }
 
-    // 仅创建账户
+    // 仅创建账户（不登录），若返回 token 也写入；不一定代表已注册登录态，视后端而定
     const register1 = async (
         fullName: string,
         email: string,
         password: string,
         numberAreaCode: string,
-        number: Number
+        number: number
     ) => {
         try {
             const response = await $api('/user/user/create', {
                 method: 'POST',
                 body: { fullName, email, password, numberAreaCode, number },
             })
-            if (response.token) {
-                token.value = response.token
+            if ((response as any).token) {
+                token.value = (response as any).token
+                // 这里不敢强行设 userType=1，除非后端语义明确
             }
             return response
         } catch (error) {
@@ -102,11 +128,11 @@ export const useAuth = () => {
         }
     }
 
-    const sendrepassword = async (email: string, token: string) => {
+    const sendrepassword = async (email: string, tokenStr: string) => {
         try {
             const response = await $api('/user/user/sendRetrievePasswordEmail', {
                 method: 'POST',
-                body: { email, token },
+                body: { email, token: tokenStr },
             })
             return response
         } catch (error) {
@@ -158,7 +184,8 @@ export const useAuth = () => {
             const response = await $api(`/user/oauth/google/googleLogin?${query}`, { method: 'GET' })
             if (response.code === 0) {
                 token.value = response.result.token
-                userinfo.value = JSON.stringify(response.result.user)
+                userinfo.value = JSON.stringify(response.result.user || null)
+                userType.value = '1'
                 return response
             } else {
                 navigateTo('/login')
@@ -174,7 +201,8 @@ export const useAuth = () => {
             const response = await $api(`/user/oauth/facebook/facebookLogin?${query}`, { method: 'GET' })
             if (response.code === 0) {
                 token.value = response.result.token
-                userinfo.value = JSON.stringify(response.result.user)
+                userinfo.value = JSON.stringify(response.result.user || null)
+                userType.value = '1'
                 return response
             } else {
                 navigateTo('/login')
@@ -184,16 +212,12 @@ export const useAuth = () => {
         }
     }
 
-    // ✅ 退出登录：存好 redirect_to（强制页 => '/'，其他 => 当前完整地址），再跳登录
-    const logout = () => {
+
+    // ✅ 退出登录：清理所有 cookie（含 userType）并立即获取游客 token
+    const logout = async () => {
         const cart = useCartStore()
 
-        // 清 cookie（统一 path:'/'）
-        token.value = null
-        userinfo.value = null
-        const redirectCookie = useCookie<string | null>('redirect_to', { path: '/', sameSite: 'lax' })
-
-        // 取当前完整地址
+        // 1) 记录当前路径（用于后续是否跳转判断）
         let fullPath = '/'
         if (process.client) {
             fullPath = window.location.pathname + window.location.search + window.location.hash
@@ -204,33 +228,77 @@ export const useAuth = () => {
             } catch { /* ignore */ }
         }
 
-        // 存 cookie：强制页存 '/'，其余存当前页
-        console.log(fullPath);
+        // 2) 清空登录态
+        token.value = null
+        userinfo.value = null
+        userType.value = null
+
+        const redirectCookie = useCookie<string | null>('redirect_to', { path: '/', sameSite: 'lax' })
+        // 仅在「强制回登录」场景下使用 redirect_to；其它场景停留当前页无需用它
         redirectCookie.value = isForceHomePath(fullPath) ? '/' : fullPath
 
-        // 为了保险再同步清理浏览器端同名 cookie
+        // 保险：浏览器端同步清理同名 cookie
         if (process.client) {
             document.cookie = 'token=; Max-Age=0; path=/'
             document.cookie = 'userinfo=; Max-Age=0; path=/'
+            document.cookie = 'userType=; Max-Age=0; path=/'
+            document.cookie = 'locationinfo=; Max-Age=0; path=/'
         }
 
-        // 刷新购物车状态
         try { cart.refreshCart() } catch { /* ignore */ }
 
-        // 去登录页
-        navigateTo('/login')
+        // 3) 立刻领取游客 token（你已经实现了防抖）
+        try {
+            await ensureToken()
+        } catch {
+            // 开发环境可打印：console.warn('[logout] ensureToken failed', e)
+        }
+
+        // 4) 仅在特定页面跳转到登录，其它页面保持原地
+        if (isForceHomePath(fullPath)) {
+            await navigateTo('/login')
+        }
     }
 
+
+    const getNonRegisteredUser = async () => {
+        try {
+            const response = await $api('/user/user/getNonRegisteredUser', {
+                method: 'POST',
+            })
+            return response
+        } catch (error) {
+            throw error
+        }
+    }
+    const updateUserInfo = async (params: any) => {
+        try {
+            const response = await $api('/user/user/updateUserInfo', {
+                method: 'POST',
+                body: params,
+            })
+            return response
+        } catch (error) {
+            throw error
+        }
+    }
     return {
+        // methods
         login,
         logout,
         register,
         sendrepassword,
         updatepassword,
-        token,
         createContactUs,
         googleLogin,
         facebookLogin,
-        getUserInfo
+        getUserInfo,
+        getNonRegisteredUser,
+        ensureToken,
+        // states
+        token,
+        userinfo,
+        userType,
+        updateUserInfo
     }
 }
