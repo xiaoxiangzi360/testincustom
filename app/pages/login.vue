@@ -101,6 +101,10 @@ import { ref, reactive } from 'vue';
 const { login } = useAuth();
 const toast = useToast();
 import { message } from 'ant-design-vue'
+const redirectPath = useCookie('redirectPath', {
+    sameSite: 'lax',
+    path: '/'
+})
 const { $showLoading, $hideLoading } = useNuxtApp()
 definePageMeta({
     layout: 'blank',
@@ -177,6 +181,14 @@ const validate = (state) => {
 
     return errors;
 };
+function sanitizeRedirect(raw, fallback = '/myorders') {
+    if (typeof raw !== 'string' || !raw) return fallback
+    const t = raw.trim()
+    // 禁止 http(s) 或协议相对
+    if (/^(https?:)?\/\//i.test(t)) return fallback
+    // 必须以 / 开头（/xxx?y=1#z）
+    return t.startsWith('/') ? t : fallback
+}
 
 // 处理登录
 const handleLogin = async () => {
@@ -205,14 +217,8 @@ const handleLogin = async () => {
         }
         $hideLoading()
         message.success('Login successful!')
-        let ref = document.referrer || ''   // 来源页 URL
-        let target = '/myorders'            // 默认去个人中心
-
-        if (ref.includes('/cart') || ref.includes('/checkout')) {
-            // 如果是购物车/结账页过来的，返回来源页
-            target = ref
-        }
-
+        const target = sanitizeRedirect(redirectPath.value, '/myorders')
+        redirectPath.value = null // 删除 cookie
         await navigateTo(target, { replace: true })
     } catch (error) {
         console.log(error);

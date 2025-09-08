@@ -21,6 +21,7 @@
                                     <th class="pb-4 text-center font-medium text-gray-600 p-6 text-sm">Action</th>
                                 </tr>
                             </thead>
+
                             <tbody class="block">
                                 <!-- Mobile Card Layout -->
                                 <tr v-for="(item, index) in cart.itemList" :key="item.id" :class="[
@@ -56,16 +57,19 @@
                                                     </Tooltip>
                                                 </div>
                                             </div>
+
                                             <div class="flex justify-between items-center">
                                                 <div>
                                                     <div class="text-sm text-gray-900">
                                                         Price: ${{ item.product.skuSpec.customPrice.toFixed(2) }}
                                                     </div>
                                                     <div class="text-sm text-gray-900 mt-1">
-                                                        Subtotal: ${{ (item.product.skuSpec.customPrice *
-                                                            item.productQuantity).toFixed(2) }}
+                                                        Subtotal:
+                                                        ${{ (item.product.skuSpec.customPrice *
+                                                        item.productQuantity).toFixed(2) }}
                                                     </div>
                                                 </div>
+
                                                 <div class="flex items-center gap-2">
                                                     <div
                                                         class="flex items-center border rounded-md w-24 justify-between px-2 h-7">
@@ -78,7 +82,6 @@
                                                             @blur="validate(index)"
                                                             class="w-12  h-7 text-center outline-none border-b border-t border-l-0 border-r-0 border-gray-300 focus:ring-0 text-xs"
                                                             :min="min" :max="max" />
-
                                                         <button @click="increaseproductQuantity(index)"
                                                             class="text-gray-500 hover:text-black disabled:text-gray-300 text-base"
                                                             :disabled="item.productQuantity >= max">
@@ -91,14 +94,16 @@
                                             </div>
                                         </div>
                                     </td>
+
                                     <!-- Desktop View -->
                                     <td class="py-4 p-6 w-8 bg-blue hidden md:table-cell">
                                         <input type="checkbox" v-model="item.selected" @change="updateSelection"
                                             class="rounded" />
                                     </td>
+
                                     <td class="py-4 w-80 hidden md:table-cell">
                                         <div class="flex lg:items-center gap-4">
-                                            <div class="w-20 h-20 lg:w-24 lg:h-24 overflow-hidden ">
+                                            <div class="w-20 h-20 lg:w-24 lg:h-24 overflow-hidden">
                                                 <img :src="item.product.erpProduct.mainPic"
                                                     @click="checkdetai(item.product.id, item.productSku, item.product.erpProduct.productEnglishName)"
                                                     alt="Product image"
@@ -123,9 +128,11 @@
                                             </div>
                                         </div>
                                     </td>
+
                                     <td class="py-4 pl-4 text-center p-6 text-gray-900 hidden md:table-cell">
                                         {{ item.product.skuSpec.customPrice.toFixed(2) }}
                                     </td>
+
                                     <td class="py-4 text-center w-28 hidden md:table-cell">
                                         <div class="flex items-center border rounded-md w-24 justify-between px-2 h-8">
                                             <button @click="decreaseproductQuantity(index)"
@@ -143,13 +150,16 @@
                                             </button>
                                         </div>
                                     </td>
+
                                     <td class="py-4 pl-4 text-center p-6 text-gray-900 hidden md:table-cell">
                                         {{ (item.product.skuSpec.customPrice * item.productQuantity).toFixed(2) }}
                                     </td>
+
                                     <td class="py-4 pl-4 text-center p-6 hidden md:table-cell">
                                         <img @click="deleteItem(item)" src="/del.png" class="w-6 cursor-pointer" />
                                     </td>
                                 </tr>
+
                                 <!-- Empty Cart -->
                                 <tr v-if="cart.itemList.length === 0">
                                     <td colspan="6" class="text-center py-10 text-gray-400 p-6">
@@ -165,19 +175,21 @@
                                 </tr>
                             </tbody>
                         </table>
+
                         <!-- Invalid Items -->
-                        <div class="flex justify-between items-center my-6" v-show="Invalidlist.length > 0">
+                        <div class="flex justify-between items-center my-6" v-show="cart.saleDownList?.length > 0">
                             <div>Out of Stock & Invalid Items</div>
                             <div>
                                 <button class="text-primary hover:text-primary-600 mr-4" @click="deleteInvalid">Delete
                                     All</button>
                             </div>
                         </div>
-                        <table class="w-full bg-white rounded">
+
+                        <table class="w-full bg-white rounded" v-if="cart.saleDownList?.length > 0">
                             <tbody class="md:max-h-[480px] md:overflow-y-auto block">
-                                <tr v-for="(item, index) in Invalidlist" :key="item.id" :class="[
+                                <tr v-for="(item, index) in cart.saleDownList" :key="item.id" :class="[
                                     'p-6 border-solid border-[#F8F8F8]',
-                                    index !== cart.itemList.length - 1 ? 'border-b' : '',
+                                    index !== cart.saleDownList.length - 1 ? 'border-b' : '',
                                 ]">
                                     <!-- Mobile View -->
                                     <td colspan="5" class="md:hidden p-4">
@@ -194,14 +206,15 @@
                                                 <div>
                                                     <div class="font-medium text-base">
                                                         {{ item.product ? item.product.erpProduct.productEnglishName :
-                                                            '' }}
+                                                        '' }}
                                                     </div>
-                                                    <p class="text-xs text-gray-500">{{ item.product.skuSpec.specAttr }}
-                                                    </p>
+                                                    <p class="text-xs text-gray-500">{{ item.product?.skuSpec?.specAttr
+                                                        }}</p>
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
+
                                     <!-- Desktop View -->
                                     <td class="py-4 pl-6 p-6 hidden md:table-cell">
                                         <div class="flex items-center gap-6">
@@ -217,7 +230,8 @@
                                                 <div class="font-medium text-lg">
                                                     {{ item.product ? item.product.erpProduct.productEnglishName : '' }}
                                                 </div>
-                                                <p class="text-sm text-gray-500">{{ item.product.skuSpec.specAttr }}</p>
+                                                <p class="text-sm text-gray-500">{{ item.product?.skuSpec?.specAttr }}
+                                                </p>
                                             </div>
                                         </div>
                                     </td>
@@ -228,18 +242,21 @@
                                 </tr>
                             </tbody>
                         </table>
+
                         <div
                             class="mt-4 flex items-center text-sm md:text-base md:gap-4 lg:gap-6 p-3 md:p-4 lg:p-6 bg-white sticky bottom-0 shadow-md">
                             <input type="checkbox" v-model="selectAll" @change="toggleSelectAll" class="rounded" />
-                            <span class="text-gray-600"><span class="font-normal mr-2 cursor-pointer"
-                                    @click="setSelectAll">Select all</span>
-                                (select {{ selectedQuantity }} items)</span>
+                            <span class="text-gray-600">
+                                <span class="font-normal mr-2 cursor-pointer" @click="setSelectAll">Select all</span>
+                                (select {{ selectedQuantity }} items)
+                            </span>
                             <button @click="deleteSelected" :disabled="selectedItems.length === 0"
                                 class="text-primary hover:text-primary-600 disabled:text-gray-300 disabled:cursor-not-allowed">
                                 Delete
                             </button>
                         </div>
                     </div>
+
                     <!-- Cart Summary -->
                     <div
                         class="lg:w-80 bg-white rounded-lg shadow-sm flex flex-col justify-between min-h-[200px] text-sm md:text-base">
@@ -269,150 +286,132 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { InputNumber } from 'ant-design-vue';
-import { message, Tooltip } from 'ant-design-vue';
-import { useRouter } from 'vue-router';
-import { useCartStore } from '@/stores/cart';
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { message, Tooltip } from 'ant-design-vue'
+import { useRouter } from 'vue-router'
+import { useCartStore } from '@/stores/cart'
 
-const router = useRouter();
-const cart = useCartStore();
-const { getCart, deleteCart } = cartAuth();
+const router = useRouter()
+const cart = useCartStore()
+const { deleteCart } = cartAuth() // 仅用于删除接口；拉取统一用 cart.refreshCart()
 
-const activeTab = ref<'cart' | 'expired'>('cart');
-const min = 1;
-const max = 999;
-const selectAll = ref(false);
-const shipping = ref(0);
-const Invalidlist = ref([]);
-const isDesktop = ref(false);
+const activeTab = ref<'cart' | 'expired'>('cart')
+const min = 1
+const max = 999
+const selectAll = ref(false)
+const shipping = ref(0)
+const isDesktop = ref(false)
 
-const selectedItems = computed(() => cart.itemList.filter(item => item.selected));
-const selectedTotal = computed(() => {
-    return selectedItems.value.reduce((total, item) => total + item.product.skuSpec.customPrice * item.productQuantity, 0);
-});
-const selectedQuantity = computed(() => {
-    return selectedItems.value.reduce((sum, item) => sum + item.productQuantity, 0);
-});
+const selectedItems = computed(() => cart.itemList.filter(item => item.selected))
+const selectedTotal = computed(() =>
+    selectedItems.value.reduce((total, item) => total + item.product.skuSpec.customPrice * item.productQuantity, 0)
+)
+const selectedQuantity = computed(() => selectedItems.value.reduce((sum, item) => sum + item.productQuantity, 0))
 
 const validate = (index: number) => {
-    if (cart.itemList[index].productQuantity < min) cart.itemList[index].productQuantity = min;
-    if (cart.itemList[index].productQuantity > max) cart.itemList[index].productQuantity = max;
-};
+    if (cart.itemList[index].productQuantity < min) cart.itemList[index].productQuantity = min
+    if (cart.itemList[index].productQuantity > max) cart.itemList[index].productQuantity = max
+}
 
-const handleGetCart = async () => {
+const token = useCookie('token')
+const isTokenValid = computed(() => !!token.value)
+
+// 初始化从 store 拉
+const refreshFromStore = async () => {
     try {
-        let res = await getCart();
-        let result = res.result;
-        cart.updateCart(result);
-        Invalidlist.value = res.saleDownList;
-        setSelectAll();
-    } catch (error) {
-        console.error(error);
+        await cart.refreshCart()
+        // 初始化时不要强制全选，保持 false
+        selectAll.value = false
+    } catch (e) {
+        console.error(e)
     }
-};
-
-const token = useCookie('token');
-const isTokenValid = computed(() => !!token.value);
+}
 if (isTokenValid.value) {
-    handleGetCart();
+    refreshFromStore()
 }
 
 const toggleSelectAll = () => {
     cart.itemList.forEach(item => {
-        item.selected = selectAll.value;
-    });
-};
-
+        item.selected = selectAll.value
+    })
+}
 const setSelectAll = () => {
-    selectAll.value = !selectAll.value;
+    selectAll.value = !selectAll.value
     cart.itemList.forEach(item => {
-        item.selected = selectAll.value;
-    });
-};
+        item.selected = selectAll.value
+    })
+}
 
 const checkout = () => {
     if (!selectAll.value) {
-        const selectedIds = selectedItems.value.map(item => item.id).join(',');
-        router.push(`/checkout?from=cart&ids=${selectedIds}`);
+        const selectedIds = selectedItems.value.map(item => item.id).join(',')
+        router.push(`/checkout?from=cart&ids=${selectedIds}`)
     } else {
-        router.push(`/checkout?from=cart`);
+        router.push(`/checkout?from=cart`)
     }
-};
+}
 
 const updateSelection = () => {
-    selectAll.value = cart.itemList.every(item => item.selected);
-};
+    selectAll.value = cart.itemList.length > 0 && cart.itemList.every(item => item.selected)
+}
 
 const checkdetai = (id: string, sku: string, name: string) => {
-    router.push('/product/' + id + '/' + slugify(name) + '?sku=' + sku);
-};
-const slugify = (str) => {
+    router.push('/product/' + id + '/' + slugify(name) + '?sku=' + sku)
+}
+const slugify = (str: string) => {
     return str
-        .normalize('NFKD')           // 去掉重音符号
-        .replace(/[^\w\s-]/g, '')    // 去掉非字母数字/下划线/空格/连字符
+        .normalize('NFKD')
+        .replace(/[^\w\s-]/g, '')
         .trim()
-        .replace(/\s+/g, '-')        // 空格转-
-        .replace(/-+/g, '-')         // 合并多个-
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
         .toLowerCase()
 }
+
 const deleteItem = async (item: any) => {
-    const index = cart.itemList.indexOf(item);
-    if (index > -1) {
-        cart.itemList.splice(index, 1);
+    const idx = cart.itemList.indexOf(item)
+    if (idx > -1) {
+        cart.itemList.splice(idx, 1)
     }
-    let data = { idList: [item.id] };
-    await deleteCart(data);
-    message.success('Delete successful');
-};
+    await deleteCart({ idList: [item.id] })
+    message.success('Delete successful')
+    await cart.refreshCart()
+}
 
 const deleteSelected = async () => {
-    let selectitems = cart.itemList.filter(item => item.selected);
-    selectAll.value = false;
-    let ids = selectitems.map(element => element.id);
-    let data = { idList: ids };
-    await deleteCart(data);
-    message.success('Delete successful');
-    handleGetCart();
-};
+    const ids = selectedItems.value.map(el => el.id)
+    if (!ids.length) return
+    selectAll.value = false
+    await deleteCart({ idList: ids })
+    message.success('Delete successful')
+    await cart.refreshCart()
+}
 
 const deleteInvalid = async () => {
-    let ids = Invalidlist.value.map(element => element.id);
-    let data = { idList: ids };
-    await deleteCart(data);
-    message.success('Delete successful');
-    handleGetCart();
-};
+    const ids = (cart.saleDownList || []).map(el => el.id)
+    if (!ids.length) return
+    await deleteCart({ idList: ids })
+    message.success('Delete successful')
+    await cart.refreshCart()
+}
 
-const increaseproductQuantity = (index: number) => {
-    cart.increaseQuantity(index);
-};
-
-const decreaseproductQuantity = (index: number) => {
-    cart.decreaseQuantity(index);
-};
-
-watch(() => cart.itemList, (newvalue) => {
-    if (newvalue) {
-        cart.updateCart(cart.itemList);
-    }
-});
+// 数量加减走 store
+const increaseproductQuantity = (index: number) => cart.increaseQuantity(index)
+const decreaseproductQuantity = (index: number) => cart.decreaseQuantity(index)
 
 // Update isDesktop on window resize
 const handleResize = () => {
     if (typeof window !== 'undefined') {
-        isDesktop.value = window.innerWidth >= 1024;
+        isDesktop.value = window.innerWidth >= 1024
     }
-};
-
+}
 onMounted(() => {
-    handleResize(); // 初始化
-    window.addEventListener('resize', handleResize);
-});
-
+    handleResize()
+    window.addEventListener('resize', handleResize)
+})
 onUnmounted(() => {
-    window.removeEventListener('resize', handleResize);
-});
+    window.removeEventListener('resize', handleResize)
+})
 </script>
 
 <style scoped>

@@ -1,24 +1,32 @@
 <template>
     <div class="min-h-screen bg-[#F8F8F8]">
+
         <div class="max-w-7xl mx-auto px-3 py-3 md:py-8">
+            <div class="mb-6 md:mb-8">
+                <NuxtLink to="/">
+                    <NuxtImg class="h-7 md:h-11" src="/images/incustom3.png" />
+                </NuxtLink>
+
+            </div>
             <div class="rounded shadow-sm">
-                <div class="flex flex-col lg:flex-row gap-3 md:gap-8 items-stretch">
+                <div class="flex flex-col lg:flex-row gap-4 items-stretch">
                     <!-- Cart Items -->
                     <div class="flex-1">
                         <main class="flex-1">
                             <section class="rounded bg-white">
                                 <div
-                                    class="p-2 md:p-3 px-4 sm:px-6 text-customblack font-semibold text-base sm:text-lg flex items-center justify-between">
-                                    <span>Contact Email <span class="text-red-500">*</span></span>
+                                    class="p-4 text-customblack font-semibold text-base sm:text-lg flex items-center justify-between">
+                                    <span>Contact Email</span>
 
                                     <!-- 仅未登录显示 -->
-                                    <button v-if="!isLoggedIn" class="text-sm text-gray-500" @click="showSignIn = true">
+                                    <button v-if="!isLoggedIn" class="text-sm text-customblack"
+                                        @click="showSignIn = true">
                                         I have an account to
-                                        <span class="text-primary underline ml-1">Sign In</span>
+                                        <span class="text-primary ml-1">Sign In</span>
                                     </button>
                                 </div>
 
-                                <div class="border-t border-t-blackcolor/10 p-3 sm:p-6">
+                                <div class="p-4">
                                     <FormItem :colon="false" :validateStatus="contactEmailError ? 'error' : ''"
                                         :help="contactEmailError || ''"
                                         :labelCol="{ xs: { span: 24 }, sm: { span: 4 } }"
@@ -40,112 +48,116 @@
                                             class="w-full sm:w-[360px]" @blur="validateContactEmail"
                                             @change="validateContactEmail" />
                                     </FormItem>
+
                                 </div>
                             </section>
-                            <section class="border border-blackcolor/10 rounded bg-white mt-3"
-                                v-if="addressarr.length == 0">
-                                <div class="p-2 px-6 text-customblack font-semibold text-lg">Address
-                                    <span style="color: red;">*</span>
+                            <section class=" rounded bg-white mt-3" v-if="addressarr.length == 0">
+                                <div class="p-4 text-customblack font-semibold text-base sm:text-lg">
+                                    Delivery Address <span class="text-red-500">*</span>
                                 </div>
-                                <div class="border-t border-t-blackcolor/10">
-                                    <div class="bg-white px-6 py-2 rounded w-2/3">
+
+                                <div>
+                                    <div class="bg-white px-4 py-4 rounded">
                                         <ClientOnly>
+                                            <!-- 竖直标签，视觉上与示意图一致 -->
+                                            <Form layout="vertical" ref="formRef" :model="form" class="max-w-[980px]">
+                                                <!-- 第一行：First / Last -->
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <FormItem label="First Name :" required>
+                                                        <Input v-model:value="form.firstName"
+                                                            placeholder="First Name" />
+                                                    </FormItem>
 
-                                            <Form layout="vertical">
+                                                    <FormItem label="Last Name :">
+                                                        <Input v-model:value="form.lastName" placeholder="Last Name" />
+                                                    </FormItem>
+                                                </div>
 
-                                                <FormItem name="country">
-                                                    <Select v-model:value="form.country" show-search
-                                                        :options="countryarr.map(c => ({ label: c.countryName, value: c.countryCode }))"
-                                                        placeholder="Select Country/Region"
-                                                        :filter-option="filterOptionByLabel" allowClear />
+                                                <!-- Address 独占一行 -->
+                                                <FormItem label="Adress :" required>
+                                                    <Input v-model:value="form.address" placeholder="Adress" />
                                                 </FormItem>
 
-                                                <FormItem>
-                                                    <Input v-model:value="form.firstName" placeholder="First name"
-                                                        size="large" />
-                                                </FormItem>
+                                                <!-- 第二行：Country / State -->
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <FormItem label="Country :" name="country" required>
+                                                        <Select v-model:value="form.country" show-search allowClear
+                                                            placeholder="country"
+                                                            :options="countryarr.map(c => ({ label: c.countryName, value: c.countryCode }))"
+                                                            :filter-option="filterOptionByLabel" />
+                                                    </FormItem>
 
-                                                <FormItem>
-                                                    <Input v-model:value="form.lastName" placeholder="Last name"
-                                                        size="small" />
-                                                </FormItem>
+                                                    <FormItem label="State/Province :" name="province" required>
+                                                        <Select v-model:value="form.province" show-search allowClear
+                                                            placeholder="State/Province"
+                                                            :options="provincearr.map(p => ({ label: p.regionName, value: p.regionName }))"
+                                                            :filter-option="filterOptionByLabel" />
+                                                    </FormItem>
+                                                </div>
 
-                                                <FormItem>
-                                                    <Input v-model:value="form.address" placeholder="Street address" />
-                                                </FormItem>
+                                                <!-- 第三行：City / Zip -->
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <FormItem label="City :" name="city" required>
+                                                        <AutoComplete v-model:value="form.city" allowClear
+                                                            placeholder="City"
+                                                            :options="cityarr.map(c => ({ label: c.cityName, value: c.cityName }))"
+                                                            :filter-option="filterOptionByLabel" />
+                                                    </FormItem>
 
-                                                <FormItem name="province">
-                                                    <Select allowClear v-model:value="form.province" show-search
-                                                        :options="provincearr.map(p => ({ label: p.regionName, value: p.regionName }))"
-                                                        placeholder="Select State/Province"
-                                                        :filter-option="filterOptionByLabel" />
-                                                </FormItem>
+                                                    <FormItem label="Zip Code :" required>
+                                                        <Input v-model:value="form.postalCode" placeholder="Zip Code" />
+                                                    </FormItem>
+                                                </div>
 
-                                                <FormItem name="city">
-                                                    <AutoComplete allowClear v-model:value="form.city" show-search
-                                                        :options="cityarr.map(c => ({ label: c.cityName, value: c.cityName }))"
-                                                        :filter-option="filterOptionByLabel"
-                                                        placeholder="Select City" />
-                                                </FormItem>
-
-                                                <FormItem>
-                                                    <Input v-model:value="form.postalCode" placeholder="Zip code" />
-                                                </FormItem>
-
-                                                <!-- <FormItem>
-                                                    <Input v-model:value="form.email" placeholder="Email(optional)" />
-                                                </FormItem> -->
-
-                                                <FormItem>
+                                                <!-- 第四行：Number（国家码 + 手机号） -->
+                                                <FormItem label="Number :" required>
                                                     <div class="flex gap-2">
                                                         <Select v-model:value="form.numberCode" class="!w-24"
                                                             show-search
                                                             :options="countries.map(code => ({ label: code, value: code }))" />
-                                                        <Input v-model:value="form.number" placeholder="Your number"
-                                                            class="flex-1" />
+                                                        <Input v-model:value="form.number" class="flex-1"
+                                                            placeholder="Number" />
                                                     </div>
                                                 </FormItem>
 
+                                                <!-- 设为默认地址 -->
                                                 <FormItem>
                                                     <Checkbox v-model:checked="form.master">Set as default address
                                                     </Checkbox>
                                                 </FormItem>
-
                                             </Form>
                                         </ClientOnly>
-
                                     </div>
                                 </div>
                             </section>
+
                             <!-- Account Info -->
 
                             <section class="rounded bg-white mt-3" v-if="addressarr.length > 0">
-                                <div
-                                    class="p-2 md:p-3 px-4 sm:px-6 text-customblack font-semibold text-base sm:text-lg">
+                                <div class="p-4 text-customblack font-semibold text-base sm:text-lg">
                                     Delivery address <span class="text-red-500">*</span>
                                 </div>
 
-                                <div
-                                    class="flex flex-col md:flex-row justify-between border-t border-t-blackcolor/10 p-3 sm:p-6 gap-3">
+                                <div class="flex flex-col md:flex-row justify-between p-4 gap-3">
                                     <!-- 左侧信息 -->
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 flex-1">
                                         <div>
                                             <span class="text-blackcolor/50 text-sm mb-1 block">Full name</span>
-                                            <div class="font-medium text-sm sm:text-base">
+                                            <div class="font-medium text-sm">
                                                 {{ addressinfo.firstName }} {{ addressinfo.lastName }}
                                             </div>
                                         </div>
 
                                         <div>
                                             <span class="text-blackcolor/50 text-sm mb-1 block">Number</span>
-                                            <div class="font-medium text-sm sm:text-base">
+                                            <div class="font-medium text-sm">
                                                 ({{ addressinfo.numberCode }}) {{ addressinfo.number }}
                                             </div>
                                         </div>
 
                                         <div class="col-span-2">
                                             <span class="text-blackcolor/50 text-sm mb-1 block">Address detail</span>
-                                            <div class="font-medium text-sm sm:text-base">
+                                            <div class="font-medium text-sm">
                                                 {{ addressinfo.countryName }} {{ addressinfo.provinceName }} {{
                                                     addressinfo.city }} {{ addressinfo.address }}
                                             </div>
@@ -153,13 +165,11 @@
                                     </div>
 
                                     <!-- 右侧按钮 -->
-                                    <div v-show="from != 'order'" class="flex flex-col min-w-[150px]">
-                                        <div class="text-primary cursor-pointer text-sm sm:text-base"
-                                            @click="changeaddress()">
+                                    <div v-show="from != 'order'" class="flex flex-col min-w-[150px] text-right">
+                                        <div class="text-primary cursor-pointer text-sm" @click="changeaddress()">
                                             Change another address
                                         </div>
-                                        <div class="text-primary cursor-pointer text-sm sm:text-base mt-3"
-                                            @click="addnewaddress()">
+                                        <div class="text-primary cursor-pointer text-sm mt-3" @click="addnewaddress()">
                                             Edit address
                                         </div>
                                     </div>
@@ -167,13 +177,12 @@
                             </section>
 
                             <section class="rounded bg-white mt-3">
-                                <div
-                                    class="p-2 md:p-3 px-4 sm:px-6 text-customblack font-semibold text-base sm:text-lg">
+                                <div class="p-4 text-customblack font-semibold text-base sm:text-lg">
                                     Shipping
-                                    methods
+                                    Methods
                                     <span style="color: red;">*</span>
                                 </div>
-                                <div class="border-t border-t-blackcolor/10 py-6 px-6">
+                                <div class="p-4">
                                     <!-- 引入 USelectMenu 和 UButton -->
                                     <USelectMenu v-model="templateid" :options="templates" option-attribute="label"
                                         value-attribute="feeId"
@@ -181,8 +190,8 @@
                                         :disabled="from == 'order' || templateid == '-1'">
                                         <template #default="{ open }">
                                             <UButton size="lg" color="white" variant="outline"
-                                                class="w-full justify-between h-10 rounded-md"
-                                                :class="{ 'ring-2 ring-primary': open }">
+                                                class="w-full justify-between h-10 rounded-md ring-0 border border-[rgba(46,46,12,0.2014)]"
+                                                :class="{ 'ring-0': open }">
                                                 <!-- 当前选中项显示 -->
                                                 <span class="text-xs sm:text-sm text-left">
                                                     {{
@@ -200,15 +209,14 @@
                                 </div>
                             </section>
                             <section class="rounded bg-white mt-3">
-                                <div
-                                    class="p-2 md:p-3 px-4 sm:px-6 text-customblack font-semibold text-base sm:text-lg">
+                                <div class="p-4 text-customblack font-semibold text-base sm:text-lg">
                                     Payment
-                                    methods <span style="color: red;">*</span>
+                                    Methods <span style="color: red;">*</span>
                                 </div>
-                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 border-t border-t-blackcolor/10 p-6">
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 p-4">
                                     <div v-for="option in options" :key="option.value"
                                         class="flex items-center space-x-4 p-2 rounded-md"
-                                        :class="selected === option.value ? 'border-2 border-gray-200' : 'border border-transparent'">
+                                        :class="selected === option.value ? 'border border-primary' : 'border border-transparent'">
                                         <input type="radio" :value="option.value" v-model="selected" class="form-radio">
                                         <label class="flex items-center space-x-2 cursor-pointer">
                                             <img :src="option.icon" class="h-8 sm:h-[50px]" />
@@ -217,25 +225,30 @@
                                 </div>
                             </section>
                             <section class="rounded bg-white mt-3">
-                                <div
-                                    class="p-2 md:p-3 px-4 sm:px-6 text-customblack font-semibold text-base sm:text-lg">
+                                <div class="p-4 text-customblack font-semibold text-base sm:text-lg">
                                     Notes</div>
-                                <div class="border-t border-t-blackcolor/10 py-2 md:py-6 px-2 md:px-8">
-                                    <UTextarea v-model="notes" />
+                                <div class="p-4">
+                                    <UTextarea v-model="notes" :ui="{
+                                        color: {
+                                            white: {
+                                                outline: 'shadow-sm bg-white text-gray-900 ring-1 ring-inset ring-[rgba(0,0,0,0.15)]'
+                                            }
+                                        }
+                                    }" />
+
                                 </div>
                             </section>
                         </main>
                     </div>
                     <!-- Cart Summary -->
                     <div class="lg:w-80 bg-white rounded shadow-sm  min-h-[200px]">
-                        <div
-                            class="py-2 md:p-3 px-4 sm:px-6 text-customblack font-semibold text-base sm:text-lg border-b border-b-blackcolor/10">
+                        <div class="p-4  text-customblack font-semibold text-base sm:text-lg">
                             Order Summary</div>
-                        <div class="p-3 md:p-6 ">
+                        <div class="p-4">
 
                             <div class="flex justify-between ">
                                 <span class="text-gray-600 text-sm">Selected {{ selectedQuantity }} items</span>
-                                <span>${{ selectedTotal.toFixed(2) }}</span>
+                                <span class="text-primary">${{ selectedTotal.toFixed(2) }}</span>
                             </div>
                             <div class="max-h-96 overflow-y-auto">
                                 <div class="flex items-center space-x-4 bg-white rounded-md shadow-sm py-4"
@@ -258,17 +271,18 @@
                                                 {{ item.specAttr }}
                                             </div>
                                         </Tooltip>
-                                        <p class="text-lg font-semibold">{{ item.productPrice }} x {{ item.qtyOrdered }}
-                                        </p>
+                                        <div class="text-lg font-semibold">{{ item.productPrice }} x {{ item.qtyOrdered
+                                        }}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <!-- Coupon Code Input -->
-                            <div class="md:mt-4">
+                            <div>
 
                                 <div class="flex gap-2 text-white">
                                     <Input v-model:value="couponCode" placeholder="Enter the coupon code"
-                                        class="flex-1 border border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
+                                        class="flex-1 border border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-customblack" />
 
                                     <UButton @click="applyCoupon" :disabled="!couponCode || applyLoading"
                                         :loading="applyLoading" class="shrink-0 rounded px-4 text-white" :class="[
@@ -295,22 +309,25 @@
                             </div>
 
                             <!-- Discount Display -->
-                            <div class="flex justify-between mt-3" v-if="discount > 0">
-                                <span class="text-gray-600">Discount</span>
-                                <span class="text-green-600 font-semibold">- ${{ discount.toFixed(2) }}</span>
+                            <div class="flex justify-between mt-3 font-medium" v-if="discount > 0">
+                                <span class="text-customblack">Discount</span>
+                                <span class="text-primary">- ${{ discount.toFixed(2) }}</span>
                             </div>
 
-                            <div class="flex justify-between mt-3">
-                                <span class="text-gray-600 text-sm">Shipping</span>
-                                <span>${{ shipping.toFixed(2) }}</span>
+                            <div class="flex justify-between mt-3 font-medium">
+                                <span class="text-customblack text-sm">Shipping</span>
+                                <span class="text-primary">${{ shipping.toFixed(2) }}</span>
                             </div>
-                            <div class="text-sm pt-3 md:pt-4 flex justify-between font-bold md:mt-4">
-                                <span>Total</span>
-                                <span>${{ ((selectedTotal || 0) + (shipping || 0) - discount).toFixed(2) }}</span>
+                            <div class="pt-3 md:pt-4 flex justify-between font-bold md:mt-4">
+                                <span class="text-customblack">Total</span>
+                                <span class="text-primary">${{ ((selectedTotal || 0) + (shipping || 0) -
+                                    discount).toFixed(2) }}</span>
                             </div>
 
                         </div>
-                        <div id="paypal-button-container" class="sticky bottom-1 px-2"></div>
+                        <div id="paypal-button-container"
+                            class="sticky bottom-1 p-4 bg-white shadow-[0_-2px_6px_rgba(0,0,0,0.1)] md:shadow-none">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -328,8 +345,7 @@
                     ✕
                 </button>
             </div>
-            <div
-                class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 border-t border-t-blackcolor/10 p-3 md:p-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4">
 
                 <div v-for="(item, idx) in addressarr" :key="idx"
                     class="relative border border-blackcolor/10 rounded p-4 hover:shadow cursor-pointer"
@@ -361,7 +377,7 @@
     </UModal>
     <!-- Sign In Modal -->
     <UModal v-model="showSignIn" :ui="{ width: 'sm:max-w-md', rounded: 'rounded-xl' }">
-        <div class="p-6">
+        <div class="p-4">
             <div class="flex items-center justify-between mb-4">
                 <div class="text-xl font-semibold">
                     <NuxtImg class="h-6" src="/images/incustom2.png" />
@@ -370,14 +386,25 @@
             </div>
             <div class="text-center text-xl font-bold mb-6">Sign in</div>
             <div>
-                <UInput v-model="signinForm.email" placeholder="Please enter email" size="lg" />
-                <UInput v-model="signinForm.password"
-                    :ui="{ icon: { trailing: { pointer: '' }, }, base: 'dark:!bg-white dark:!text-gray-900' }"
-                    placeholder="Please enter password" :type="showPassword ? 'text' : 'password'" size="lg"
+                <UInput v-model="signinForm.email" :ui="{
+                    color: {
+                        white: {
+                            outline: ' ring-1 ring-inset ring-[rgba(0,0,0,0.15)]'
+                        }
+                    },
+                    placeholder: 'placeholder-[#D9D9D9]'
+                }" placeholder="Please enter email" size="lg" />
+                <UInput v-model="signinForm.password" :ui="{
+                    icon: { trailing: { pointer: '' } }, base: 'dark:!bg-white dark:!text-gray-900 ', color: {
+                        white: {
+                            outline: ' ring-1 ring-inset ring-[rgba(0,0,0,0.15)]'
+                        }
+                    }, placeholder: 'placeholder-[#D9D9D9]'
+                }" placeholder="Please enter password" :type="showPassword ? 'text' : 'password'" size="lg"
                     class="mt-6">
                     <template #trailing>
-                        <UButton @click="togglePassword" variant="ghost" class="text-gray-500">
-                            <BaseIcon :name="showPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
+                        <UButton @click="togglePassword" variant="ghost" class="text-gray-500 px-0.5">
+                            <BaseIcon :name="showPassword ? 'i-heroicons-eye' : 'i-heroicons-eye-slash'"
                                 class="w-5 h-5" />
                         </UButton>
                     </template>
@@ -387,9 +414,9 @@
             </div>
 
             <div class="flex items-center my-4">
-                <div class="flex-1 h-px bg-customblack"></div>
+                <div class="flex-1 h-px bg-[#f0f0f0]"></div>
                 <span class="mx-2 text-gray-400 text-sm">or</span>
-                <div class="flex-1 h-px bg-customblack"></div>
+                <div class="flex-1 h-px bg-[#f0f0f0]"></div>
             </div>
 
             <div class="space-y-2">
@@ -417,10 +444,16 @@
         </div>
     </UModal>
 
-    <AddressModal :isshow="isshow" @close="isshow = false" :addressinfo="addressinfo"
+    <AddressModal :isshow="isshow" v-if="isshow" @close="isshow = false" :addressinfo="addressinfo"
         @updateData="updateAddresslist()" />
 </template>
 <script lang="ts" setup>
+definePageMeta({
+    layout: 'blank',
+    name: 'Checkout',
+    title: 'Checkout',
+    description: 'INcustom checkout',
+});
 import { ref, computed, watch } from 'vue';
 import { Input, Select, Form, FormItem, Checkbox, Button, AutoComplete } from 'ant-design-vue'
 const { addPaymentInfo, purchase } = useFbq({ currency: 'USD' })
@@ -457,16 +490,14 @@ const signinForm = reactive({
 })
 function validateContactEmail() {
     contactEmailError.value = ''
-    if (!contactEmail.value) {
-        contactEmailError.value = 'Contact email is required'
-        return false
-    }
+
     if (!emailRegex.test(contactEmail.value)) {
         contactEmailError.value = 'Please enter a valid email address'
         return false
     }
     return true
 }
+const formRef = ref()
 import { loadScript } from '@paypal/paypal-js'
 import { useCartStore } from '@/stores/cart'
 const paypalpaymentid = ref(0)
@@ -787,8 +818,8 @@ const form = ref({
     lastName: '',
     address: '',
     postalCode: '',
-    country: null,
-    province: null,
+    country: '',
+    province: '',
     city: '',
     numberCode: '+1',
     number: '',
@@ -905,13 +936,13 @@ const addaddress = async () => {
     return true
 
 };
+
 const paynow = async () => {
     try {
         if (isEmptyObject(addressinfo.value)) {
             const countryName = countryarr.value.find(c => c.countryCode === form.value.country)?.countryName || '';
 
             addressinfo.value = form.value
-            console.log('addressinfo222', addressinfo.value)
             addressinfo.value.countryName = countryName
 
             const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' })
@@ -925,7 +956,7 @@ const paynow = async () => {
             }
 
         }
-        console.log('addressinfo----', addressinfo.value);
+
         if (!addressinfo.value.address) {
             message.error('Please add a address')
             return null;
@@ -1119,6 +1150,7 @@ const getCity = async () => {
         }
         let res = await listCityByRegionId(parmes);
         let citylist = res.result;
+
         cityarr.value = citylist
 
     } catch (error) {
@@ -1232,6 +1264,7 @@ watch(() => addressinfo.value, (newvalue, oldvalue) => {
 watch(() => form.value.country, (newvalue, oldvalue) => {
 
     if (newvalue) {
+        form.value.province = null
         getShippingRulelist()
         getProvince()
 
@@ -1246,6 +1279,8 @@ watch(contactEmail, (val) => {
 watch(() => form.value.province, (newvalue, oldvalue) => {
 
     if (newvalue) {
+        form.value.city = ' '
+
         getCity()
     }
 });
@@ -1476,7 +1511,7 @@ tbody tr {
 }
 
 .ant-form-item {
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 }
 
 /* 去掉 antd Select 的 hover / focus 外边框与阴影 */
@@ -1506,5 +1541,11 @@ tbody tr {
     box-shadow: none !important;
     outline: none !important;
     border: 0 !important;
+}
+
+/* 可选：把竖直表单的 label 与输入间距压缩一点点 */
+:deep(.ant-form-vertical .ant-form-item-label > label) {
+    margin-bottom: 2px;
+    font-weight: 500;
 }
 </style>

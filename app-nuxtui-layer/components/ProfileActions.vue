@@ -4,7 +4,8 @@ import { useRouter } from 'vue-router'
 import { Tooltip, Select } from 'ant-design-vue'
 import { ref, computed, watch } from 'vue'
 import { useCartStore } from '@/stores/cart'
-
+import { useRoute } from 'vue-router'
+const route = useRoute()
 // ========= 类型 =========
 type CountryItem = { id: string | number; countryCode: string; countryName: string }
 type ProvinceItem = { id: string | number; regionName: string }
@@ -15,11 +16,15 @@ type LocationInfo = {
   provinceName: string | null
   cityName: string | null
 }
+const redirectPath = useCookie<string | null>('redirectPath', {
+  sameSite: 'lax',
+  path: '/',
+  maxAge: 60 * 10
+})
 const savingLocation = ref(false)
 const router = useRouter()
 const usermenu = [
   { lable: 'Order', url: '/myorders', type: 'link', img: '/order.png' },
-  // { lable: 'My Favorites', url: '/', type: 'link', img: '/favorite.png' },
   { lable: 'Account Setting', url: '/userinfo', type: 'link', img: '/setting.png' },
   { lable: 'Sign Out', url: '', type: 'button', img: '/loginout.png' }
 ]
@@ -96,12 +101,15 @@ const nowCountry = ref({ countryCode: nowLocation.value.countryCode, countryName
 
 const token = useCookie('token')
 const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' })
-const isTokenValid = computed(() => {
+const isuserTokenValid = computed(() => {
   const isMember = userType.value === 1 || userType.value === '1'
   return !!token.value && isMember
 })
+const isTokenValid = computed(() => !!token.value)
+
 const menuOpen = ref(false);
 const infoOpen = ref(false);
+// ✅ langOpen 改为控制 UModal
 const langOpen = ref(false);
 
 const { getCart, deleteCart } = cartAuth();
@@ -109,8 +117,7 @@ const { logout, updateUserInfo } = useAuth();
 const { getUserlPBylp2Location, listCountryAll, listProvinceByCountryId, listCityByRegionId } = LocationAuth();
 
 /**
- * 位置 Cookie（**改成强类型** + **长期有效** + **path=/**）
- * 兼容老数据：有可能以前是 JSON 字符串
+ * 位置 Cookie（强类型 + 长期有效）
  */
 const locationinfo = useCookie<LocationInfo | string | null>('locationinfo', {
   sameSite: 'lax',
@@ -122,8 +129,6 @@ const locationinfo = useCookie<LocationInfo | string | null>('locationinfo', {
 function readLocationCookie(): LocationInfo | null {
   const raw = locationinfo.value
   if (!raw) return null
-
-  // 1) Nuxt 已反序列化为对象
   if (typeof raw === 'object') {
     const r = raw as any
     if (r.countryCode && r.countryName) {
@@ -136,8 +141,6 @@ function readLocationCookie(): LocationInfo | null {
     }
     return null
   }
-
-  // 2) 旧版字符串：尝试 JSON.parse
   if (typeof raw === 'string') {
     try {
       const obj = JSON.parse(raw)
@@ -154,13 +157,12 @@ function readLocationCookie(): LocationInfo | null {
   return null
 }
 
-// 统一写入（不要再手写 JSON.stringify）
+// 统一写入
 function writeLocationCookie(data: LocationInfo) {
   locationinfo.value = data
   synclocation(data)
 }
-const synclocation = async (locationdata) => {
-  console.log(locationdata);
+const synclocation = async (locationdata: LocationInfo) => {
   try {
     if (locationdata) {
       const data = {
@@ -169,7 +171,6 @@ const synclocation = async (locationdata) => {
         stateOrProvince: locationdata.provinceName,
         city: locationdata.cityName
       }
-
       await updateUserInfo(data)
     }
   } catch (error) {
@@ -254,13 +255,11 @@ const fetchCitiesByProvince = async (provinceId: string | number) => {
 }
 
 // ========= 初始化位置（优先 cookie，其次 IP）=========
-// 不拉国家列表（懒加载），只确定顶部展示 nowLocation
 const locationResolved = ref(false)
 const initLocation = async () => {
   if (locationResolved.value) return
   locationResolved.value = true
 
-  // 先尝试从 cookie 读取（兼容对象 & 旧字符串）
   const cached = readLocationCookie()
   if (cached) {
     nowLocation.value = {
@@ -273,7 +272,6 @@ const initLocation = async () => {
     return
   }
 
-  // 无缓存：用 IP 默认
   try {
     const res = await getUserlPBylp2Location();
     const r = res?.result
@@ -285,35 +283,26 @@ const initLocation = async () => {
         cityName: r.city || null
       }
       nowCountry.value = { countryCode: r.country_short, countryName: r.country_long }
-
-      // 如果你希望“IP 也直接落盘”，就取消下一行注释
       writeLocationCookie(nowLocation.value)
     }
   } catch (error) { /* 静默失败 */ }
 }
 
-// ========= 打开弹框时：懒加载国家，并按 nowLocation 默认选中 =========
+// ========= 打开时懒加载（Modal 版本也适用）=========
 const countriesLoadedOnce = ref(false)
-
 const ensureOptionsOnOpen = async () => {
-  // 首次打开才拉国家列表
   if (!countriesLoadedOnce.value) {
     await getCountrylist()
     countriesLoadedOnce.value = true
   }
-
-  // 有国家列表后，根据 nowLocation 匹配默认选中
   const c = countryarr.value.find(
     k => k.countryCode === nowLocation.value.countryCode || k.countryName === nowLocation.value.countryName
   )
   if (c) {
-    // 若未选或不同，选择并级联省份
     if (selectedCountryId.value !== c.id) {
       selectedCountryId.value = c.id
       await fetchProvincesByCountry(c.id)
     }
-
-    // 省份默认
     if (nowLocation.value.provinceName) {
       const p = provinceArr.value.find(p => p.regionName === nowLocation.value.provinceName!)
       if (p) {
@@ -321,7 +310,6 @@ const ensureOptionsOnOpen = async () => {
           selectedProvinceId.value = p.id
           await fetchCitiesByProvince(p.id)
         }
-        // 城市默认
         if (nowLocation.value.cityName) {
           const ci = cityArr.value.find(ci => ci.cityName === nowLocation.value.cityName!)
           if (ci) selectedCityId.value = ci.id
@@ -331,7 +319,7 @@ const ensureOptionsOnOpen = async () => {
   }
 }
 
-// ========= 监听：选择变化（名称写入 nowLocation）=========
+// ========= 监听：选择变化 =========
 watch(selectedCountryId, async (val) => {
   const c = countryarr.value.find(x => x.id === val)
   if (!c) return
@@ -359,7 +347,7 @@ watch(selectedCityId, (val) => {
   nowLocation.value.cityName = ci ? ci.cityName : null
 })
 
-// ========= 弹框开关：在打开的那一刻加载并默认选中 =========
+// ========= Modal 打开：在打开那一刻加载并默认选中 =========
 watch(langOpen, async (open) => {
   if (open) {
     await ensureOptionsOnOpen()
@@ -371,8 +359,7 @@ const loginout = async () => {
   await logout();
 }
 
-// ========= 提交（写 cookie，名称）=========
-// 改为通过 writeLocationCookie 统一写入
+// ========= 提交（写 cookie）=========
 const handleSubmit = () => {
   const c = selectedCountryObj.value
   const p = selectedProvinceObj.value
@@ -386,7 +373,7 @@ const handleSubmit = () => {
   }
   nowLocation.value = data
   nowCountry.value = { countryCode: data.countryCode, countryName: data.countryName }
-  writeLocationCookie(data) // ✅ 不再手写 JSON.stringify
+  writeLocationCookie(data)
   langOpen.value = false
 }
 
@@ -402,9 +389,17 @@ const slugify = (str: string) => {
     .replace(/-+/g, '-')
     .toLowerCase()
 }
+function goLogin(overrideTarget?: string) {
+  const target = overrideTarget || route.fullPath
+  if (target.startsWith('/cart') || target.startsWith('/checkout')) {
+    redirectPath.value = target
+  } else {
+    redirectPath.value = null
+  }
+  navigateTo('/login')
+}
 
 // ========= 启动 =========
-// 仅客户端执行，避免 SSR 阶段触发 IP
 if (process.client) {
   await initLocation()
 }
@@ -412,13 +407,12 @@ if (process.client) {
 
 <template>
   <div class="flex flex-nowrap items-center justify-center px-4 rounded-lg ">
-    <!-- Cart Popover -->
+    <!-- Cart Popover（保留） -->
     <UPopover color="white" v-model:open="menuOpen" trigger="manual" mode="hover"
       :ui="{ base: 'border-none shadow-2xl bg-white rounded-md focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow' }"
       :popper="{ placement: 'bottom' }">
       <template #default>
         <div class="flex items-center px-4 py-2  rounded-lg transition relative">
-          <!-- 购物车图标 -->
           <NuxtImg src="/cart.png" alt="cart" class="h-9" />
           <UBadge v-if="cart.itemCount > 0" :label="cart.itemCount" color="primary" variant="solid"
             class="absolute top-2 right-4 w-4 h-4 flex items-center justify-center rounded-full ring-0 text-white text-xxs font-semibold" />
@@ -429,7 +423,6 @@ if (process.client) {
         <div class="flex">
           <div class="max-w-2xl mx-auto pb-2">
             <div class="bg-white rounded-lg" v-if="cart.itemList.length > 0">
-
               <div class="mb-8 max-h-[40vh] overflow-y-auto p-4">
                 <div v-for="(item, index) in cart.itemList" :key="index" :class="[
                   'flex items-center py-4 transition-colors border-solid border-[#F8F8F8]',
@@ -535,12 +528,12 @@ if (process.client) {
       </template>
     </UPopover>
 
-    <!-- 登录按钮 / 用户信息 -->
-    <NuxtLink class="text-white cursor-pointer" to="/login" v-if="!isTokenValid">
+    <!-- 登录按钮 / 用户信息（保留） -->
+    <NuxtLink class="text-white cursor-pointer" @click.prevent="goLogin()" v-if="!isuserTokenValid">
       <NuxtImg src="/user.png" alt="user" class="h-9" />
     </NuxtLink>
 
-    <div class="text-white cursor-pointer" v-if="isTokenValid">
+    <div class="text-white cursor-pointer" v-if="isuserTokenValid">
       <UPopover color="white" v-model:open="infoOpen" mode="hover"
         :ui="{ base: 'border-none shadow-2xl bg-white rounded-md focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow' }"
         :popper="{ placement: 'bottom' }">
@@ -569,71 +562,61 @@ if (process.client) {
       </UPopover>
     </div>
 
-    <!-- 位置选择 -->
-    <UPopover color="white" v-model:open="langOpen" mode="click" trigger="manual"
-      :ui="{ base: 'overflow-visible border-none shadow-2xl  focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow' }"
-      :popper="{ placement: 'bottom' }">
-      <template #default>
-        <div class="flex items-center space-x-2 px-4 py-2 rounded-lg transition">
-          <!-- <NuxtImg src="/location.png" alt="location" class="h-6" /> -->
-          <!-- 顶部显示 国家 / 省 / 市（缓存优先；无缓存则 IP 定位） -->
-          <UTooltip :text="displayLocationLabel || 'Select location'">
-            <div class="truncate max-w-[120px] text-sm cursor-pointer">
-              <div class="text-gray-100">Delivering to</div>
-              <div class="truncate">
-                {{ displayLocationLabel || 'Select location' }}
-              </div>
-            </div>
-          </UTooltip>
-
-
-          <BaseIcon name="i-heroicons-chevron-down-16-solid"
-            class="w-5 h-5 transition-transform text-gray-400 dark:text-gray-500 "
-            :class="[langOpen && 'transform rotate-180']" />
+    <!-- ============ 位置选择：改为 UModal ============ -->
+    <!-- 触发按钮（原来是 UPopover #default，现在是一个按钮） -->
+    <button type="button" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition focus:outline-none"
+      @click="langOpen = true">
+      <UTooltip :text="displayLocationLabel || 'Select location'">
+        <div class="truncate max-w-[120px] text-sm cursor-pointer text-left">
+          <div class="text-gray-100">Delivering to</div>
+          <div class="truncate">
+            {{ displayLocationLabel || 'Select location' }}
+          </div>
         </div>
-      </template>
+      </UTooltip>
+      <BaseIcon name="i-heroicons-chevron-down-16-solid"
+        class="w-5 h-5 transition-transform text-gray-400 dark:text-gray-500" :class="[langOpen && 'rotate-180']" />
+    </button>
 
-      <template #panel>
-        <div class="flex items-center justify-center bg-white rounded-md ">
-          <UCard class="w-full max-w-xs py-0 w-[480px]" :ui="{ ring: 'ring-0' }">
-            <div class="text-base font-semibold text-black mb-4">
-              Choose Your Location
-            </div>
-            <form @submit.prevent="handleSubmit">
-              <!-- 国家（AntD Select） -->
-              <div class="mb-4">
-                <label class="block text-sm text-gray-400 mb-1">Select Country/Region</label>
-                <Select v-model:value="selectedCountryId" :options="countryOptions" show-search
-                  :filter-option="filterBySearch" :loading="countryLoading" placeholder="Select Country/Region"
-                  style="width: 100%;" />
-              </div>
-
-              <!-- 省（AntD Select） -->
-              <div class="mb-4">
-                <label class="block text-sm text-gray-400 mb-1">Select State/Province</label>
-                <Select v-model:value="selectedProvinceId" :options="provinceOptions" show-search
-                  :filter-option="filterBySearch" :loading="provinceLoading" placeholder="Select State/Province"
-                  style="width: 100%;" />
-              </div>
-
-              <!-- 市（AntD Select） -->
-              <div class="mb-4">
-                <label class="block text-sm text-gray-400 mb-1">City</label>
-                <Select v-model:value="selectedCityId" :options="cityOptions" show-search
-                  :filter-option="filterBySearch" :loading="cityLoading" placeholder="Select City"
-                  style="width: 100%;" />
-              </div>
-
-              <!-- 提交按钮 -->
-              <div class="flex justify-end mt-4">
-                <UButton type="submit" color="primary" class="rounded-md">Done</UButton>
-              </div>
-
-            </form>
-          </UCard>
+    <!-- Modal 本体 -->
+    <UModal v-model="langOpen" :ui="{ width: 'sm:max-w-[500px]', base: 'p-0' }">
+      <UCard :ui="{ ring: 'ring-0', body: { padding: 'p-6' }, header: 'hidden', footer: 'hidden' }">
+        <div class="text-base font-semibold text-black mb-4">
+          Choose Your Location
         </div>
-      </template>
-    </UPopover>
+        <form @submit.prevent="handleSubmit">
+          <!-- 国家（AntD Select） -->
+          <div class="mb-4">
+            <label class="block text-sm text-gray-400 mb-2">Select Country/Region</label>
+            <Select v-model:value="selectedCountryId" :options="countryOptions" show-search
+              :filter-option="filterBySearch" :loading="countryLoading" placeholder="Select Country/Region"
+              style="width: 100%;" />
+          </div>
+
+          <!-- 省（AntD Select） -->
+          <div class="mb-4">
+            <label class="block text-sm text-gray-400 mb-2">Select State/Province</label>
+            <Select v-model:value="selectedProvinceId" :options="provinceOptions" show-search
+              :filter-option="filterBySearch" :loading="provinceLoading" placeholder="Select State/Province"
+              style="width: 100%;" />
+          </div>
+
+          <!-- 市（AntD Select） -->
+          <div class="mb-4">
+            <label class="block text-sm text-gray-400 mb-2">City</label>
+            <Select v-model:value="selectedCityId" :options="cityOptions" show-search :filter-option="filterBySearch"
+              :loading="cityLoading" placeholder="Select City" style="width: 100%;" />
+          </div>
+
+          <!-- 提交按钮 -->
+          <div class="flex justify-end mt-4 gap-2">
+            <!-- <UButton color="gray" variant="ghost" class="rounded-md" @click="langOpen = false">Cancel</UButton> -->
+            <UButton type="submit" color="primary" class="rounded-md">Done</UButton>
+          </div>
+        </form>
+      </UCard>
+    </UModal>
+    <!-- ============ /位置选择 Modal ============ -->
   </div>
 </template>
 

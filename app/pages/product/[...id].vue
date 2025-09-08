@@ -174,7 +174,7 @@
                       class="mr-3 w-[18px] h-[18px] flex items-center justify-center"
                       :ui="{ color: { black: { solid: 'dark:bg-gray-900 dark:text-white' } } }">{{ index + 1 }}</UBadge>
                     <span class="truncate-1-lines font-medium text-sm md:text-base">{{ property.propertyNameShop
-                      }}</span>
+                    }}</span>
                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" placement="topLeft"
                       v-if="property.desc" :title="property.desc"
                       :overlayStyle="{ maxWidth: '330px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
@@ -407,12 +407,20 @@
                   <span class="text-sm sm:text-lg font-medium">Quantity</span>
                   <div class="flex items-center rounded px-2">
                     <div class="flex items-center rounded">
-                      <button @click="decrement"
-                        class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center">−</button>
+                      <button
+                        class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center"
+                        @click="decrement">
+                        <BaseIcon name="i-heroicons-minus-20-solid" />
+                      </button>
+
                       <input @input="onQuantityInput" v-model="quantity"
-                        class="w-12 h-[26px] text-center outline-none border-0 py-1 bg-[#F8F8F8] mx-1" />
-                      <button @click="increment"
-                        class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center">+</button>
+                        class="focus:outline-none focus:ring-0 focus:border-transparent w-12 h-[26px] text-center outline-none border-0 py-1 bg-[#F8F8F8] mx-1" />
+                      <button
+                        class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center"
+                        @click="increment">
+                        <BaseIcon name="i-heroicons-plus-20-solid" />
+                      </button>
+
                     </div>
                     <span class="ml-2 text-sm sm:text-lg">Panels</span>
                   </div>
@@ -429,11 +437,13 @@
                     color="primary" variant="solid" size="xl" :loading="orderloding" @click="createorder">
                     Order Now
                   </UButton>
-                  <UButton
-                    class="w-full sm:flex-1 flex items-center justify-center bg-primary-100 rounded-md text-primary font-normal hover:text-white"
-                    :loading="cartloding" @click="addtocart" color="primary" variant="solid" size="xl">
+                  <UButton class="w-full sm:flex-1 flex items-center justify-center 
+         bg-primary-100 text-primary font-normal rounded-md hover:text-white
+         disabled:bg-primary-100 disabled:text-primary" :loading="cartloding" @click="addtocart" color="primary"
+                    variant="solid" size="xl">
                     Add to Cart
                   </UButton>
+
                 </div>
               </div>
             </div>
@@ -592,17 +602,17 @@
       <!-- 推荐产品部分（原样） -->
       <div class="mt-[30px] md:mt-12 pb-4" v-if="products.length > 0">
         <h1 class="text-lg font-semibold mb-3 md:mb-8 dark:text-black">Recommended products</h1>
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-12">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
           <NuxtLink :to="`/product/${product.id}/${slugify(product.erpProduct.productEnglishName)}`"
             v-for="(product, index) in products" :key="index"
-            class="product-card rounded-lg transition-transform duration-300 ease-in-out hover:scale-105 cursor-pointer">
+            class="product-card rounded-lg transition-transform duration-300 shadow-[0_4px_10px_0_rgba(167,167,167,0.2)] hover:scale-[1.02] md:hover:-translate-y-0.5 cursor-pointer px-[14px]">
             <div class="relative overflow-hidden">
               <img :src="product.erpProduct.mainPic ?? '/images/empty.jpg'" :alt="product.erpProduct.productEnglishName"
                 class="w-full h-full object-cover object-top">
             </div>
             <div class="mt-2">
               <h3 class="text-sm font-normal mb-2 line-clamp-2 dark:text-black">{{ product.erpProduct.productEnglishName
-              }}
+                }}
               </h3>
               <p class="text-sm font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}</p>
             </div>
@@ -639,26 +649,39 @@
     </div>
 
     <!-- Bottom bar（原样） -->
-    <div ref="bottomBarRef"
-      class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4 px-8 bg-white rounded-md shadow-lg sticky bottom-0 transition-all duration-300 ease-in-out"
-      :class="{ 'opacity-100 translate-y-0 pointer-events-auto': !isBottomBarHidden, 'opacity-0 translate-y-8 pointer-events-none': isBottomBarHidden }"
-      v-show="isshow && !isLoading">
+    <!-- 原来的 sticky 改成 fixed + 全宽 + 高 z-index -->
+    <div ref="bottomBarRef" class="fixed bottom-0 left-0 right-0 z-50
+         flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4
+         py-4 px-8 bg-white rounded-none shadow-[0_-4px_16px_rgba(0,0,0,0.08)]
+         transition-all duration-300 ease-in-out" :class="{
+          'opacity-100 translate-y-0 pointer-events-auto': isBottomBarVisible,
+          'opacity-0 translate-y-8 pointer-events-none': !isBottomBarVisible
+        }" v-show="isshow && !isLoading">
       <div>
         <h2 class="font-semibold text-base sm:text-lg text-gray-900">{{ productinfo.erpProduct.productEnglishName }}
         </h2>
         <p class="text-sm text-gray-500">Ordinary type sail / Rectangle</p>
       </div>
       <div class="flex flex-wrap items-center gap-3 sm:gap-4">
-        <div class="flex items-center border border-gray-300 rounded px-2 py-1">
-          <button class="text-gray-500 hover:text-gray-700" @click="decrement">-</button>
-          <span class="mx-2 w-12 text-center">{{ quantity }}</span>
-          <button class="text-gray-500 hover:text-gray-700" @click="increment">+</button>
+        <div class="flex items-center rounded">
+          <button class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center"
+            @click="decrement">
+            <BaseIcon name="i-heroicons-minus-20-solid" />
+          </button>
+
+          <input @input="onQuantityInput" v-model="quantity"
+            class="focus:outline-none focus:ring-0 focus:border-transparent w-12 h-[26px] text-center outline-none border-0 py-1 bg-[#F8F8F8] mx-1" />
+          <button @click="increment"
+            class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center">
+            <BaseIcon name="i-heroicons-plus-20-solid" />
+          </button>
         </div>
         <span class="text-sm text-gray-600">Panels</span>
         <span class="text-base sm:text-lg font-medium text-gray-800">${{ totalPrice.toFixed(2) }}</span>
         <UButton color="primary" size="md" @click="addtocart" class="rounded-lg">Add to Cart</UButton>
       </div>
     </div>
+
     <UModal v-model="addSuccessOpen" :ui="{ width: 'lg:max-w-sm sm:max-w-sm' }">
       <div class="p-6 text-center">
         <div class="mb-10 text-gray-400">
@@ -677,7 +700,7 @@
 
 
     <Faq />
-
+    <div :style="{ height: isBottomBarVisible ? '76px' : '0px' }"></div>
   </div>
 </template>
 
@@ -802,6 +825,7 @@ const selectedMediaIndex = ref(0)
 const selectedReview = ref(null)
 const isLoading = computed(() => pending.value)
 const isBottomBarHidden = ref(true)
+const isBottomBarVisible = ref(false)
 const detailSectionRef = ref(null)
 const bottomBarRef = ref(null)
 const isshow = ref(true)
@@ -1524,12 +1548,10 @@ const changeshow = (index) => {
 }
 
 const handleScroll = () => {
-  if (bottomBarRef.value && detailSectionRef.value) {
-    const rect1 = detailSectionRef.value.getBoundingClientRect()
-    const rect2 = bottomBarRef.value.getBoundingClientRect()
-    if (rect2.top < 800 || rect1.top > 0) { isBottomBarHidden.value = true }
-    else { isBottomBarHidden.value = false }
-  }
+  if (!detailSectionRef.value) return
+  const rect = detailSectionRef.value.getBoundingClientRect()
+  // 当“产品详情块”的底部滚出视口（<= 0）后，底部栏一直显示
+  isBottomBarVisible.value = rect.bottom <= 0
 }
 
 const getStarStatus = (starIndex) => {
@@ -1704,8 +1726,12 @@ onMounted(() => {
   handleGetrelated()
   fetchComments()
   reportViewItem()
+  handleScroll() // ← 新增：挂载后先检查一次
 })
-onUnmounted(() => { window.removeEventListener('scroll', handleScroll) })
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
 const slugify = (str) => {
   return str
     .normalize('NFKD')           // 去掉重音符号

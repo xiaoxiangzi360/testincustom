@@ -1,31 +1,30 @@
 <template>
     <div class="w-full mt-[30px]">
-        <div class="max-row py-5 ">
+        <div class="max-row py-4 ">
             <h1 class="text-xl md:text-[40px] text-primary font-semibold text-center mb-3 sm:mb-12 dark:text-primary">
                 FAQ
             </h1>
 
-            <UAccordion variant="solid" size="xl" :items="faqItems" :ui="{
-                container: 'border-b border-[#00000014]'
-            }" class="text-title">
+            <UAccordion variant="solid" size="xl" :items="faqItems" :ui="{ container: 'border-b border-[#00000014]' }"
+                class="text-title">
                 <template #default="{ item, index, open }">
                     <UButton color="gray" variant="ghost"
-                        class="text-arialblack w-full flex justify-between items-center text-base sm:text-lg font-normal
-         hover:bg-transparent dark:hover:bg-transparent dark:text-arialblack hover:text-primary dark:hover:text-primary"
+                        class="text-arialblack w-full flex justify-between items-center gap-3 text-base sm:text-lg font-normal hover:bg-transparent dark:hover:bg-transparent dark:text-arialblack hover:text-primary dark:hover:text-primary"
                         :ui="{ rounded: 'rounded-none', padding: { sm: 'px-5 py-3 sm:py-4' } }">
-                        <span class="truncate hover:text-primary text-left font-normal">
+                        <!-- 文本容器：允许两行并省略 -->
+                        <span class="flex-1 min-w-0 text-left font-normal leading-snug line-clamp-2 clamp-2">
                             {{ item.label }}
                         </span>
-                        <BaseIcon name="i-heroicons-chevron-down-20-solid"
-                            class="w-5 h-5 transition-transform duration-200" :class="[open ? 'rotate-180' : '']" />
-                    </UButton>
 
+                        <BaseIcon name="i-heroicons-chevron-down-20-solid"
+                            class="w-5 h-5 shrink-0 transition-transform duration-200"
+                            :class="[open ? 'rotate-180' : '']" />
+                    </UButton>
                 </template>
 
                 <template #item="{ item }">
-                    <div class="px-5 py-0 text-[#4B5563]  sm:text-base">
+                    <div class="px-5 py-0 text-[#4B5563] sm:text-base">
                         <p class="content" v-html="item.content"></p>
-
                     </div>
                 </template>
             </UAccordion>
@@ -42,7 +41,8 @@ const faqItems = [
     },
     {
         label: "How long does it take to produce and ship an custom order?",
-        content: "Custom orders usually take 2–5 business days to produce. Shipping times vary by country, typically 7–15 days. If you choose the Expedited Shipping, you will get the package within 7-10 days after it shipped."
+        content:
+            "Custom orders usually take 2–5 business days to produce. Shipping times vary by country, typically 7–15 days. If you choose the Expedited Shipping, you will get the package within 7-10 days after it shipped."
     },
     {
         label: "Can I print my own design or logo on the product?",
@@ -75,11 +75,19 @@ const faqItems = [
             "All items are made-to-order and non-returnable, unless there’s a quality issue or major error. If your item arrives damaged or incorrect, contact us within 7 days — we’ll remake or refund it."
     }
 ];
-
 </script>
 
 <style scoped>
 .content {
     white-space: pre-line;
+}
+
+/* 回退样式：若未安装 @tailwindcss/line-clamp 插件，也能实现两行省略 */
+.clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    /* 最大两行 */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 </style>

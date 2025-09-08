@@ -64,19 +64,20 @@
             <div v-for="(section, idx) in sections" :key="'sec-' + idx">
               <p class="font-medium text-lg mb-5">{{ section.title }}</p>
               <NuxtLink v-for="(link, i) in section.links" :key="i" :to="link.to"
-                class="block hover:text-primary mt-3 text-white/80">{{ link.label }}</NuxtLink>
+                class="block hover:text-primary mt-3 text-white/80 text-sm">{{ link.label }}</NuxtLink>
             </div>
 
             <!-- Trust & Payment 列 -->
             <div>
               <p class="font-medium text-lg mb-5">Trust & Payment</p>
-              <NuxtLink to="/badges" class="block hover:text-primary mt-3 text-white/80">Badges</NuxtLink>
-              <NuxtLink to="/certifications" class="block hover:text-primary mt-3 text-white/80">Quality Certification
+              <NuxtLink to="/badges" class="block hover:text-primary mt-3 text-white/80 text-sm">Badges</NuxtLink>
+              <NuxtLink to="/certifications" class="block hover:text-primary mt-3 text-white/80 text-sm">Quality
+                Certification
               </NuxtLink>
               <div class="flex flex-wrap items-center gap-3 mt-3">
                 <NuxtImg v-for="(b, i) in badges" :key="'bd-' + i" :src="b" alt="badge" class="h-5" />
               </div>
-              <NuxtLink to="" class="block hover:text-primary mt-4 text-white/80">Payment Methods
+              <NuxtLink to="" class="block hover:text-primary mt-4 text-white/80 text-sm">Payment Methods
               </NuxtLink>
             </div>
           </div>
