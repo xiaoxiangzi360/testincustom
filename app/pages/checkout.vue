@@ -15,7 +15,7 @@
                         <main class="flex-1">
                             <section class="rounded bg-white">
                                 <div
-                                    class="p-4 text-customblack font-semibold text-base sm:text-lg flex items-center justify-between">
+                                    class="p-4 pb-[10px] text-customblack font-semibold text-base sm:text-lg flex items-center justify-between">
                                     <span>Contact Email</span>
 
                                     <!-- 仅未登录显示 -->
@@ -26,12 +26,13 @@
                                     </button>
                                 </div>
 
-                                <div class="p-4">
-                                    <FormItem :colon="false" :validateStatus="contactEmailError ? 'error' : ''"
+                                <div class="p-4 pt-0">
+                                    <!-- <FormItem :colon="false" :validateStatus="contactEmailError ? 'error' : ''"
                                         :help="contactEmailError || ''"
                                         :labelCol="{ xs: { span: 24 }, sm: { span: 4 } }"
                                         :wrapperCol="{ xs: { span: 24 }, sm: { span: 16 } }"
-                                        class="flex flex-col sm:flex-row sm:items-center sm:gap-4 w-full">
+                                        class="flex flex-col sm:flex-row sm:items-center sm:gap-4 w-full !mb-0"
+                                        :labelAlign="'left'">
                                         <template #label>
                                             <span class="flex items-center">
                                                 Email
@@ -44,25 +45,45 @@
                                             </span>
                                         </template>
 
-                                        <Input v-model:value="contactEmail" placeholder="Enter your contact email"
-                                            class="w-full sm:w-[360px]" @blur="validateContactEmail"
-                                            @change="validateContactEmail" />
-                                    </FormItem>
+<Input v-model:value="contactEmail" placeholder="Enter your contact email" class="w-full sm:w-[360px]"
+    @blur="validateContactEmail" @change="validateContactEmail" />
+</FormItem> -->
+                                    <Form layout="vertical" ref="formRef" :model="form" class="max-w-[980px]">
+                                        <!-- 第一行：First / Last -->
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-[10px] md:gap-4">
+
+                                            <FormItem label="Email :" class="!mb-0">
+                                                <template #label>
+                                                    <span class="flex items-center">
+                                                        Email
+                                                        <Tooltip
+                                                            title="We will send a message to this email address when there is new progress on the order"
+                                                            color="white"
+                                                            :overlayInnerStyle="{ color: '#333', maxWidth: '300px', whiteSpace: 'pre-line' }">
+                                                            <img src="/question.png"
+                                                                class="w-4 h-4 ml-1 cursor-pointer" />
+                                                        </Tooltip>
+                                                    </span>
+                                                </template>
+                                                <Input v-model:value="contactEmail" placeholder="Contact Email" />
+                                            </FormItem>
+                                        </div>
+                                    </Form>
 
                                 </div>
                             </section>
-                            <section class=" rounded bg-white mt-3" v-if="addressarr.length == 0">
-                                <div class="p-4 text-customblack font-semibold text-base sm:text-lg">
+                            <section class=" rounded bg-white mt-4" v-if="addressarr.length == 0">
+                                <div class="p-4 pb-0 text-customblack font-semibold text-base sm:text-lg">
                                     Delivery Address <span class="text-red-500">*</span>
                                 </div>
 
                                 <div>
-                                    <div class="bg-white px-4 py-4 rounded">
+                                    <div class="bg-white px-4 py-4 pt-[10px] rounded address-form">
                                         <ClientOnly>
                                             <!-- 竖直标签，视觉上与示意图一致 -->
                                             <Form layout="vertical" ref="formRef" :model="form" class="max-w-[980px]">
                                                 <!-- 第一行：First / Last -->
-                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
                                                     <FormItem label="First Name :" required>
                                                         <Input v-model:value="form.firstName"
                                                             placeholder="First Name" />
@@ -79,8 +100,8 @@
                                                 </FormItem>
 
                                                 <!-- 第二行：Country / State -->
-                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <FormItem label="Country :" name="country" required>
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
+                                                    <FormItem label="Country/Region：" name="country" required>
                                                         <Select v-model:value="form.country" show-search allowClear
                                                             placeholder="country"
                                                             :options="countryarr.map(c => ({ label: c.countryName, value: c.countryCode }))"
@@ -96,10 +117,10 @@
                                                 </div>
 
                                                 <!-- 第三行：City / Zip -->
-                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
                                                     <FormItem label="City :" name="city" required>
-                                                        <AutoComplete v-model:value="form.city" allowClear
-                                                            placeholder="City"
+                                                        <AutoComplete class="text-sm" v-model:value="form.city"
+                                                            allowClear placeholder="City"
                                                             :options="cityarr.map(c => ({ label: c.cityName, value: c.cityName }))"
                                                             :filter-option="filterOptionByLabel" />
                                                     </FormItem>
@@ -121,7 +142,7 @@
                                                 </FormItem>
 
                                                 <!-- 设为默认地址 -->
-                                                <FormItem>
+                                                <FormItem class="!mb-0">
                                                     <Checkbox v-model:checked="form.master">Set as default address
                                                     </Checkbox>
                                                 </FormItem>
@@ -133,12 +154,12 @@
 
                             <!-- Account Info -->
 
-                            <section class="rounded bg-white mt-3" v-if="addressarr.length > 0">
-                                <div class="p-4 text-customblack font-semibold text-base sm:text-lg">
+                            <section class="rounded bg-white mt-4" v-if="addressarr.length > 0">
+                                <div class="p-4 pb-0 text-customblack font-semibold text-base sm:text-lg">
                                     Delivery address <span class="text-red-500">*</span>
                                 </div>
 
-                                <div class="flex flex-col md:flex-row justify-between p-4 gap-3">
+                                <div class="flex flex-col md:flex-row justify-between p-4 pt-[10px] gap-3">
                                     <!-- 左侧信息 -->
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 flex-1">
                                         <div>
@@ -169,51 +190,54 @@
                                         <div class="text-primary cursor-pointer text-sm" @click="changeaddress()">
                                             Change another address
                                         </div>
-                                        <div class="text-primary cursor-pointer text-sm mt-3" @click="addnewaddress()">
+                                        <div class="text-primary cursor-pointer text-sm mt-4" @click="addnewaddress()">
                                             Edit address
                                         </div>
                                     </div>
                                 </div>
                             </section>
 
-                            <section class="rounded bg-white mt-3">
-                                <div class="p-4 text-customblack font-semibold text-base sm:text-lg">
+                            <section class="rounded bg-white mt-4">
+                                <div class="p-4 pb-0 text-customblack font-semibold text-base sm:text-lg">
                                     Shipping
                                     Methods
                                     <span style="color: red;">*</span>
                                 </div>
-                                <div class="p-4">
+                                <div class="p-4 pt-[10px]">
                                     <!-- 引入 USelectMenu 和 UButton -->
                                     <USelectMenu v-model="templateid" :options="templates" option-attribute="label"
-                                        value-attribute="feeId"
-                                        :ui="{ rounded: 'rounded', option: { padding: 'px-2 py-2', base: 'py-2' } }"
-                                        :disabled="from == 'order' || templateid == '-1'">
+                                        value-attribute="feeId" :disabled="from == 'order' || templateid == '-1'" :ui="{
+                                            rounded: 'rounded',
+                                        }" :uiMenu="{
+                                            option: {
+                                                base: 'px-2 py-2',                        // 你的原本间距
+                                                active: 'text-primary bg-[#00B2E30A]',    // 鼠标移入/高亮 → 文字变主题色
+                                                selected: 'text-primary font-medium',     // 已选项 → 主题色
+                                                disabled: 'opacity-50 cursor-not-allowed'
+                                            }
+                                        }">
                                         <template #default="{ open }">
                                             <UButton size="lg" color="white" variant="outline"
                                                 class="w-full justify-between h-10 rounded-md ring-0 border border-[rgba(46,46,12,0.2014)]"
                                                 :class="{ 'ring-0': open }">
-                                                <!-- 当前选中项显示 -->
                                                 <span class="text-xs sm:text-sm text-left">
-                                                    {{
-                                                        templates.find(item => item.feeId === templateid)?.label ||
-                                                        'Select Shipping Method'
-                                                    }}
+                                                    {{templates.find(item => item.feeId === templateid)?.label ||
+                                                        'Select Shipping Method'}}
                                                 </span>
                                                 <BaseIcon name="i-heroicons-chevron-down" />
                                             </UButton>
                                         </template>
-
-
                                     </USelectMenu>
+
 
                                 </div>
                             </section>
-                            <section class="rounded bg-white mt-3">
-                                <div class="p-4 text-customblack font-semibold text-base sm:text-lg">
+                            <section class="rounded bg-white mt-4">
+                                <div class="p-4 pb-0 text-customblack font-semibold text-base sm:text-lg">
                                     Payment
                                     Methods <span style="color: red;">*</span>
                                 </div>
-                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 p-4">
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 p-4 pt-[10px]">
                                     <div v-for="option in options" :key="option.value"
                                         class="flex items-center space-x-4 p-2 rounded-md"
                                         :class="selected === option.value ? 'border border-primary' : 'border border-transparent'">
@@ -224,14 +248,14 @@
                                     </div>
                                 </div>
                             </section>
-                            <section class="rounded bg-white mt-3">
-                                <div class="p-4 text-customblack font-semibold text-base sm:text-lg">
+                            <section class="rounded bg-white mt-4">
+                                <div class="p-4 pb-0 text-customblack font-semibold text-base sm:text-lg">
                                     Notes</div>
-                                <div class="p-4">
-                                    <UTextarea v-model="notes" :ui="{
+                                <div class="p-4 pt-[10px]">
+                                    <UTextarea v-model="notes" placeholder="Enter you order notes" :ui="{
                                         color: {
                                             white: {
-                                                outline: 'shadow-sm bg-white text-gray-900 ring-1 ring-inset ring-[rgba(0,0,0,0.15)]'
+                                                outline: 'shadow-sm bg-white placeholder-[#EAEAEA] focus:ring-1 focus:ring-primary text-gray-900 ring-1 ring-inset ring-[rgba(0,0,0,0.15)]'
                                             }
                                         }
                                     }" />
@@ -242,7 +266,7 @@
                     </div>
                     <!-- Cart Summary -->
                     <div class="lg:w-80 bg-white rounded shadow-sm  min-h-[200px]">
-                        <div class="p-4  text-customblack font-semibold text-base sm:text-lg">
+                        <div class="p-4 pb-0 text-customblack font-semibold text-base sm:text-lg">
                             Order Summary</div>
                         <div class="p-4">
 
@@ -282,7 +306,8 @@
 
                                 <div class="flex gap-2 text-white">
                                     <Input v-model:value="couponCode" placeholder="Enter the coupon code"
-                                        class="flex-1 border border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-customblack" />
+                                        class="flex-1 border border-gray-300 focus:border-primary focus:ring-primary text-customblack placeholder-[#EAEAEA]" />
+
 
                                     <UButton @click="applyCoupon" :disabled="!couponCode || applyLoading"
                                         :loading="applyLoading" class="shrink-0 rounded px-4 text-white" :class="[
@@ -299,7 +324,7 @@
                                     {{ couponError }}
                                 </div>
                             </div>
-                            <div v-if="activeCoupon" class="mt-3 inline-flex items-center px-2 py-1 rounded-md text-xs"
+                            <div v-if="activeCoupon" class="mt-4 inline-flex items-center px-2 py-1 rounded-md text-xs"
                                 style="background-color: #F0F0F0; color: #333;">
                                 <img src="/tag.png" class="w-4 h-4 mr-2">
                                 <span class="mr-2 text-xs">{{ activeCoupon }}</span>
@@ -309,16 +334,16 @@
                             </div>
 
                             <!-- Discount Display -->
-                            <div class="flex justify-between mt-3 font-medium" v-if="discount > 0">
+                            <div class="flex justify-between mt-4 font-medium" v-if="discount > 0">
                                 <span class="text-customblack">Discount</span>
                                 <span class="text-primary">- ${{ discount.toFixed(2) }}</span>
                             </div>
 
-                            <div class="flex justify-between mt-3 font-medium">
+                            <div class="flex justify-between mt-4 font-medium">
                                 <span class="text-customblack text-sm">Shipping</span>
                                 <span class="text-primary">${{ shipping.toFixed(2) }}</span>
                             </div>
-                            <div class="pt-3 md:pt-4 flex justify-between font-bold md:mt-4">
+                            <div class="flex justify-between font-bold mt-4">
                                 <span class="text-customblack">Total</span>
                                 <span class="text-primary">${{ ((selectedTotal || 0) + (shipping || 0) -
                                     discount).toFixed(2) }}</span>
@@ -326,7 +351,7 @@
 
                         </div>
                         <div id="paypal-button-container"
-                            class="sticky bottom-1 p-4 bg-white shadow-[0_-2px_6px_rgba(0,0,0,0.1)] md:shadow-none">
+                            class="sticky bottom-1 p-4 pt-0 bg-white shadow-[0_-2px_6px_rgba(0,0,0,0.1)] md:shadow-none pt-4 sm:pt-0">
                         </div>
                     </div>
                 </div>
@@ -335,7 +360,8 @@
 
         </div>
     </div>
-    <UModal v-model="showModal" width="w-full" :ui="{ width: 'sm:max-w-5xl', rounded: 'rounded' }">
+    <UModal v-model="showModal" width="w-full"
+        :ui="{ width: 'sm:max-w-5xl', rounded: 'rounded', container: 'items-center' }">
         <section class="border border-blackcolor/10 rounded">
             <div class="relative p-2 md:p-3 px-6 text-customblack font-semibold text-lg">
                 Address
@@ -366,8 +392,8 @@
             </div>
         </section>
     </UModal>
-    <UModal v-model="isOpen">
-        <div class="p-8 flex justify-center">
+    <UModal v-model="isOpen" :ui="{ container: 'items-center' }">
+        <div class=" p-8 flex justify-center">
             <div class="text-center">
                 <div>{{ changedesc }}</div>
                 <UButton class="mt-6 rounded" @click="refreshPage">Refresh</UButton>
@@ -376,7 +402,7 @@
 
     </UModal>
     <!-- Sign In Modal -->
-    <UModal v-model="showSignIn" :ui="{ width: 'sm:max-w-md', rounded: 'rounded-xl' }">
+    <UModal v-model="showSignIn" :ui="{ width: 'sm:max-w-md', rounded: 'rounded-xl', container: 'items-center' }">
         <div class="p-4">
             <div class="flex items-center justify-between mb-4">
                 <div class="text-xl font-semibold">
@@ -389,7 +415,7 @@
                 <UInput v-model="signinForm.email" :ui="{
                     color: {
                         white: {
-                            outline: ' ring-1 ring-inset ring-[rgba(0,0,0,0.15)]'
+                            outline: 'ring-1 ring-[rgba(0,0,0,0.15)] focus:ring-1 focus:ring-primary'
                         }
                     },
                     placeholder: 'placeholder-[#D9D9D9]'
@@ -397,7 +423,7 @@
                 <UInput v-model="signinForm.password" :ui="{
                     icon: { trailing: { pointer: '' } }, base: 'dark:!bg-white dark:!text-gray-900 ', color: {
                         white: {
-                            outline: ' ring-1 ring-inset ring-[rgba(0,0,0,0.15)]'
+                            outline: 'ring-1 ring-[rgba(0,0,0,0.15)] focus:ring-1 focus:ring-primary'
                         }
                     }, placeholder: 'placeholder-[#D9D9D9]'
                 }" placeholder="Please enter password" :type="showPassword ? 'text' : 'password'" size="lg"
@@ -409,7 +435,9 @@
                         </UButton>
                     </template>
                 </UInput>
-                <UButton block color="primary" size="lg" class="mt-6" :loading="signingIn" @click="handleSignIn">Sign in
+                <UButton block color="primary" size="lg" class="mt-6 rounded-md" :loading="signingIn"
+                    @click="handleSignIn">
+                    Sign in
                 </UButton>
             </div>
 
@@ -419,8 +447,8 @@
                 <div class="flex-1 h-px bg-[#f0f0f0]"></div>
             </div>
 
-            <div class="space-y-2">
-                <UButton block variant="outline" size="lg" :ui="{
+            <div>
+                <UButton block variant="outline" size="lg" class="rounded-md" :ui="{
                     variant: {
                         outline: 'ring-0 shadow-none bg-white hover:bg-gray-50 border !border-[#D9D9D9]'
                     }
@@ -430,7 +458,7 @@
                         <span>Sign in With Google</span>
                     </div>
                 </UButton>
-                <UButton block variant="outline" :ui="{
+                <UButton block variant="outline" class="mt-4 rounded-md" :ui="{
                     variant: {
                         outline: 'ring-0 shadow-none bg-white hover:bg-gray-50 border !border-[#D9D9D9]'
                     }
@@ -588,27 +616,28 @@ const applyCoupon = async () => {
         })
     });
     let addparmes = {
-        buyerCity: addressinfo.value.city,
-        buyerCountryCode: addressinfo.value.country,
-        buyerCountryName: addressinfo.value.countryName,
-        buyerEmail: addressinfo.value?.email || contactEmail.value,
-        buyerFirstName: addressinfo.value.firstName,
-        buyerAddress: addressinfo.value.address,
-        buyerLastName: addressinfo.value.lastName,
+        buyerCity: addressinfo.value.city || form.value.city,
+        buyerCountryCode: addressinfo.value.country || form.value.country,
+        buyerCountryName: addressinfo.value.countryName ||
+            countryarr.value.find(c => c.countryCode === form.value.country)?.countryName ||
+            '',
+        buyerEmail: addressinfo.value.email || contactEmail.value || form.value.email,
+        buyerFirstName: addressinfo.value.firstName || form.value.firstName,
+        buyerAddress: addressinfo.value.address || form.value.address,
+        buyerLastName: addressinfo.value.lastName || form.value.lastName,
         buyerNotes: notes.value,
-        buyerPhoneAreaCode: addressinfo.value.numberCode,
-        buyerPhoneNumber: addressinfo.value.number,
-        buyerPostalCode: addressinfo.value.postalCode,
-        buyerStateOrProvince: addressinfo.value.province,
+        buyerPhoneAreaCode: addressinfo.value.numberCode || form.value.numberCode,
+        buyerPhoneNumber: addressinfo.value.number || form.value.number,   // ✅ 你说的写法
+        buyerPostalCode: addressinfo.value.postalCode || form.value.postalCode,
+        buyerStateOrProvince: addressinfo.value.province || form.value.province,
         id: orderId.value,
         shippingRuleFeeId: templateid.value,
-        shippingRule: {
-            calFee: shipping.value
-        },
+        shippingRule: { calFee: shipping.value },
         create: false,
         orderItemList: orderItemListarr,
         marketingActivityCouponCode: couponCode.value
     }
+
 
     applyLoading.value = true
 
@@ -1019,7 +1048,7 @@ const handleSubmit = async () => {
         buyerLastName: addressinfo.value.lastName,
         buyerNotes: notes.value,
         buyerPhoneAreaCode: addressinfo.value.numberCode,
-        buyerPhoneNumber: addressinfo.value.number,
+        buyerPhoneNumber: addressinfo.value.number || form.value.number,
         buyerPostalCode: addressinfo.value.postalCode,
         buyerStateOrProvince: addressinfo.value.province,
         id: orderId.value,
@@ -1499,19 +1528,23 @@ tbody tr {
     height: 32px !important;
     display: flex;
     align-items: center;
-    padding: 4px 11px !important;
+    padding: 4px 16px !important;
     font-size: 14px;
     border-radius: 4px;
     border-color: #d9d9d9;
 }
 
 .ant-input:focus {
-    border-color: #2563eb;
+    border-color: #00B2E3;
     border: none;
 }
 
 .ant-form-item {
     margin-bottom: 16px;
+}
+
+.address-form .ant-form-item {
+    margin-bottom: 10px;
 }
 
 /* 去掉 antd Select 的 hover / focus 外边框与阴影 */
@@ -1547,5 +1580,19 @@ tbody tr {
 :deep(.ant-form-vertical .ant-form-item-label > label) {
     margin-bottom: 2px;
     font-weight: 500;
+}
+
+:deep(.ant-select-single .ant-select-selector) {
+    padding: 0 16px !important;
+}
+
+:deep(.ant-form-vertical .ant-form-item-label),
+:deep(.ant-col-24.ant-form-item-label),
+:deep(.ant-col-xl-24.ant-form-item-label) {
+    padding: 0 0 10px !important;
+}
+
+:deep(:root) {
+    --tw-ring-color: #00B2E3;
 }
 </style>

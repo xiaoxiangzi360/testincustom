@@ -34,4 +34,15 @@
   textarea {
     @apply text-black;
   }
+
+  .form-input:focus,
+  .form-textarea:focus,
+  .form-select:focus,
+  .form-multiselect:focus {
+    --tw-ring-color: #00B2E3;
+    border-color: #00B2E3;
+  }
 }
+  :root {
+    --tw-ring-color: #00B2E3;
+  }

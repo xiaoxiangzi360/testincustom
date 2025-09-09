@@ -141,7 +141,7 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
 <template>
   <nav class="w-full mx-auto text-white fixed z-50">
     <div class="bg-[#222222]">
-      <div class="flex items-center justify-between navbar-grid py-2 max-row">
+      <div class="flex items-center justify-between navbar-grid py-[2px] max-row">
         <div style="grid-area: logo" class="flex">
           <TheLogo class="absolute top-2 left-1/2 -translate-x-1/2 lg:static lg:translate-x-0"></TheLogo>
         </div>
