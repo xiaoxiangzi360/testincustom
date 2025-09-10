@@ -66,7 +66,7 @@
                                                     <div class="text-sm text-gray-900 mt-1">
                                                         Subtotal:
                                                         ${{ (item.product.skuSpec.customPrice *
-                                                        item.productQuantity).toFixed(2) }}
+                                                            item.productQuantity).toFixed(2) }}
                                                     </div>
                                                 </div>
 
@@ -206,7 +206,7 @@
                                                 <div>
                                                     <div class="font-medium text-base">
                                                         {{ item.product ? item.product.erpProduct.productEnglishName :
-                                                        '' }}
+                                                            '' }}
                                                     </div>
                                                     <p class="text-xs text-gray-500">{{ item.product?.skuSpec?.specAttr
                                                         }}</p>
@@ -244,12 +244,15 @@
                         </table>
 
                         <div
-                            class="mt-4 flex items-center text-sm md:text-base md:gap-4 lg:gap-6 p-3 md:p-4 lg:p-6 bg-white sticky bottom-0 shadow-md">
+                            class="mt-4 flex items-center text-sm md:text-base gap-2 md:gap-4 lg:gap-6 p-3 md:p-4 lg:p-6 bg-white sticky bottom-0 shadow-md">
                             <input type="checkbox" v-model="selectAll" @change="toggleSelectAll" class="rounded" />
-                            <span class="text-gray-600">
-                                <span class="font-normal mr-2 cursor-pointer" @click="setSelectAll">Select all</span>
+                            <span class="text-gray-600  flex items-center leading-none">
+                                <span class="font-normal mr-2 cursor-pointer" @click="setSelectAll">
+                                    Select all
+                                </span>
                                 (select {{ selectedQuantity }} items)
                             </span>
+
                             <button @click="deleteSelected" :disabled="selectedItems.length === 0"
                                 class="text-primary hover:text-primary-600 disabled:text-gray-300 disabled:cursor-not-allowed">
                                 Delete
@@ -261,7 +264,7 @@
                     <div
                         class="lg:w-80 bg-white rounded-lg shadow-sm flex flex-col justify-between min-h-[200px] text-sm md:text-base">
                         <div class="p-6">
-                            <div class="flex justify-between text-gray-600">
+                            <div class="flex justify-between text-gray-600 ">
                                 <span>Selected {{ selectedQuantity }} items</span>
                                 <span>${{ selectedTotal.toFixed(2) }}</span>
                             </div>
@@ -274,10 +277,11 @@
                                 <span>${{ (selectedTotal + shipping).toFixed(2) }}</span>
                             </div>
                         </div>
-                        <button @click="checkout()"
-                            class="!rounded-button rounded w-full bg-primary text-white py-3 whitespace-nowrap sticky bottom-1">
+                        <button @click="checkout()" :disabled="selectedItems.length === 0" class="!rounded-button rounded w-full bg-primary text-white py-3 whitespace-nowrap sticky bottom-1
+         disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed">
                             Checkout
                         </button>
+
                     </div>
                 </div>
             </div>
@@ -320,12 +324,16 @@ const isTokenValid = computed(() => !!token.value)
 const refreshFromStore = async () => {
     try {
         await cart.refreshCart()
-        // 初始化时不要强制全选，保持 false
-        selectAll.value = false
+        // 初始化时强制全选
+        selectAll.value = true
+        cart.itemList.forEach(item => {
+            item.selected = true
+        })
     } catch (e) {
         console.error(e)
     }
 }
+
 if (isTokenValid.value) {
     refreshFromStore()
 }
@@ -343,13 +351,16 @@ const setSelectAll = () => {
 }
 
 const checkout = () => {
-    if (!selectAll.value) {
-        const selectedIds = selectedItems.value.map(item => item.id).join(',')
-        router.push(`/checkout?from=cart&ids=${selectedIds}`)
-    } else {
-        router.push(`/checkout?from=cart`)
+    if (selectedItems.value.length === 0) {
+        message.warning('Please select at least one item')
+        return
     }
+
+    const selectedIds = selectedItems.value.map(item => item.id).join(',')
+    router.push(`/checkout?from=cart&ids=${selectedIds}`)
 }
+
+
 
 const updateSelection = () => {
     selectAll.value = cart.itemList.length > 0 && cart.itemList.every(item => item.selected)

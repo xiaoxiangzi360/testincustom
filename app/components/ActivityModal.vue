@@ -1,11 +1,12 @@
 <template>
-    <UModal :ui="{ width: 'sm:max-w-2xl', container: 'items-center' }" v-model="props.isshow">
+    <UModal :ui="{ width: 'sm:max-w-2xl', container: 'items-center' }" :model-value="props.isshow"
+        @update:model-value="(v) => emit('update:isshow', v)" :prevent-close="false">
         <!-- ===== 邮箱订阅：couponReceiveMethod == 50 ===== -->
         <div v-show="props.curactivity.couponReceiveMethod == 50"
             class="bg-[#fff5dc] rounded-xl shadow-xl flex flex-col md:flex-row max-w-3xl w-full overflow-hidden relative">
             <!-- ✅ Close button（邮箱订阅：点击关闭=今天不再弹） -->
             <div class="absolute top-3 right-3 z-50 text-gray-500 hover:text-black cursor-pointer" @click="handleget">
-                <img src="/close.png" class="w-6">
+                <img src="/close.png" class="w-6" />
             </div>
 
             <!-- Left image - only on desktop -->
@@ -43,7 +44,7 @@
                     <!-- Email input with icon -->
                     <div class="relative">
                         <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
-                            <img src="/email.png" class="w-6">
+                            <img src="/email.png" class="w-6" />
                         </span>
                         <input type="email" v-model="email" placeholder="Email Address"
                             class="w-full pl-10 border rounded-md p-3 focus:outline-none"
@@ -76,7 +77,7 @@
             <!-- Close button -->
             <div class="absolute top-3 right-3 text-gray-500 hover:text-black cursor-pointer"
                 @click="handleCloseAttempt">
-                <img src="/close.png" class="w-6">
+                <img src="/close.png" class="w-6" />
             </div>
 
             <!-- Title text -->
@@ -164,7 +165,8 @@ const setCookiePermanent = () => {
 function copyCode() {
     const textToCopy = promoCode.value.join('')
     if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(textToCopy)
+        navigator.clipboard
+            .writeText(textToCopy)
             .then(() => message.success('copy success'))
             .catch(() => message.error('copy failed'))
     } else {
@@ -286,6 +288,7 @@ function isEmptyObject(obj) {
     return obj && typeof obj === 'object' && !Array.isArray(obj) && Object.keys(obj).length === 0
 }
 </script>
+
 <style scoped>
 :deep(.ant-select:not(.ant-select-disabled):hover .ant-select-selector) {
     border-color: #d9d9d9 !important;

@@ -1,9 +1,8 @@
 <template>
-    <UModal v-model="props.isshow" :ui="{ rounded: 'rounded', container: 'items-center' }">
+    <UModal :model-value="props.isshow" @update:model-value="(v) => { if (!v) emit('close') }" :prevent-close="false"
+        :ui="{ rounded: 'rounded', container: 'items-center' }">
         <div class="p-4 rounded">
-
             <div class="text-lg font-medium pb-4">{{ form.id ? 'Edit' : 'Add' }} Address</div>
-
 
             <Form ref="formRef" :model="form" :rules="rules" layout="vertical" @keydown.enter.prevent>
                 <FormItem name="country">
@@ -228,7 +227,6 @@ const ensureCountriesLoaded = async () => {
 }
 
 // ===== 级联重置（带 hydrating 短路） =====
-// 国家变化：清空省/市并拉省，选择国家时同步区号；回填阶段跳过
 watch(
     () => form.value.country,
     async (newVal) => {
@@ -240,7 +238,7 @@ watch(
         cityarr.value = []
 
         if (!newVal) {
-            form.value.numberCode = DEFAULT_DIAL_CODE // allowClear 时回默认
+            form.value.numberCode = DEFAULT_DIAL_CODE
             return
         }
 
@@ -252,7 +250,6 @@ watch(
     }
 )
 
-// 省份变化：清空城市并拉城市；回填阶段跳过
 watch(
     () => form.value.province,
     async (newVal) => {
@@ -274,8 +271,7 @@ const subform = async (event?: Event) => {
         await formRef.value.validate()
         loading.value = true
 
-        const countryName =
-            countryarr.value?.find(c => c.countryCode === form.value.country)?.countryName || ''
+        const countryName = countryarr.value?.find(c => c.countryCode === form.value.country)?.countryName || ''
         const payload: any = {
             id: form.value.id || undefined,
             fullName: `${form.value.firstName}${form.value.lastName}`,
@@ -330,7 +326,6 @@ watch(
 
         hydrating.value = true
         try {
-            // 关键：先确保国家列表已加载
             await ensureCountriesLoaded()
 
             // 1) 回填基础字段（省/市暂清空，避免触发 watcher）
@@ -341,7 +336,7 @@ watch(
                 address: val.address || '',
                 postalCode: val.postalCode || '',
                 country: val.country || null,
-                province: null, // 暂置空
+                province: null,
                 city: '',
                 numberCode: val.numberCode || DEFAULT_DIAL_CODE,
                 number: val.number || '',
@@ -357,21 +352,20 @@ watch(
                 await getProvince()
 
                 if (val.province) {
-                    form.value.province = val.province // value=regionName
+                    form.value.province = val.province
                     await nextTick()
                     await getCity()
                 }
 
-                // 3) 省份选项到位后再设城市（value=cityName）
+                // 3) 省份选项到位后再设城市
                 if (val.city) {
                     form.value.city = val.city
                 }
             } else {
-                // 没有国家，尝试默认国家
                 await getdefaultcountry()
             }
         } finally {
-            hydrating.value = false // 恢复级联
+            hydrating.value = false
         }
     },
     { immediate: true }
@@ -379,7 +373,7 @@ watch(
 
 // ===== 生命周期 =====
 onMounted(async () => {
-    await getCountrylist() // 双保险：组件挂载时确保拉取到
+    await getCountrylist()
 })
 onUnmounted(() => {
     // 可按需清理

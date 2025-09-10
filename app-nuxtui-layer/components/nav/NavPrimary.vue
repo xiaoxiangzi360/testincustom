@@ -389,29 +389,29 @@ onMounted(async () => {
       </div>
 
       <transition name="slide-down">
-        <div v-if="deliverOpen" class="px-3 py-3 border-b border-b-blackcolor/10 bg-white space-y-4">
+        <div v-if="deliverOpen" class="px-3 py-3 border-b border-b-blackcolor/10 bg-white">
           <!-- 国家 -->
           <div>
-            <label class="block text-sm text-gray-400 mb-1">Select Country/Region</label>
+            <label class="block text-sm text-gray-400 mb-2">Select Country/Region</label>
             <Select v-model:value="selectedCountryId" :options="countryOptions" show-search
               :filter-option="filterBySearch" :loading="countryLoading" placeholder="Select Country/Region"
               style="width: 100%;" />
           </div>
           <!-- 省 -->
-          <div>
-            <label class="block text-sm text-gray-400 mb-1">Select State/Province</label>
+          <div class="mt-4">
+            <label class="block text-sm text-gray-400 mb-2">Select State/Province</label>
             <Select v-model:value="selectedProvinceId" :options="provinceOptions" show-search
               :filter-option="filterBySearch" :loading="provinceLoading" placeholder="Select State/Province"
               style="width: 100%;" />
           </div>
           <!-- 市 -->
-          <div>
-            <label class="block text-sm text-gray-400 mb-1">City</label>
+          <div class="mt-4">
+            <label class="block text-sm text-gray-400 mb-2">City</label>
             <Select v-model:value="selectedCityId" :options="cityOptions" show-search :filter-option="filterBySearch"
               :loading="cityLoading" placeholder="Select City" style="width: 100%;" />
           </div>
 
-          <div class="pt-2 flex justify-end">
+          <div class="pt-4 flex justify-end">
             <UButton type="submit" color="primary" class="rounded-md" :disabled="!nowLocation.countryCode"
               @click.stop="handleDeliverSubmitInline()">
               Done
