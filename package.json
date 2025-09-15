@@ -25,12 +25,14 @@
     "format": "prettier --write \"**/*.{html,vue,svelte,astro,js,jsx,cjs,mjs,ts,tsx,cts,mts,css,md,mdx,json}\" !public --ignore-path .gitignore"
   },
   "dependencies": {
+    "@airwallex/components-sdk": "^1.25.0",
     "@paypal/paypal-js": "^8.2.0",
     "@pinia/nuxt": "^0.5.4",
     "@splidejs/vue-splide": "^0.6.12",
     "@unhead/vue": "1.11.14",
     "@vee-validate/nuxt": "^4.13.2",
     "@vueuse/core": "^11.0.3",
+    "airwallex-payment-elements": "^1.131.0",
     "ant-design-vue": "^4.2.6",
     "ipx": "^3.0.3",
     "lite-youtube-embed": "^0.3.3",
