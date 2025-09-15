@@ -132,7 +132,7 @@
                                                     <span v-for="spec in product.skuPropList" :key="spec.value"
                                                         class="mr-2">{{ spec.value }}</span>
                                                 </p>
-                                                <button class="text-primary-500 text-sm mt-1">View details</button>
+                                                <!-- <button class="text-primary-500 text-sm mt-1">View details</button> -->
                                             </div>
                                         </div>
                                         <div class="flex items-center text-sm gap-2 mt-2"

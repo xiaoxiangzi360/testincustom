@@ -28,6 +28,19 @@ export const PayAuth = () => {
             throw error
         }
     }
+    const airwallexCapturePaymentIntents = async (params) => {
+        try {
+            const query = new URLSearchParams(params).toString()
+            const response = await $api(`/pay/airwallex/airwallexCapturePaymentIntents?${query}`, {
+                method: 'GET',
+            })
+
+            return response
+        } catch (error) {
+
+            throw error
+        }
+    }
     const getAvailablePaymentByBindId = async (params) => {
         try {
             const query = new URLSearchParams(params).toString()
@@ -41,5 +54,5 @@ export const PayAuth = () => {
             throw error
         }
     }
-    return { createPayment, completePayment, getAvailablePaymentByBindId }
+    return { createPayment, completePayment, getAvailablePaymentByBindId, airwallexCapturePaymentIntents }
 }

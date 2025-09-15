@@ -112,7 +112,7 @@ const infoOpen = ref(false);
 // ✅ langOpen 改为控制 UModal
 const langOpen = ref(false);
 
-const { getCart, deleteCart } = cartAuth();
+const { getCart } = cartAuth();
 const { logout, updateUserInfo } = useAuth();
 const { getUserlPBylp2Location, listCountryAll, listProvinceByCountryId, listCityByRegionId } = LocationAuth();
 
@@ -192,12 +192,18 @@ const shipping = ref(0);
 const increaseproductQuantity = (index: number) => { cart.increaseQuantity(index) };
 const decreaseproductQuantity = (index: number) => { cart.decreaseQuantity(index) };
 const removeItem = async (index: number) => {
-  let data = { idList: [cart.itemList[index].id] }
-  await deleteCart(data);
-  cart.updateCart(cart.itemList);
-  cart.itemList.splice(index, 1);
+  const item = cart.itemList[index]
+  if (!item) return
+
+  await cart.removeOne({
+    id: item.id,
+    productQuantity: item.productQuantity ?? 0,
+  })
+
   message.success('Delete successful')
-};
+
+}
+
 const subtotal = computed(() => cart.itemList.reduce((sum, item) => sum + item.product.skuSpec.customPrice * item.productQuantity, 0));
 const total = computed(() => subtotal.value + shipping.value);
 const showDetails = ref(false);
@@ -378,7 +384,10 @@ const handleSubmit = () => {
 }
 
 const checkout = () => {
-  window.location.href = '/checkout?from=cart'
+  const itemsParam = cart.itemList.map(item => `${item.id}:${item.productQuantity}`).join(',')
+
+  router.push(`/checkout?from=cart&items=${encodeURIComponent(itemsParam)}`)
+
 }
 const slugify = (str: string) => {
   return str

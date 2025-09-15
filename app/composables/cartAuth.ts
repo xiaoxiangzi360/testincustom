@@ -56,6 +56,19 @@ export const cartAuth = () => {
             throw error
         }
     }
+    const batchDeductionUserShoppingCart = async (data: any) => {
+        try {
+            const response = await $api('/user/userShoppingCart/batchDeductionUserShoppingCart', {
+                method: 'POST',
+                body: data,
+            })
 
-    return { getCart, createCart, deleteCart, updateCart }
+
+            return response
+        } catch (error) {
+
+            throw error
+        }
+    }
+    return { getCart, createCart, deleteCart, updateCart, batchDeductionUserShoppingCart }
 }

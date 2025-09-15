@@ -39,8 +39,14 @@
                             label="Discount" class="text-sm" />
                     </div>
                     <div class="relative flex items-center">
-                        <span class="mr-4 text-sm">Sort</span>
-                        <USelect size="xs" v-model="selectedsort" :options="sortarray" />
+                        <span class="mr-4 text-sm dark:text-gray-900">Sort</span>
+                        <USelect size="xs" v-model="selectedsort" :options="sortarray" color="white" :ui="{
+                            color: {
+                                white: {
+                                    outline: 'bg-white dark:bg-white dark:text-gray-900 ring-1 ring-gray-300 dark:ring-gray-300'
+                                }
+                            }
+                        }" />
                     </div>
                 </div>
 

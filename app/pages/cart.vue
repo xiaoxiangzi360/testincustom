@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen bg-[#F8F8F8]">
+    <div class="min-h-screen bg-white">
         <div class="max-w-7xl mx-auto p-3 md:py-4 lg:py-8">
             <div class="mb-3 md:mb-4 lg:mb-6 font-medium dark:text-black text-base">Shopping Cart</div>
             <div class="rounded-lg shadow-sm">
@@ -277,12 +277,24 @@
                                 <span>${{ (selectedTotal + shipping).toFixed(2) }}</span>
                             </div>
                         </div>
-                        <button @click="checkout()" :disabled="selectedItems.length === 0" class="!rounded-button rounded w-full bg-primary text-white py-3 whitespace-nowrap sticky bottom-1
-         disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed">
-                            Checkout
-                        </button>
+                        <!-- Desktop-only sticky button -->
+                        <button @click="checkout()"
+                            class="!rounded-button rounded w-full bg-primary text-white py-3 whitespace-nowrap hidden md:block sticky  bottom-1">
+                            Checkout </button>
+
 
                     </div>
+                    <!-- Mobile fixed checkout bar -->
+                    <div
+                        class="md:hidden fixed left-0 right-0 bottom-0 bg-white p-2 shadow-[0_-2px_10px_rgba(0,0,0,0.06)] z-50">
+                        <button @click="checkout()" class="rounded w-full bg-primary text-white py-3 whitespace-nowrap">
+                            Checkout
+                        </button>
+                    </div>
+
+                    <!-- Spacer to prevent content from being covered by the fixed bar -->
+                    <div class="md:hidden h-20"></div>
+
                 </div>
             </div>
         </div>
@@ -296,8 +308,7 @@ import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 
 const router = useRouter()
-const cart = useCartStore()
-const { deleteCart } = cartAuth() // 仅用于删除接口；拉取统一用 cart.refreshCart()
+const cart = useCartStore() // ✅ 只通过 Pinia 操作删除
 
 const activeTab = ref<'cart' | 'expired'>('cart')
 const min = 1
@@ -308,9 +319,11 @@ const isDesktop = ref(false)
 
 const selectedItems = computed(() => cart.itemList.filter(item => item.selected))
 const selectedTotal = computed(() =>
-    selectedItems.value.reduce((total, item) => total + item.product.skuSpec.customPrice * item.productQuantity, 0)
+    selectedItems.value.reduce((total, item) => total + item.product.skuSpec.customPrice * item.productQuantity, 0),
 )
-const selectedQuantity = computed(() => selectedItems.value.reduce((sum, item) => sum + item.productQuantity, 0))
+const selectedQuantity = computed(() =>
+    selectedItems.value.reduce((sum, item) => sum + item.productQuantity, 0),
+)
 
 const validate = (index: number) => {
     if (cart.itemList[index].productQuantity < min) cart.itemList[index].productQuantity = min
@@ -356,11 +369,11 @@ const checkout = () => {
         return
     }
 
-    const selectedIds = selectedItems.value.map(item => item.id).join(',')
-    router.push(`/checkout?from=cart&ids=${selectedIds}`)
+    // id:qty 组成的字符串，例如 "123:2,456:1"
+    const itemsParam = selectedItems.value.map(item => `${item.id}:${item.productQuantity}`).join(',')
+
+    router.push(`/checkout?from=cart&items=${encodeURIComponent(itemsParam)}`)
 }
-
-
 
 const updateSelection = () => {
     selectAll.value = cart.itemList.length > 0 && cart.itemList.every(item => item.selected)
@@ -379,38 +392,46 @@ const slugify = (str: string) => {
         .toLowerCase()
 }
 
+/** =========================
+ * ✅ 删除逻辑全部走 Pinia
+ * ========================= */
+
+// 删除单个（由调用方传入 id 和当前数量）
 const deleteItem = async (item: any) => {
-    const idx = cart.itemList.indexOf(item)
-    if (idx > -1) {
-        cart.itemList.splice(idx, 1)
-    }
-    await deleteCart({ idList: [item.id] })
+    await cart.removeOne({
+        id: item.id,
+        productQuantity: item.productQuantity ?? 0,
+    })
     message.success('Delete successful')
-    await cart.refreshCart()
+    // 如需强一致可再拉一次：
+    // await cart.refreshCart()
 }
 
+// 删除已选
 const deleteSelected = async () => {
-    const ids = selectedItems.value.map(el => el.id)
-    if (!ids.length) return
+    const list = selectedItems.value.map(it => ({
+        id: it.id,
+        productQuantity: it.productQuantity ?? 0,
+    }))
+    if (!list.length) return
     selectAll.value = false
-    await deleteCart({ idList: ids })
+    await cart.removeItems(list)
     message.success('Delete successful')
-    await cart.refreshCart()
+    // await cart.refreshCart()
 }
 
+// 删除失效
 const deleteInvalid = async () => {
-    const ids = (cart.saleDownList || []).map(el => el.id)
-    if (!ids.length) return
-    await deleteCart({ idList: ids })
+    await cart.removeInvalidAll()
     message.success('Delete successful')
-    await cart.refreshCart()
+    // await cart.refreshCart()
 }
 
-// 数量加减走 store
+/** 数量加减仍走 store */
 const increaseproductQuantity = (index: number) => cart.increaseQuantity(index)
 const decreaseproductQuantity = (index: number) => cart.decreaseQuantity(index)
 
-// Update isDesktop on window resize
+/** 响应式判断桌面端 */
 const handleResize = () => {
     if (typeof window !== 'undefined') {
         isDesktop.value = window.innerWidth >= 1024
@@ -424,6 +445,7 @@ onUnmounted(() => {
     window.removeEventListener('resize', handleResize)
 })
 </script>
+
 
 <style scoped>
 input[type="number"]::-webkit-inner-spin-button,

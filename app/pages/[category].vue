@@ -258,8 +258,14 @@ watch([products, loading, selectedsort, () => selected.value], () => {
               class="text-sm font-normal" :ui="{ label: 'font-normal' }" />
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-sm">Sort</span>
-            <USelect size="xs" v-model="selectedsort" :options="sortarray" />
+            <span class="text-sm dark:text-gray-900">Sort</span>
+            <USelect size="xs" v-model="selectedsort" :options="sortarray" color="white" :ui="{
+              color: {
+                white: {
+                  outline: 'bg-white dark:bg-white dark:text-gray-900 ring-1 ring-gray-300 dark:ring-gray-300'
+                }
+              }
+            }" />
           </div>
         </div>
 

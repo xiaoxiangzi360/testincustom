@@ -120,7 +120,8 @@
                   @swiper="onThumbSwiper">
                   <SwiperSlide v-for="(item, idx) in productinfo.erpProduct.photoList"
                     :key="'thumb-' + (item.url || idx)" @click="swiperMain?.slideTo(idx)">
-                    <NuxtImg width="80" height="80" loading="eager" :src="item.url" alt="thumbnail"
+                    <NuxtImg width="80" height="80" loading="eager"
+                      :src="item.url + '?x-oss-process=image/auto-orient,1/resize,w_100,limit_0'" alt="thumbnail"
                       class="w-full object-cover rounded cursor-pointer hover:opacity-80" />
                   </SwiperSlide>
 
@@ -210,7 +211,9 @@
                           ? 'rounded border border-primary'
                           : ''
                       ]" v-if="type.imageLink">
-                        <img :src="type.imageLink" class="w-full h-full object-contain rounded" />
+                        <NuxtImg :src="type.imageLink + '?x-oss-process=image/auto-orient,1/resize,w_100,limit_0'"
+                          class="w-full h-full object-contain rounded" format="webp" :quality="80" />
+
                         <div
                           v-if="property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId"
                           class="absolute bottom-0 right-0 w-5 h-5">
@@ -682,21 +685,25 @@
       </div>
     </div>
 
-    <UModal v-model="addSuccessOpen" :ui="{ width: 'lg:max-w-sm sm:max-w-sm' }">
-      <div class="p-6 text-center">
-        <div class="mb-10 text-gray-400">
+    <UModal v-model="addSuccessOpen" :ui="{ width: 'lg:w-[500px] lg:max-w-[500px] sm:max-w-sm' }">
+      <div class="p-8 pb-6">
+        <div class="mb-4 text-gray-400">
           The product has been successfully added to the shopping cart
         </div>
-        <div class="flex flex-col sm:flex-row gap-3 justify-center w-full max-w-sm mx-auto">
-          <UButton variant="outline" color="gray" class="flex-1 justify-center" @click="closeAddSuccess">
+
+        <!-- 按钮区域 -->
+        <div class="flex flex-col sm:flex-row gap-4 sm:justify-end">
+          <Button @click="closeAddSuccess">
             Continue Shopping
-          </UButton>
-          <UButton color="primary" class="flex-1 justify-center" @click="goCart">
+          </Button>
+
+          <Button type="primary" @click="goCart">
             View Cart
-          </UButton>
+          </Button>
         </div>
       </div>
     </UModal>
+
 
 
     <Faq />
@@ -1918,6 +1925,10 @@ input[type="radio"]:checked:hover {
 :deep(.ant-btn-default.custom-btn:not(:disabled):hover) {
   color: #00B2E3 !important;
   border-color: #00B2E3 !important;
+}
+
+:deep(.ant-btn-default) {
+  border-color: #F5F5F5 !important;
 }
 
 .triangle-checkmark {

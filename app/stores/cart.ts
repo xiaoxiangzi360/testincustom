@@ -67,27 +67,34 @@ export const useCartStore = defineStore('cart', {
         },
 
         // ✅ 新增：删除一批（会同时从 items 和 saleDownList 本地移除）
-        async removeItems(ids: (string | number)[]) {
-            if (!ids?.length) return
+        async removeItems(list: Array<{ id: string | number; productQuantity: number }>) {
+            if (!list?.length) return
             try {
-                const { deleteCart } = cartAuth()
-                await deleteCart({ idList: ids })
-                this.items = this.items.filter(i => !ids.includes(i.id))
-                this.saleDownList = this.saleDownList.filter(i => !ids.includes(i.id))
+                const { batchDeductionUserShoppingCart } = cartAuth()
+                await batchDeductionUserShoppingCart({ deleteList: list })
+
+                // 本地同步移除（按 id）
+                const idSet = new Set(list.map(i => i.id))
+                this.items = this.items.filter(i => !idSet.has(i.id))
+                this.saleDownList = this.saleDownList.filter(i => !idSet.has(i.id))
             } catch (e) {
                 console.error('Failed to remove items:', e)
             }
         },
 
-        // ✅ 新增：删除单个
-        async removeOne(id: string | number) {
-            await this.removeItems([id])
+        // ✅ 单个删除：由调用方传入 { id, productQuantity }
+        async removeOne(payload: { id: string | number; productQuantity: number }) {
+            if (!payload) return
+            await this.removeItems([payload])
         },
-
         // ✅ 新增：清空失效
         async removeInvalidAll() {
-            const ids = this.saleDownList.map(i => i.id)
-            await this.removeItems(ids)
+            if (!this.saleDownList?.length) return
+            const list = this.saleDownList.map(i => ({
+                id: i.id,
+                productQuantity: typeof i.productQuantity === 'number' ? i.productQuantity : 0
+            }))
+            await this.removeItems(list)
         },
     },
 })

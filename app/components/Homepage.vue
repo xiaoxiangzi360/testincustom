@@ -244,7 +244,7 @@ const baseSplideOptions = {
   type: 'loop',
   perPage: 1,
   autoplay: !prefersReducedMotion,
-  interval: 300000,
+  interval: 3000,
   arrows: false,
   pagination: false,
   pauseOnHover: false,
