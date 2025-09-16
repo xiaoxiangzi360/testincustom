@@ -2,7 +2,7 @@
     <div class="bg-white">
         <div class="flex min-h-screen text-sm max-row">
             <!-- Sidebar -->
-            <Userleft class="hidden sm:block" />
+            <Userleft class="hidden sm:block" v-show="isLoggedIn" />
             <!-- Main Content -->
             <main class="flex-1 space-y-6 bg-white">
                 <div>
@@ -289,7 +289,8 @@ const orderNumber = route.query.orderNumber ?? '2507051715427353680'
 
 const { createPayment } = PayAuth()
 const { getUserOrderDocByOrderNumber, cancleOrder, groupOrderTrackInfo } = OrderAuth()
-
+const userType = useCookie('userType');
+const isLoggedIn = computed(() => userType.value === 1 || userType.value === '1');
 const itemstimeline = ref([])
 const currentstatustitle = ref('')
 const currentstatusdesc = ref('')

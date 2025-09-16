@@ -8,13 +8,12 @@
         <!-- 桌面：≥1280 -->
         <source media="(min-width:1280px)" :srcset="img(`${baseImages[0]}`, { w: 1600 })" />
         <!-- 手机：≤1023，提供 1x/2x/3x 密度 -->
-        <NuxtImg :srcset="[
+        <img :srcset="[
           img(`${baseImages[0]}`, { h: 300 }) + ' 1x',
           img(`${baseImages[0]}`, { h: 600 }) + ' 2x',
           img(`${baseImages[0]}`, { h: 900 }) + ' 3x'
         ].join(', ')" sizes="(max-width:1023px) 100vw" :src="img(`${baseImages[0]}`, { h: 300 })" alt="Hero"
-          class="w-full h-full object-cover" fetchpriority="high" decoding="sync" crossorigin="anonymous"
-          draggable="false" />
+          class="w-full h-full object-cover" fetchpriority="high" decoding="sync" draggable="false" />
       </picture>
     </div>
 
@@ -30,16 +29,15 @@
             <!-- 桌面：≥1280 -->
             <source media="(min-width:1280px)" :srcset="img(baseImages[i], { w: 1600 })" />
             <!-- 手机：≤1023，提供 1x/2x/3x 密度 -->
-            <NuxtImg :srcset="[
+            <img :srcset="[
               img(baseImages[i], { h: 300 }) + ' 1x',
               img(baseImages[i], { h: 600 }) + ' 2x',
               img(baseImages[i], { h: 900 }) + ' 3x'
             ].join(', ')" sizes="(max-width:1023px) 100vw" :src="img(baseImages[i], { h: 300 })"
               :alt="s.title || `Banner ${i + 1}`" class="w-full h-full object-cover"
               :loading="i === 0 ? 'eager' : 'lazy'" :fetchpriority="i === 0 ? 'high' : 'auto'"
-              :decoding="i === 0 ? 'sync' : 'async'" crossorigin="anonymous" draggable="false" />
+              :decoding="i === 0 ? 'sync' : 'async'" draggable="false" />
           </picture>
-
         </div>
 
         <!-- 遮罩/内容 -->
@@ -87,9 +85,7 @@
               </div>
 
               <div class="mt-4 sm:mt-[26px] inline-flex items-center justify-center">
-                <NuxtImg :src="s.logo || defaultLogo" alt="inCustom" class="h-8 sm:h-10 object-contain"
-                  crossorigin="anonymous" draggable="false" />
-
+                <img :src="s.logo || defaultLogo" alt="inCustom" class="h-8 sm:h-10 object-contain" draggable="false" />
               </div>
 
               <div class="mt-4 sm:mt-20">
@@ -205,33 +201,35 @@ const img = (url: string, opt: { w?: number; h?: number }) => {
 useHead({
   link: [
     { rel: 'preconnect', href: 'https://cdn.incustom.com', crossorigin: '' },
+    // 桌面 ≥1280：预加载 w_1600
     {
       rel: 'preload',
       as: 'image',
       href: img(baseImages[0], { w: 1600 }),
       media: '(min-width: 1280px)',
       fetchpriority: 'high',
-      crossorigin: 'anonymous'   // ✅
+      crossorigin: ''
     },
+    // 平板 1024–1279：预加载 w_1280
     {
       rel: 'preload',
       as: 'image',
       href: img(baseImages[0], { w: 1280 }),
       media: '(min-width: 1024px) and (max-width: 1279px)',
       fetchpriority: 'high',
-      crossorigin: 'anonymous'   // ✅
+      crossorigin: ''
     },
+    // 手机 ≤1023：预加载 h_300
     {
       rel: 'preload',
       as: 'image',
       href: img(baseImages[0], { h: 300 }),
       media: '(max-width: 1023px)',
       fetchpriority: 'high',
-      crossorigin: 'anonymous'   // ✅
+      crossorigin: ''
     },
   ],
 })
-
 
 /** 其余配置 */
 const textShadowClass = 'drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]'
@@ -290,10 +288,9 @@ const prefetchImg = (url: string) => {
   link.rel = 'preload'
   link.as = 'image'
   link.href = url
-  link.setAttribute('crossorigin', 'anonymous')  // ✅
+  link.crossOrigin = ''
   document.head.appendChild(link)
 }
-
 
 const onMountedSplide = () => {
   currentIndex.value = (carouselRef.value as any)?.splide?.index ?? 0

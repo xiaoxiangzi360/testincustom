@@ -1,8 +1,6 @@
 <template>
     <div class="bg-white">
         <div class="flex min-h-screen text-sm max-row">
-            <!-- Sidebar -->
-            <Userleft class="hidden sm:block" />
             <!-- Main Content -->
             <main class="flex-1 space-y-6 bg-white">
                 <div>

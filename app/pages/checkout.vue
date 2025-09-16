@@ -268,7 +268,7 @@
                                             </div>
 
                                             <!-- 3DS/SCA 验证容器 -->
-                                            <div id="awx-auth" class="mt-3"></div>
+                                            <!-- <div id="awx-auth" class="mt-3"></div> -->
 
                                             <!-- 内联错误提示 -->
                                             <p v-if="awxError" class="text-red-500 text-sm mt-2">{{ awxError }}</p>
@@ -1852,7 +1852,6 @@ async function handleAirwallexPay() {
         const msg = err?.message || err?.enDesc || 'Payment failed';
         awxError.value = msg;
         console.error('Airwallex pay error:', err);
-        message.error(msg);
         // 失败跳转
         router.push({
             path: '/payfail',
