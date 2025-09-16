@@ -183,7 +183,9 @@
                                 <div v-if="activeTab === 'Pay Info'" class="space-y-4">
                                     <div class="flex items-center text-gray-600 gap-2">
                                         <div>Payment:</div>
-                                        <img src="/images/paypal.png" class="h-8" />
+                                        <NuxtImg v-if="paymentIcon" :src="paymentIcon" alt="Payment Method"
+                                            class="h-8 w-auto" />
+                                        <span class="capitalize" v-else>{{ paymentLabel }}</span>
                                     </div>
                                     <div class="flex items-center text-gray-600 gap-2"
                                         v-if="orderInfo.actualPaymentTransactionSerialNumber">
@@ -317,6 +319,19 @@ function getOrderStatus(status) {
 }
 
 const orderInfo = ref({})
+
+const PAYMENT_ICON = {
+    paypal: '/images/paypal.png',
+    airwallex: '/images/creditcard.png',
+}
+
+const paymentType = computed(() =>
+    String(orderInfo.value?.actualPaymentMethodType || '').toLowerCase().trim()
+)
+
+const paymentIcon = computed(() =>
+    PAYMENT_ICON[paymentType.value] || '/images/payment-generic.png'
+)
 
 // ======== 弹窗状态（按需拉接口）=======
 const logisticsModal = ref({

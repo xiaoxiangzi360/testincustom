@@ -242,7 +242,7 @@ export const useAuth = () => {
             document.cookie = 'token=; Max-Age=0; path=/'
             document.cookie = 'userinfo=; Max-Age=0; path=/'
             document.cookie = 'userType=; Max-Age=0; path=/'
-            document.cookie = 'locationinfo=; Max-Age=0; path=/'
+            // document.cookie = 'locationinfo=; Max-Age=0; path=/'
         }
 
         try { cart.refreshCart() } catch { /* ignore */ }

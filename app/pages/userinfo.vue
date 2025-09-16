@@ -77,7 +77,7 @@
     </div>
 
     <!-- Modal -->
-    <AddressModal :isshow="showModal" @close="showModal = false" :addressinfo="addressinfo"
+    <AddressModal :isshow="showModal" v-if="showModal" @close="showModal = false" :addressinfo="addressinfo"
       @updateData="getAddresslist()" />
   </div>
 

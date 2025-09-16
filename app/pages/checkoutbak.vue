@@ -30,10 +30,10 @@
                                         <div class="p-4 pt-0">
                                             <Form layout="vertical" ref="formRef" :model="form" class="max-w-[980px]">
                                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-[10px] md:gap-4">
-                                                    <FormItem class="!mb-0">
+                                                    <FormItem label="Email :" class="!mb-0">
                                                         <template #label>
                                                             <span class="flex items-center">
-                                                                Email:
+                                                                Email
                                                                 <Tooltip
                                                                     title="We will send a message to this email address when there is new progress on the order"
                                                                     color="white"
@@ -72,14 +72,9 @@
                                                             </FormItem>
                                                         </div>
 
-                                                        <FormItem label="Address :" required>
-                                                            <AutoComplete v-model:value="form.address"
-                                                                :options="addressOptions" :loading="addrLoading"
-                                                                placeholder="Street Address" @search="onAddressSearch"
-                                                                @select="(_, option) => onAddressSelect(option as any)"
-                                                                class="[&_.ant-select-selector]:!h-[32px] [&_.ant-select-selection-search-input]:text-sm" />
+                                                        <FormItem label="Adress :" required>
+                                                            <Input v-model:value="form.address" placeholder="Adress" />
                                                         </FormItem>
-
 
                                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
                                                             <FormItem label="Country/Region：" name="country" required>
@@ -139,20 +134,20 @@
                                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 flex-1">
                                                 <div>
                                                     <span class="text-blackcolor/50 text-sm mb-1 block">Full name</span>
-                                                    <div class="font-medium text-sm">
+                                                    <div class="font-medium text-sm dark:text-customblack">
                                                         {{ addressinfo.firstName }} {{ addressinfo.lastName }}
                                                     </div>
                                                 </div>
                                                 <div>
                                                     <span class="text-blackcolor/50 text-sm mb-1 block">Number</span>
-                                                    <div class="font-medium text-sm">
+                                                    <div class="font-medium text-sm dark:text-customblack">
                                                         ({{ addressinfo.numberCode }}) {{ addressinfo.number }}
                                                     </div>
                                                 </div>
                                                 <div class="col-span-2">
                                                     <span class="text-blackcolor/50 text-sm mb-1 block">Address
                                                         detail</span>
-                                                    <div class="font-medium text-sm">
+                                                    <div class="font-medium text-sm dark:text-customblack">
                                                         {{ addressinfo.countryName }} {{ addressinfo.provinceName }} {{
                                                             addressinfo.city }}
                                                         {{ addressinfo.address }}
@@ -178,11 +173,13 @@
                                             <USelectMenu v-model="templateid" :options="templates"
                                                 option-attribute="label" value-attribute="feeId"
                                                 :disabled="from == 'order' || templateid == '-1'"
-                                                :ui="{ rounded: 'rounded' }" :uiMenu="{
+                                                :ui="{ rounded: 'rounded', }" :uiMenu="{
+                                                    background: 'dark:bg-white',
                                                     option: {
-                                                        base: 'px-2 py-2',
-                                                        active: 'text-primary bg-[#00B2E30A]',
-                                                        selected: 'text-primary font-medium',
+                                                        color: 'dark:text-primary',
+                                                        base: 'px-2 py-2 dark:text-primary',
+                                                        active: 'text-primary dark:text-primary bg-[#00B2E30A] dark:bg-[#00B2E30A]',
+                                                        selected: 'text-primary dark:text-primary font-medium',
                                                         disabled: 'opacity-50 cursor-not-allowed'
                                                     }
                                                 }">
@@ -190,7 +187,8 @@
                                                     <UButton size="lg" color="white" variant="outline"
                                                         class="w-full justify-between h-10 rounded-md ring-0 border border-[rgba(46,46,12,0.2014)]"
                                                         :class="{ 'ring-0': open }">
-                                                        <span class="text-xs sm:text-sm text-left truncate"
+                                                        <span
+                                                            class="text-xs sm:text-sm text-left truncate dark:text-customblack"
                                                             title="{{ templates.find(item => item.feeId === templateid)?.label || 'Select Shipping Method' }}">
                                                             {{templates.find(item => item.feeId === templateid)?.label
                                                                 || 'Select Shipping Method'}}
@@ -208,72 +206,17 @@
                                         <div class="p-4 pb-0 text-customblack font-semibold text-base sm:text-lg">
                                             Payment Methods <span style="color: red;">*</span>
                                         </div>
-
-                                        <div class="grid grid-cols-1 p-4 pt-[10px]">
-                                            <div v-for="(option, index) in options" :key="option.value"
-                                                class="flex items-center rounded-md" :class="index !== 0 ? 'mt-4' : ''">
-                                                <div class="flex items-center space-x-2 px-4 py-[6px] rounded cursor-pointer"
-                                                    :class="selected === option.value ? 'border border-primary' : 'border border-[#F0F0F0]'"
-                                                    @click="selected = option.value">
-                                                    <input type="radio" :value="option.value" v-model="selected"
-                                                        class="form-radio" />
-                                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                                        <img :src="option.icon" class="h-8 sm:h-[50px]" />
-                                                    </label>
-                                                </div>
-
-                                                <!-- ✅ 选中后的文字/图标展示 -->
-                                                <div v-if="option.value === 1 && selected == 1"
-                                                    class="text-d3black text-sm ml-2">
-                                                    Paypal
-                                                </div>
-                                                <div v-if="option.value === 2 && selected == 2"
-                                                    class="flex flex-col items-start ml-2">
-                                                    <div class="text-sm text-d3black">Credit/Debit Card</div>
-                                                    <div class="text-[10px] text-d3black my-1">We support these credit
-                                                        card types</div>
-                                                    <div class="flex gap-[6px]">
-                                                        <img src="/images/international.png" class="w-10 h-5" />
-                                                        <img src="/images/international1.png" class="w-10 h-5" />
-                                                        <img src="/images/international2.png" class="w-10 h-5" />
-                                                        <img src="/images/international3.png" class="w-10 h-5" />
-                                                    </div>
-                                                </div>
+                                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 p-4 pt-[10px]">
+                                            <div v-for="option in options" :key="option.value"
+                                                class="flex items-center space-x-4 p-2 rounded-md"
+                                                :class="selected === option.value ? 'border border-primary' : 'border border-transparent'">
+                                                <input type="radio" :value="option.value" v-model="selected"
+                                                    class="form-radio" />
+                                                <label class="flex items-center space-x-2 cursor-pointer">
+                                                    <img :src="option.icon" class="h-8 sm:h-[50px]" />
+                                                </label>
                                             </div>
-
                                         </div>
-
-                                        <!-- ✅ Airwallex Split Card 输入区（卡号整行；下行 Expiry+CVC 横排） -->
-                                        <div :class="['px-4 pb-4', { hidden: selected !== 2 }]">
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <!-- 顶部：卡号独占整行 -->
-                                                <div class="border rounded px-3 py-2 md:col-span-2">
-                                                    <label class="block text-xs text-gray-500 mb-1">Card number</label>
-                                                    <div id="awx-card-number"></div>
-                                                </div>
-
-                                                <!-- 底部左：有效期 -->
-                                                <div class="border rounded px-3 py-2">
-                                                    <label class="block text-xs text-gray-500 mb-1">Expiration
-                                                        date</label>
-                                                    <div id="awx-expiry"></div>
-                                                </div>
-
-                                                <!-- 底部右：CVC -->
-                                                <div class="border rounded px-3 py-2">
-                                                    <label class="block text-xs text-gray-500 mb-1">Security
-                                                        code</label>
-                                                    <div id="awx-cvc"></div>
-                                                </div>
-                                            </div>
-
-                                            <!-- 3DS/SCA 验证容器 -->
-                                            <div id="awx-auth" class="mt-3"></div>
-
-                                            <!-- 内联错误提示 -->
-                                            <p v-if="awxError" class="text-red-500 text-sm mt-2">{{ awxError }}</p>
-                                        </div>
-
                                     </section>
 
                                     <!-- Notes -->
@@ -285,7 +228,7 @@
                                                 color: {
                                                     white: {
                                                         outline:
-                                                            'shadow-sm bg-white placeholder-[#EAEAEA] focus:ring-1 focus:ring-primary text-gray-900 ring-1 ring-inset ring-[rgba(0,0,0,0.15)]'
+                                                            'shadow-sm dark:bg-white dark:ring-[rgba(0,0,0,0.15)] dark:text-gray-900 bg-white placeholder-[#EAEAEA] focus:ring-1 focus:ring-primary text-gray-900 ring-1 ring-inset ring-[rgba(0,0,0,0.15)]'
                                                     }
                                                 }
                                             }" />
@@ -446,20 +389,9 @@
                                     </div>
                                 </div>
 
-                                <!-- PayPal 按钮容器（仅当选中 PayPal） -->
-                                <div v-show="selected === 1" id="paypal-button-container"
+                                <!-- PayPal 按钮容器 -->
+                                <div id="paypal-button-container"
                                     class="sticky bottom-1 p-4 pt-0 bg-white shadow-[0_-2px_6px_rgba(0,0,0,0.1)] md:shadow-none pt-4 sm:pt-0" />
-
-                                <!-- Airwallex 支付按钮（仅当选中 Airwallex） -->
-                                <div v-show="selected === 2"
-                                    class="sticky bottom-1 p-4 pt-0 bg-white shadow-[0_-2px_6px_rgba(0,0,0,0.1)] md:shadow-none">
-                                    <UButton size="lg" :loading="awxPayLoading"
-                                        class="w-full rounded bg-primary hover:bg-[#00a9d8] text-white items-center justify-center"
-                                        @click="handleAirwallexPay">
-                                        {{ awxPayLoading ? 'Processing...' : 'Pay Now' }}
-                                    </UButton>
-                                </div>
-
                             </template>
 
                             <!-- 无商品 -->
@@ -652,8 +584,8 @@
 <script lang="ts" setup>
 definePageMeta({
     layout: 'blank',
-    name: 'checkout',
-    title: 'checkout',
+    name: 'checkoutbak',
+    title: 'checkoutbak',
     description: 'INcustom checkout'
 });
 
@@ -664,7 +596,7 @@ import { useCartStore } from '@/stores/cart';
 import { message, Tooltip } from 'ant-design-vue';
 import { useRouter, useRoute } from 'vue-router';
 import { formatPaypalUtcToLocal } from '~/utils/format';
-import { useGoogleMapsLoader } from '@/composables/useGoogleMapsLoader'
+
 const { addPaymentInfo, purchase } = useFbq({ currency: 'USD' });
 const { purchaseorder } = useTrack();
 const { getuserAddressRollPage, createUserAddress } = AddressAuth();
@@ -674,9 +606,8 @@ const { getlistOldShippingRule } = ShippingAuth();
 const { createPayment } = PayAuth();
 const { getUserlPBylp2Location, listCountryAll, listProvinceByCountryId, listCityByRegionId } = LocationAuth();
 const { login } = useAuth();
-const { completePayment, getAvailablePaymentByBindId, airwallexCapturePaymentIntents } = PayAuth();
-import { nextTick } from 'vue';
-import { onBeforeUnmount } from 'vue';
+const { completePayment, getAvailablePaymentByBindId } = PayAuth();
+
 const router = useRouter();
 const route = useRoute();
 
@@ -704,8 +635,6 @@ function validateContactEmail() {
     }
     return true;
 }
-const awxClientSecret = ref<string>('');
-const awxIntentId = ref<string>('');
 
 // 新增：加载与骨架屏控制
 const isProductLoaded = ref(false);
@@ -758,107 +687,12 @@ const countries = [
     '+256', '+380', '+971', '+598', '+998', '+678', '+58', '+84', '+681', '+212',
     '+967', '+260', '+263', '+358'
 ];
-import { usePlacesAutocomplete, pickAddress, getCity as pickCityFromGmp, getStreet as pickStreetFromGmp } from '@/composables/usePlacesAutocomplete'
 
 const couponCode = ref('');
 const couponError = ref('');
 const discount = ref(0);
 const activeCoupon = ref('');
 const applyLoading = ref(false);
-// === Airwallex Split Card 集成 ===
-// === Airwallex：稳健加载 & 初始化 ===
-const awxScriptLoaded = ref(false);
-
-// === 用本地 npm 包替代 CDN，全客户端动态导入 ===
-let Airwallex: any = null;
-
-async function getAWX() {
-    if (Airwallex) return Airwallex;
-    // 仅在客户端导入
-    if (typeof window === 'undefined') throw new Error('AWX used on server');
-    const mod: any = await import('@airwallex/components-sdk'); // 本地包
-    Airwallex = mod?.default || mod?.Airwallex || mod;
-    if (!Airwallex?.init) throw new Error('Airwallex module not loaded');
-    return Airwallex;
-}
-function extractAwxFromCreatePayment(payRes: any) {
-    // 你这次给的是 result.airwallexPaymentIntentsResult.airwallexPaymentIntents
-    const v1 = payRes?.result?.airwallexPaymentIntentsResult?.airwallexPaymentIntents;
-
-    // 也兼容之前我考虑过的几种写法
-    const v2 = payRes?.result?.airwallexResult?.paymentIntent;
-    const v3 = payRes?.result?.airwallexResult?.payment_intent;
-
-    const awxObj = v1 || v2 || v3 || {};
-    return {
-        id: awxObj?.id || '',
-        clientSecret: awxObj?.clientSecret || awxObj?.client_secret || '',
-        status: awxObj?.status || '',
-        currency: awxObj?.currency || awxObj?.originalCurrency || '',
-        amount: awxObj?.amount || awxObj?.originalAmount || 0
-    };
-}
-
-const awxInited = ref(false);
-const awxPayLoading = ref(false);
-const awxError = ref<string>('');
-
-let awxCardNumberEl: any = null;
-let awxExpiryEl: any = null;
-let awxCvcEl: any = null;
-
-async function initAirwallex(): Promise<void> {
-    if (awxInited.value) return;
-    const AWX = await getAWX();
-    const env = (useRuntimeConfig().public as any)?.airwallexEnv || 'demo'; // 'demo' or 'prod'
-    await AWX.init({
-        env,
-        langKey: 'en',
-        enabledElements: ['payments'] // 新版必须启用 payments
-    });
-    awxInited.value = true;
-}
-
-async function mountAirwallexSplit() {
-    await initAirwallex();
-
-    // ✅ 仅首次创建
-    if (awxMounted.value) return;
-
-    const AWX = await getAWX();
-    const style = { base: { fontSize: '14px', '::placeholder': { color: '#9CA3AF' } } };
-
-    // 并行创建
-    const [numEl, expEl, cvcEl] = await Promise.all([
-        AWX.createElement('cardNumber', { style }),
-        AWX.createElement('expiry', { style }),
-        AWX.createElement('cvc', { style, authFormContainer: 'awx-auth' })
-    ]);
-    awxCardNumberEl = numEl;
-    awxExpiryEl = expEl;
-    awxCvcEl = cvcEl;
-
-    // 容器常驻（不是 v-if），确保已在 DOM
-    await nextTick();
-
-    awxCardNumberEl.mount('awx-card-number');
-    awxExpiryEl.mount('awx-expiry');
-    awxCvcEl.mount('awx-cvc');
-
-    [awxCardNumberEl, awxExpiryEl, awxCvcEl].forEach((el: any) => {
-        el.on?.('change', (e: any) => { awxError.value = e?.detail?.error?.message || ''; });
-    });
-
-    awxMounted.value = true; // ✅ 记得置位
-}
-
-
-function unmountAirwallexSplit() {
-    try { awxCardNumberEl?.unmount?.(); awxCardNumberEl?.destroy?.(); } catch { }
-    try { awxExpiryEl?.unmount?.(); awxExpiryEl?.destroy?.(); } catch { }
-    try { awxCvcEl?.unmount?.(); awxCvcEl?.destroy?.(); } catch { }
-    awxCardNumberEl = awxExpiryEl = awxCvcEl = null;
-}
 
 function buildFbqPayload() {
     const contents = productlists.value.map((it: any) => ({
@@ -894,6 +728,7 @@ const clampQty = (n: any) => {
     const v = parseInt(String(n ?? 1), 10)
     return Math.min(Math.max(Number.isFinite(v) ? v : 1, 1), 999)
 }
+
 const applyCoupon = async () => {
     couponError.value = '';
     if (!couponCode.value) {
@@ -1103,6 +938,7 @@ const handleGetCart = async () => {
     }
 }
 
+
 if (sku) {
     skuList.value = [sku];
     skunum[sku] = number;
@@ -1113,12 +949,7 @@ if (from == 'order') handleGetOrder();
 
 const showModal = ref(false);
 const isshow = ref(false);
-// 原来：const options = [{ value: 1, label: 'paypal', icon: '/images/paypal.png' }];
-const options = [
-    { value: 1, label: 'paypal', icon: '/images/paypal.png' },
-    { value: 2, label: 'airwallex', icon: '/images/mastercard.png' } // 自行准备图标
-];
-
+const options = [{ value: 1, label: 'paypal', icon: '/images/paypal.png' }];
 
 const form = ref({
     firstName: '',
@@ -1376,63 +1207,6 @@ const getCity = async () => {
         console.error(e);
     }
 };
-// ===== Places Autocomplete（只按“国家”限制，去州偏置）=====
-const { loading: addrLoading, options: addressOptionsRaw, search, getDetails, resetPlacesSession } = usePlacesAutocomplete()
-
-const addressOptions = computed(() =>
-    (addressOptionsRaw.value || []).map(o => ({ value: o.label, label: o.label, placeId: o.placeId }))
-)
-
-let addressSearchTimer: any = null
-
-const onAddressSearch = (val: string) => {
-    clearTimeout(addressSearchTimer)
-    const q = (val ?? '').trim()
-    if (q.length < 3) return
-    addressSearchTimer = setTimeout(() => {
-        const country = (form.value.country || '').toUpperCase() || undefined
-        // 清偏置 + 限制在“整国”矩形范围，避免只给加州
-        search(q, { country, clearBias: true, enforceCountryBounds: true })
-    }, 250)
-}
-
-// 选中联想 → 拉详情 → 智能回填（地址/邮编/国家/省/市）
-const onAddressSelect = async (option: { value: string; label: string; placeId: string }) => {
-    const place = await getDetails(option.placeId)
-    if (!place) return
-
-    const comp = place.address_components || []
-    const countryCode = pickAddress(comp, 'country', true) // ISO-2
-    const provinceName = pickAddress(comp, 'administrative_area_level_1')
-    const cityName = pickCityFromGmp(comp)
-    const postal = pickAddress(comp, 'postal_code')
-    const street = pickStreetFromGmp(comp)
-
-    // 1) 基本字段
-    form.value.address = street || (place.formatted_address || option.label)
-    if (postal) form.value.postalCode = postal
-
-    // 2) 国家变化 → 刷省份列表
-    if (countryCode && form.value.country !== countryCode) {
-        form.value.country = countryCode
-        await getProvince()
-    }
-
-    // 3) 省份 → 拉城市列表
-    if (provinceName) {
-        form.value.province = provinceName
-        await getCity()
-    }
-
-    // 4) 城市（如果接口列表里没有，也先写上）
-    if (cityName) {
-        const hit = (cityarr.value || []).find((c: any) => c.cityName === cityName)
-        form.value.city = hit ? hit.cityName : cityName
-        if (!hit) {
-            cityarr.value = [{ cityName: form.value.city }, ...(cityarr.value || [])]
-        }
-    }
-}
 
 function readLocationCookie():
     | null
@@ -1442,7 +1216,6 @@ function readLocationCookie():
         provinceName?: string | null;
         cityName?: string | null;
     } {
-    console.log(222334);
     const raw = locationinfo.value;
     if (!raw) return null;
     if (typeof raw === 'object') {
@@ -1526,15 +1299,12 @@ watch(
     () => form.value.country,
     (v) => {
         if (v) {
-            resetPlacesSession?.()           // 👈 重置联想会话，清除历史偏置
-            form.value.province = null as any
-            form.value.city = '' as any      // 👈 不要用 ' '
-            getShippingRulelist()
-            getProvince()
+            form.value.province = null as any;
+            getShippingRulelist();
+            getProvince();
         }
     }
-)
-
+);
 watch(contactEmail, (val) => {
     if (!isEmptyObject(addressinfo.value)) (addressinfo.value as any).email = val;
 });
@@ -1542,12 +1312,11 @@ watch(
     () => form.value.province,
     (v) => {
         if (v) {
-            form.value.city = '' as any      // 👈 不要用 ' '
-            getCity()
+            form.value.city = ' ' as any;
+            getCity();
         }
     }
-)
-
+);
 watch(
     () => templateid.value,
     (v) => {
@@ -1558,14 +1327,6 @@ watch(
         }
     }
 );
-const awxMounted = ref(false);
-// ✅ 切换时不做卸载，最多首次切到 2 时补挂一次
-watch(selected, async (val) => {
-    if (val === 2 && !awxMounted.value) {
-        await mountAirwallexSplit();
-    }
-});
-
 
 const payPalCaptureOrder = async (token: string) => {
     try {
@@ -1574,13 +1335,7 @@ const payPalCaptureOrder = async (token: string) => {
         console.error(e);
     }
 };
-const airWallexCaptureOrder = async (token: string) => {
-    try {
-        await airwallexCapturePaymentIntents({ airwallexPaymentIntentsId: token });
-    } catch (e) {
-        console.error(e);
-    }
-};
+
 // 渲染 PayPal（仅当加载完成 & 有商品 & 未渲染过）
 async function tryRenderPaypalButtons() {
     if (paypalRendered.value) return;
@@ -1667,213 +1422,6 @@ async function tryRenderPaypalButtons() {
     }).render('#paypal-button-container');
 }
 
-async function handleAirwallexPay() {
-    // === 内部工具：确保有 Airwallex PaymentIntent，并返回 client_secret ===
-    async function ensureAwxPaymentIntent(): Promise<string> {
-        // 1) 确保有 orderId
-        if (!orderId.value) {
-            const res = await generateOrderId();
-            orderId.value = res.result;
-        }
-
-        // 2) 确保订单已创建（拿到 orderNo）：不触发 PayPal，只用于 Airwallex
-        if (!orderNo.value) {
-            const orderItemList = (productlists.value || []).map((item: any) => ({
-                productSku: item.productSku,
-                qtyOrdered: Number(item.qtyOrdered),
-                priceOrdered: Number(item.productPrice),
-                amountOrdered: Number(item.productPrice) * Number(item.qtyOrdered)
-            }));
-
-            const createRes = await createOrder({
-                buyerCity: addressinfo.value.city,
-                buyerCountryCode: addressinfo.value.country,
-                buyerCountryName: addressinfo.value.countryName,
-                buyerEmail: addressinfo.value.email || contactEmail.value || form.value.email,
-                buyerFirstName: addressinfo.value.firstName,
-                buyerAddress: addressinfo.value.address,
-                buyerLastName: addressinfo.value.lastName,
-                buyerNotes: notes.value,
-                buyerPhoneAreaCode: addressinfo.value.numberCode,
-                buyerPhoneNumber: addressinfo.value.number || (form.value as any)?.number,
-                buyerPostalCode: addressinfo.value.postalCode,
-                buyerStateOrProvince: addressinfo.value.province,
-                id: orderId.value,
-                shippingRuleFeeId: templateid.value,
-                shippingRule: { calFee: Number(shipping.value) || 0 },
-                create: true,
-                orderItemList,
-                marketingActivityCouponCode: activeCoupon.value || undefined,
-                // 购物车支付需要带上 id + 数量
-                ...(from === 'cart'
-                    ? {
-                        choiceUserShoppingCartList: (cartarr.value || []).map((el: any) => ({
-                            id: el.id,
-                            productQuantity: clampQty(skunum[el.productSku] ?? el.productQuantity)
-                        }))
-                    }
-                    : {})
-            });
-
-            orderNo.value = createRes?.result?.orderNumber || '';
-        }
-
-        // 3) 创建 Airwallex 支付单，拿 client_secret
-        if (!awxClientSecret.value) {
-            const payParams = {
-                payType: 'airwallex',
-                createSource: 'orderPay',
-                bindIdList: [orderId.value]
-            };
-            const payRes = await createPayment(payParams);
-
-            // 统一抽取（兼容不同返回路径）
-            const { id, clientSecret, status } = extractAwxFromCreatePayment(payRes);
-
-            if (!clientSecret) {
-                console.error('createPayment 返回：', payRes);
-                throw new Error('Missing Airwallex client_secret from backend');
-            }
-            awxClientSecret.value = clientSecret;
-            awxIntentId.value = id || '';
-            console.log('Airwallex PaymentIntent created:', id, status);
-        }
-
-        return awxClientSecret.value;
-    }
-
-    try {
-        awxError.value = '';
-        awxPayLoading.value = true;
-
-        // --- A. 地址 & 物流校验 / 补全 ---
-        if (isEmptyObject(addressinfo.value)) {
-            const countryName =
-                countryarr.value.find((c: any) => c.countryCode === form.value.country)?.countryName || '';
-            addressinfo.value = { ...(form.value as any), countryName };
-            const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' });
-            if (userType.value == 1 || userType.value === '1') {
-                const ok = await addaddress();
-                if (!ok) {
-                    awxPayLoading.value = false;
-                    return;
-                }
-                await getAddresslist();
-            }
-        }
-        if (!addressinfo.value.address) {
-            message.error('Please add a address');
-            awxPayLoading.value = false;
-            return;
-        }
-        if (templateid.value < 0) {
-            message.error('The current country does not support delivery');
-            awxPayLoading.value = false;
-            return;
-        }
-        if (!templateid.value) {
-            message.error('Shipping methods is required');
-            awxPayLoading.value = false;
-            return;
-        }
-        if (!productlists.value?.length) {
-            message.error('No items to pay');
-            awxPayLoading.value = false;
-            return;
-        }
-
-        // --- B. 确保有 PaymentIntent 并拿到 client_secret ---
-        const clientSecret = await ensureAwxPaymentIntent();
-
-        // --- C. 挂载 Split Card（若尚未） ---
-        if (!awxCardNumberEl) await mountAirwallexSplit();
-
-        // --- D. 通过元素实例确认支付（会自动处理 3DS）---
-        const result = await awxCardNumberEl.confirm({ client_secret: clientSecret });
-        console.log('Airwallex confirm result:', result);
-
-        // ✅ 成功
-        if (result?.status === 'SUCCEEDED') {
-            message.success('Pay success');
-
-            // 埋点
-            try {
-                const totalAmount = (
-                    (selectedTotal.value || 0) +
-                    (shipping.value || 0) -
-                    (discount.value || 0)
-                ).toFixed(2);
-                purchase({
-                    ...buildFbqPayload(),
-                    value: Number(totalAmount),
-                    currency: 'USD',
-                    order_id: orderNo.value || orderId.value
-                });
-                const gaItems = productlists.value.map((it: any) => ({
-                    item_id: it.productSku,
-                    item_name: it.productName,
-                    price: Number(it.productPrice) || 0,
-                    quantity: Number(it.qtyOrdered) || 1,
-                    currency: 'USD'
-                }));
-                purchaseorder({
-                    transaction_id: orderNo.value || orderId.value,
-                    value: Number(totalAmount),
-                    currency: 'USD',
-                    items: gaItems,
-                    coupon: activeCoupon.value || undefined,
-                    shipping: Number(shipping.value) || 0
-                });
-            } catch (e) {
-                console.warn('tracking error:', e);
-            }
-            airWallexCaptureOrder(awxIntentId.value)
-            // 成功跳转
-            router.push({
-                path: '/paysuccess',
-                query: {
-                    orderNo: orderNo.value,
-                    createTime: new Date().toISOString(),
-                    currency: 'USD',
-                    paymentMethod: 'Airwallex (Card)',
-                    totalAmount: (
-                        (selectedTotal.value || 0) +
-                        (shipping.value || 0) -
-                        (discount.value || 0)
-                    ).toFixed(2)
-                }
-            });
-            return;
-        }
-
-        // ❌ 非成功状态统一视为失败，抛错进入 catch
-        throw new Error(result?.status || 'Payment failed');
-    } catch (err: any) {
-        const msg = err?.message || err?.enDesc || 'Payment failed';
-        awxError.value = msg;
-        console.error('Airwallex pay error:', err);
-        message.error(msg);
-        // 失败跳转
-        router.push({
-            path: '/payfail',
-            query: {
-                orderNo: orderNo.value,
-                currency: 'USD',
-                paymentMethod: 'Airwallex (Card)',
-                totalAmount: (
-                    (selectedTotal.value || 0) +
-                    (shipping.value || 0) -
-                    (discount.value || 0)
-                ).toFixed(2),
-                errorMsg: msg
-            }
-        });
-    } finally {
-        awxPayLoading.value = false;
-    }
-}
-
-
 onMounted(async () => {
     const regEmail = (userinfoCookie.value && (userinfoCookie.value.email || userinfoCookie.value.userEmail)) || '';
     if (regEmail) contactEmail.value = regEmail;
@@ -1882,15 +1430,6 @@ onMounted(async () => {
     await getCountrylist();
     // 若数据已就绪，尝试渲染 PayPal
     tryRenderPaypalButtons();
-    const g = await useGoogleMapsLoader({ libraries: ['places'] })
-
-    // ✅ 可以安全使用 Google Maps 对象了
-    const ac = new g.maps.places.AutocompleteService()
-    try {
-        await initAirwallex();
-        await mountAirwallexSplit(); // ✅ 提前装载
-    } catch { }
-
 });
 
 function refreshPage() {
@@ -1909,8 +1448,6 @@ const socialLogin = (provider: string) => {
         message.warning('Not supported yet');
     }
 };
-onBeforeUnmount(() => { clearTimeout(addressSearchTimer) })
-
 </script>
 
 <style scoped>

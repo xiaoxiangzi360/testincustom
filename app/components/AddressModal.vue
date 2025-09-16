@@ -18,8 +18,12 @@
                     <Input v-model:value="form.lastName" placeholder="Last name" size="small" />
                 </FormItem>
 
+                <!-- Street Address：Autocomplete + 选中回填 -->
                 <FormItem name="address">
-                    <Input v-model:value="form.address" placeholder="Street Address" />
+                    <AutoComplete v-model:value="addressQuery" :options="addressOptions" :loading="addrLoading"
+                        placeholder="Street Address" @search="onAddressSearch"
+                        @select="(_, option) => onAddressSelect(option as any)"
+                        class="[&_.ant-select-selector]:!h-[32px] [&_.ant-select-selection-search-input]:text-sm" />
                 </FormItem>
 
                 <FormItem name="province">
@@ -65,28 +69,28 @@
 <script setup lang="ts">
 import { message, Input, Select, Form, FormItem, Checkbox, Button, AutoComplete } from 'ant-design-vue'
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
+import { useGoogleMapsLoader } from '@/composables/useGoogleMapsLoader'
 
 const { createUserAddress, editUserAddress } = AddressAuth()
 const { listCountryAll, listProvinceByCountryId, listCityByRegionId } = LocationAuth()
 const locationinfo = useCookie<any>('locationinfo')
 
+import { usePlacesAutocomplete, pickAddress, getCity, getStreet, normalizeStr } from '@/composables/usePlacesAutocomplete'
+
 // ===== Props / Emits =====
-const props = defineProps<{
-    isshow: boolean
-    addressinfo?: any
-}>()
+const props = defineProps<{ isshow: boolean; addressinfo?: any }>()
 const emit = defineEmits(['close', 'updateData'])
 
 // ===== Refs / State =====
 const formRef = ref()
 const loading = ref(false)
-const hydrating = ref(false) // ⚑ 回填阶段关闭级联 watcher
+const hydrating = ref(false)
 
-const countryarr = ref<any[]>([]) // 国家列表
-const provincearr = ref<any[]>([]) // 省份列表
-const cityarr = ref<any[]>([]) // 城市列表
+const countryarr = ref<any[]>([])
+const provincearr = ref<any[]>([])
+const cityarr = ref<any[]>([])
 
-const DEFAULT_DIAL_CODE = '+1' // 国家清空时的默认区号（可改为 ''）
+const DEFAULT_DIAL_CODE = '+1'
 
 const countries = [
     '+1', '+44', '+93', '+355', '+213', '+1684', '+376', '+244', '+1264', '+1268',
@@ -130,19 +134,20 @@ const form = ref({
     email: ''
 })
 
-// ===== Rules =====
+// ===== 规则（对 AutoComplete 建议 blur+change） =====
 const rules = {
     country: [{ required: true, message: 'Please select country', trigger: 'change' }],
-    firstName: [{ required: true, message: 'Please input firstName', trigger: 'blur' }],
-    lastName: [{ required: true, message: 'Please input lastName', trigger: 'blur' }],
-    address: [{ required: true, message: 'Please input address', trigger: 'blur' }],
+    firstName: [{ required: true, message: 'Please input firstName', trigger: ['blur', 'change'] }],
+    lastName: [{ required: true, message: 'Please input lastName', trigger: ['blur', 'change'] }],
+    address: [{ required: true, message: 'Please input address', trigger: ['blur', 'change'] }],
     province: [{ required: true, message: 'Please select State/Province', trigger: 'change' }],
-    city: [{ required: true, message: 'Please select city', trigger: 'change' }],
-    postalCode: [{ required: true, message: 'Please input postalCode', trigger: 'blur' }],
-    number: [{ required: true, message: 'Please input number', trigger: 'blur' }]
+    city: [{ required: true, message: 'Please select city', trigger: ['blur', 'change'] }],
+    postalCode: [{ required: true, message: 'Please input postalCode', trigger: ['blur', 'change'] }],
+    number: [{ required: true, message: 'Please input number', trigger: ['blur', 'change'] }],
+    // email:     [{ type: 'email', message: 'Invalid email', trigger: ['blur','change'] }]
 }
 
-// ===== Computed options (兜底 []) =====
+// ===== 选项 =====
 const countryOptions = computed(() =>
     (countryarr.value ?? []).map(c => ({ label: c.countryName, value: c.countryCode }))
 )
@@ -156,12 +161,92 @@ const countryCodeOptions = computed(() =>
     (countries ?? []).map(code => ({ label: code, value: code }))
 )
 
+// ===== Places Autocomplete =====
+const { loading: addrLoading, options: addressOptionsRaw, search, getDetails, resetPlacesSession } = usePlacesAutocomplete()
+
+const addressQuery = ref('')
+const addressOptions = computed(() =>
+    addressOptionsRaw.value.map(o => ({ value: o.label, label: o.label, placeId: o.placeId }))
+)
+let addressSearchTimer: any = null
+
+const onAddressSearch = (val: string) => {
+    addressQuery.value = val
+    clearTimeout(addressSearchTimer)
+
+    const q = (val ?? '').trim()
+    if (q.length < 3) return
+
+    addressSearchTimer = setTimeout(() => {
+        const country = (form.value.country || '').toUpperCase() || undefined
+        // 核心：清偏置 + 强制全国矩形（抵消加州 IP 偏置）
+        search(q, { country, clearBias: true, enforceCountryBounds: true })
+    }, 250)
+}
+
+// 选中联想 → 详情 → 回填（带城市智能匹配）
+const onAddressSelect = async (option: { value: string; label: string; placeId: string }) => {
+    const place = await getDetails(option.placeId)
+    if (!place) return
+    hydrating.value = true
+    try {
+        const comp = place.address_components || []
+        const countryCode = pickAddress(comp, 'country', true) // ISO-2
+        const provinceName = pickAddress(comp, 'administrative_area_level_1')
+        const cityNameFromGmp = getCity(comp)
+        const postal = pickAddress(comp, 'postal_code')
+        const street = getStreet(comp)
+
+        // 1) 基本字段
+        form.value.address = street || (place.formatted_address || option.label)
+        addressQuery.value = form.value.address
+        if (postal) form.value.postalCode = postal
+
+        // 2) 国家切换 → 拉省
+        if (countryCode && form.value.country !== countryCode) {
+            form.value.country = countryCode
+            const c = countryarr.value?.find(x => x.countryCode === countryCode)
+            if (c?.phone) form.value.numberCode = c.phone
+            await nextTick()
+            await getProvince()
+        }
+
+        // 3) 省 → 拉市列表
+        if (provinceName) {
+            form.value.province = provinceName
+            await nextTick()
+            await getCityList()
+        }
+
+        // 4) 智能匹配城市（对齐你接口返回的标准名）
+        if (cityNameFromGmp) {
+            const target = normalizeStr(cityNameFromGmp)
+            const list = (cityarr.value ?? []).map((c: any) => c.cityName).filter(Boolean)
+
+            let hit =
+                list.find((n: string) => normalizeStr(n) === target) ||
+                list.find((n: string) => normalizeStr(n).startsWith(target)) ||
+                list.find((n: string) => target.startsWith(normalizeStr(n))) ||
+                list.find((n: string) => normalizeStr(n).includes(target) || target.includes(normalizeStr(n)))
+
+            form.value.city = hit || cityNameFromGmp
+
+            // 列表里没有则临时塞一条，避免下拉里看不到
+            if (!hit) {
+                cityarr.value = [{ cityName: form.value.city }, ...(cityarr.value || [])]
+            }
+        }
+    } finally {
+        hydrating.value = false
+    }
+}
+
 // ===== Utils =====
 const closeModal = () => emit('close')
 const filterOptionByLabel = (input: string, option?: { label?: string }) =>
     (option?.label ?? '').toLowerCase().includes((input ?? '').toLowerCase())
 
-// ===== API =====
+// ===== API 封装 =====
 const getCountrylist = async () => {
     try {
         const res = await listCountryAll()
@@ -173,22 +258,10 @@ const getCountrylist = async () => {
 }
 
 const getProvince = async () => {
-    if (!form.value.country) {
-        provincearr.value = []
-        cityarr.value = []
-        return
-    }
+    if (!form.value.country) { provincearr.value = []; cityarr.value = []; return }
     const c = countryarr.value?.find(x => x.countryCode === form.value.country)
-    if (!c) {
-        console.warn('[getProvince] 未找到国家：', form.value.country, 'countries:', countryarr.value.length)
-        provincearr.value = []
-        cityarr.value = []
-        return
-    }
-
-    // 同步国家区号（双保险）
+    if (!c) { provincearr.value = []; cityarr.value = []; return }
     if (c.phone) form.value.numberCode = c.phone
-
     try {
         const res = await listProvinceByCountryId({ countryId: c.id })
         provincearr.value = res?.result ?? []
@@ -198,17 +271,11 @@ const getProvince = async () => {
     }
 }
 
-const getCity = async () => {
-    if (!form.value.province) {
-        cityarr.value = []
-        return
-    }
+// 拉城市列表（避免与 getCity(解析城市名) 重名）
+const getCityList = async () => {
+    if (!form.value.province) { cityarr.value = []; return }
     const p = provincearr.value?.find(x => x.regionName === form.value.province)
-    if (!p) {
-        console.warn('[getCity] 未找到省份：', form.value.province, 'provinces:', provincearr.value.length)
-        cityarr.value = []
-        return
-    }
+    if (!p) { cityarr.value = []; return }
     try {
         const res = await listCityByRegionId({ regionId: p.id })
         cityarr.value = res?.result ?? []
@@ -218,7 +285,7 @@ const getCity = async () => {
     }
 }
 
-// ===== 关键守卫：确保国家列表已加载 =====
+// ===== 关键守卫：国家列表先加载 =====
 const ensureCountriesLoaded = async () => {
     if (!countryarr.value.length) {
         await getCountrylist()
@@ -226,43 +293,30 @@ const ensureCountriesLoaded = async () => {
     }
 }
 
-// ===== 级联重置（带 hydrating 短路） =====
-watch(
-    () => form.value.country,
-    async (newVal) => {
-        if (hydrating.value) return
+// ===== 级联重置 =====
+watch(() => form.value.country, async (newVal) => {
+    // 先重置联想会话，避免旧 session 偏向“加州”
+    resetPlacesSession?.()
 
-        form.value.province = null
-        form.value.city = ' '
-        provincearr.value = []
-        cityarr.value = []
+    form.value.province = null
+    form.value.city = ''
+    provincearr.value = []
+    cityarr.value = []
+    if (!newVal) { form.value.numberCode = DEFAULT_DIAL_CODE; return }
+    const c = countryarr.value?.find(x => x.countryCode === newVal)
+    if (c?.phone) form.value.numberCode = c.phone
+    await nextTick()
+    await getProvince()
+})
 
-        if (!newVal) {
-            form.value.numberCode = DEFAULT_DIAL_CODE
-            return
-        }
-
-        const c = countryarr.value?.find(x => x.countryCode === newVal)
-        if (c?.phone) form.value.numberCode = c.phone
-
-        await nextTick()
-        await getProvince()
-    }
-)
-
-watch(
-    () => form.value.province,
-    async (newVal) => {
-        if (hydrating.value) return
-
-        form.value.city = ' '
-        cityarr.value = []
-        if (!newVal) return
-
-        await nextTick()
-        await getCity()
-    }
-)
+watch(() => form.value.province, async (newVal) => {
+    if (hydrating.value) return
+    form.value.city = ''
+    cityarr.value = []
+    if (!newVal) return
+    await nextTick()
+    await getCityList()
+})
 
 // ===== 提交 =====
 const subform = async (event?: Event) => {
@@ -270,11 +324,10 @@ const subform = async (event?: Event) => {
     try {
         await formRef.value.validate()
         loading.value = true
-
         const countryName = countryarr.value?.find(c => c.countryCode === form.value.country)?.countryName || ''
         const payload: any = {
             id: form.value.id || undefined,
-            fullName: `${form.value.firstName}${form.value.lastName}`,
+            fullName: `${form.value.firstName} ${form.value.lastName}`.trim(),
             firstName: form.value.firstName,
             lastName: form.value.lastName,
             address: form.value.address,
@@ -289,7 +342,6 @@ const subform = async (event?: Event) => {
             countryName,
             provinceName: form.value.province
         }
-
         if (form.value.id) {
             await editUserAddress(payload)
             message.success('Update successful')
@@ -297,8 +349,7 @@ const subform = async (event?: Event) => {
             await createUserAddress(payload)
             message.success('Add successful')
         }
-        emit('close')
-        emit('updateData')
+        emit('close'); emit('updateData')
     } catch (err) {
         console.error('Submit Error:', err)
         message.error('Validation or submit failed')
@@ -308,77 +359,139 @@ const subform = async (event?: Event) => {
 }
 
 // ===== 默认国家（基于 cookie） =====
+function readLocationCookie():
+    | null
+    | {
+        countryCode: string
+        countryName?: string
+        provinceName?: string | null
+        cityName?: string | null
+    } {
+    const raw = locationinfo.value
+    if (!raw) return null
+
+    if (typeof raw === 'object') {
+        const r: any = raw
+        if (r.countryCode) {
+            return {
+                countryCode: String(r.countryCode),
+                countryName: r.countryName ? String(r.countryName) : undefined,
+                provinceName: r.provinceName ? String(r.provinceName) : null,
+                cityName: r.cityName ? String(r.cityName) : null
+            }
+        }
+        return null
+    }
+
+    if (typeof raw === 'string') {
+        try {
+            const obj = JSON.parse(raw)
+            if (obj?.countryCode) {
+                return {
+                    countryCode: String(obj.countryCode),
+                    countryName: obj.countryName ? String(obj.countryName) : undefined,
+                    provinceName: obj.provinceName ? String(obj.provinceName) : null,
+                    cityName: obj.cityName ? String(obj.cityName) : null
+                }
+            }
+        } catch { }
+    }
+    return null
+}
 const getdefaultcountry = async () => {
-    const code = locationinfo.value?.countryCode
-    if (!code) return
-    if (form.value.country !== code) {
+    const cached = readLocationCookie()
+    if (!cached) return
+
+    const code = cached.countryCode
+    // 触发 watch(country)：会清省/市并拉省列表
+    if (code && form.value.country !== code) {
         form.value.country = null
         await nextTick()
         form.value.country = code
+    } else if (!form.value.country && code) {
+        form.value.country = code
+    }
+
+    // 等省份列表到位
+    await getProvince()
+
+    // 回填省
+    if (cached.provinceName) {
+        const hitProvince = (provincearr.value || []).find((p: any) => p.regionName === cached.provinceName)
+        if (hitProvince) form.value.province = hitProvince.regionName
+    }
+
+    // 拉市列表
+    await nextTick()
+    await getCityList()
+
+    // 回填市
+    if (cached.cityName) {
+        const hitCity = (cityarr.value || []).find((c: any) => c.cityName === cached.cityName)
+        if (hitCity) form.value.city = hitCity.cityName
     }
 }
 
-// ===== 回填 addressinfo（带 hydrating，按“先拉后设”顺序） =====
-watch(
-    () => props.addressinfo,
-    async (val) => {
-        if (!val) return
+watch(addressQuery, v => {
+    form.value.address = (v ?? '').trim()
+})
 
-        hydrating.value = true
-        try {
-            await ensureCountriesLoaded()
+// ===== 回填 addressinfo（顺序修复 + 同步 addressQuery） =====
+watch(() => props.addressinfo, async (val) => {
+    if (!val) return
+    hydrating.value = true
+    try {
+        await ensureCountriesLoaded()
 
-            // 1) 回填基础字段（省/市暂清空，避免触发 watcher）
-            form.value = {
-                id: val.id || '',
-                firstName: val.firstName || '',
-                lastName: val.lastName || '',
-                address: val.address || '',
-                postalCode: val.postalCode || '',
-                country: val.country || null,
-                province: null,
-                city: '',
-                numberCode: val.numberCode || DEFAULT_DIAL_CODE,
-                number: val.number || '',
-                master: val.master == 1,
-                email: val.email || ''
-            }
-
-            // 2) 若已有国家，拉省份并设省
-            if (form.value.country) {
-                const c = countryarr.value?.find(x => x.countryCode === form.value.country)
-                if (c?.phone) form.value.numberCode = c.phone
-
-                await getProvince()
-
-                if (val.province) {
-                    form.value.province = val.province
-                    await nextTick()
-                    await getCity()
-                }
-
-                // 3) 省份选项到位后再设城市
-                if (val.city) {
-                    form.value.city = val.city
-                }
-            } else {
-                await getdefaultcountry()
-            }
-        } finally {
-            hydrating.value = false
+        // 1) 先设表单
+        form.value = {
+            id: val.id || '',
+            firstName: val.firstName || '',
+            lastName: val.lastName || '',
+            address: val.address || '',
+            postalCode: val.postalCode || '',
+            country: val.country || null,
+            province: null,
+            city: '',
+            numberCode: val.numberCode || DEFAULT_DIAL_CODE,
+            number: val.number || '',
+            master: val.master == 1,
+            email: val.email || ''
         }
-    },
-    { immediate: true }
-)
 
-// ===== 生命周期 =====
+        // 2) 同步到 addressQuery
+        addressQuery.value = form.value.address || ''
+
+        // 3) 拉省/市并回填
+        if (form.value.country) {
+            const c = countryarr.value?.find(x => x.countryCode === form.value.country)
+            if (c?.phone) form.value.numberCode = c.phone
+            await getProvince()
+            if (val.province) {
+                form.value.province = val.province
+                await nextTick()
+                await getCityList()
+            }
+            if (val.city) form.value.city = val.city
+        } else {
+            await getdefaultcountry()
+        }
+    } finally {
+        hydrating.value = false
+    }
+}, { immediate: true })
+
 onMounted(async () => {
     await getCountrylist()
+
+    const g = await useGoogleMapsLoader({ libraries: ['places'] })
+
+    // ✅ 可以安全使用 Google Maps 对象了
+    const ac = new g.maps.places.AutocompleteService()
 })
-onUnmounted(() => {
-    // 可按需清理
-})
+onUnmounted(() => { clearTimeout(addressSearchTimer) })
 </script>
+
 
 <style scoped>
 .ant-input,
@@ -423,7 +536,6 @@ onUnmounted(() => {
     box-shadow: none !important;
 }
 
-/* 有些版本用 ::after 做焦点边框，保险起见也关掉 */
 :deep(.ant-select .ant-select-selector::after) {
     box-shadow: none !important;
     outline: none !important;
