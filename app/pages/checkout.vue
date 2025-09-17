@@ -900,15 +900,15 @@ async function mountApplePayButton() {
         awxError.value = e?.detail?.message || 'Apple Pay failed'
     })
 }
-
+const awxCurrency = ref('USD')
+const awxAmount = ref('0.00')
 
 /** 真实 Apple Pay 点击：准备订单 & Intent → 更新 → confirm */
 async function onApplePayRealClick() {
     try {
         awxError.value = ''
         // Apple Pay / Airwallex 用到的金额与币种（字符串金额给网关最稳）
-        const awxCurrency = ref('USD')
-        const awxAmount = ref('0.00')
+
 
         // 与 handleAirwallexPay 的校验逻辑一致（保持你现有代码风格）
         if (form.value.address) {
