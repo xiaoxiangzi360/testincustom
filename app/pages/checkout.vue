@@ -66,7 +66,7 @@
                                                                 <Input v-model:value="form.firstName"
                                                                     placeholder="First Name" />
                                                             </FormItem>
-                                                            <FormItem label="Last Name :">
+                                                            <FormItem label="Last Name :" required>
                                                                 <Input v-model:value="form.lastName"
                                                                     placeholder="Last Name" />
                                                             </FormItem>
@@ -267,10 +267,16 @@
                                                 </div>
                                             </div>
 
-                                            <!-- 3DS/SCA 验证容器 -->
-                                            <!-- <div id="awx-auth" class="mt-3"></div> -->
-
                                             <!-- 内联错误提示 -->
+                                            <p v-if="awxError" class="text-red-500 text-sm mt-2">{{ awxError }}</p>
+                                        </div>
+                                        <!-- ✅ Apple Pay 区域（一直展示） -->
+                                        <div :class="['px-4 pb-4', { hidden: selected !== 3 }]">
+
+                                            <p v-if="!supportsApplePay" class="text-xs text-gray-500 mt-2">
+                                                Apple Pay 需要 Safari 且设备已添加有效银行卡。你仍可点击上方按钮查看可用性说明。
+                                            </p>
+
                                             <p v-if="awxError" class="text-red-500 text-sm mt-2">{{ awxError }}</p>
                                         </div>
 
@@ -281,14 +287,15 @@
                                         <div class="p-4 pb-0 text-customblack font-semibold text-base sm:text-lg">Notes
                                         </div>
                                         <div class="p-4 pt-[10px]">
-                                            <UTextarea v-model="notes" placeholder="Enter you order notes" :ui="{
-                                                color: {
-                                                    white: {
-                                                        outline:
-                                                            'shadow-sm bg-white placeholder-[#EAEAEA] focus:ring-1 focus:ring-primary text-gray-900 ring-1 ring-inset ring-[rgba(0,0,0,0.15)]'
+                                            <UTextarea :disabled="from == 'order'" v-model="notes"
+                                                placeholder="Enter you order notes" :ui="{
+                                                    color: {
+                                                        white: {
+                                                            outline:
+                                                                'shadow-sm bg-white placeholder-[#EAEAEA] focus:ring-1 focus:ring-primary text-gray-900 ring-1 ring-inset ring-[rgba(0,0,0,0.15)]'
+                                                        }
                                                     }
-                                                }
-                                            }" />
+                                                }" />
                                         </div>
                                     </section>
                                 </template>
@@ -458,6 +465,13 @@
                                         @click="handleAirwallexPay">
                                         {{ awxPayLoading ? 'Processing...' : 'Pay Now' }}
                                     </UButton>
+                                </div>
+                                <!-- Apple Pay 按钮（右侧，永远显示） -->
+                                <div v-show="selected === 3"
+                                    class="sticky bottom-1 p-4 pt-0 bg-white shadow-[0_-2px_6px_rgba(0,0,0,0.1)] md:shadow-none">
+                                    <!-- Airwallex 真按钮会挂载到这里 -->
+                                    <div id="awx-apple-pay" class="w-full"></div>
+                                    <p v-if="awxError" class="text-red-500 text-sm mt-2">{{ awxError }}</p>
                                 </div>
 
                             </template>
@@ -853,11 +867,148 @@ async function mountAirwallexSplit() {
 }
 
 
-function unmountAirwallexSplit() {
-    try { awxCardNumberEl?.unmount?.(); awxCardNumberEl?.destroy?.(); } catch { }
-    try { awxExpiryEl?.unmount?.(); awxExpiryEl?.destroy?.(); } catch { }
-    try { awxCvcEl?.unmount?.(); awxCvcEl?.destroy?.(); } catch { }
-    awxCardNumberEl = awxExpiryEl = awxCvcEl = null;
+let awxAppleEl: any = null
+const awxAppleMounted = ref(false)
+
+async function mountApplePayButton() {
+    if (awxAppleMounted.value) return
+    await initAirwallex()
+    const AWX = await getAWX()
+    const el = await AWX.createElement('applePayButton', { countryCode: 'US' })
+    awxAppleEl = el
+    await nextTick()
+    el.mount('awx-apple-pay')
+    awxAppleMounted.value = true
+
+    // 点击时执行你的创建 Intent → confirm 逻辑
+    el.on?.('click', onApplePayRealClick)
+    el.on?.('error', (e: any) => {
+        awxError.value = e?.detail?.message || 'Apple Pay failed'
+    })
+}
+
+/** 真实 Apple Pay 点击：准备订单 & Intent → 更新 → confirm */
+async function onApplePayRealClick() {
+    try {
+        awxError.value = ''
+        // Apple Pay / Airwallex 用到的金额与币种（字符串金额给网关最稳）
+        const awxCurrency = ref('USD')
+        const awxAmount = ref('0.00')
+
+        // 你模板里有 <p v-if="!supportsApplePay">，但没定义它；
+        // 如果你想按钮一直显示，不做能力判断，就把它固定为 true（表示“支持”）。
+        const supportsApplePay = ref(true)
+
+        // 与 handleAirwallexPay 的校验逻辑一致（保持你现有代码风格）
+        if (form.value.address) {
+            const countryName =
+                countryarr.value.find((c: any) => c.countryCode === form.value.country)?.countryName || ''
+            addressinfo.value.countryName = countryName
+            const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' })
+            if (userType.value == 1 || userType.value === '1') {
+                const ok = await addaddress()
+                if (!ok) return
+                await getAddresslist()
+            }
+        }
+        // 补齐必填
+        addressinfo.value.firstName = addressinfo.value.firstName || (form.value as any)?.firstName
+        addressinfo.value.lastName = addressinfo.value.lastName || (form.value as any)?.lastName
+        addressinfo.value.address = addressinfo.value.address || (form.value as any)?.address
+        addressinfo.value.country = addressinfo.value.country || (form.value as any)?.country
+        addressinfo.value.province = addressinfo.value.province || (form.value as any)?.province
+        addressinfo.value.city = addressinfo.value.city || (form.value as any)?.city
+        addressinfo.value.postalCode = addressinfo.value.postalCode || (form.value as any)?.postalCode
+        addressinfo.value.numberCode = addressinfo.value.numberCode || (form.value as any)?.numberCode
+        addressinfo.value.number = addressinfo.value.number || (form.value as any)?.number
+        if (!addressinfo.value.firstName) return message.error('Please add first name')
+        if (!addressinfo.value.lastName) return message.error('Please add last name')
+        if (!addressinfo.value.address) return message.error('Please add a address')
+        if (!addressinfo.value.country) return message.error('Please add country')
+        if (!addressinfo.value.province) return message.error('Please add province')
+        if (!addressinfo.value.city) return message.error('Please add city')
+        if (!addressinfo.value.postalCode) return message.error('Please add postal code')
+        if (!addressinfo.value.number) return message.error('Please add phone number')
+        if (templateid.value < 0) return message.error('The current country does not support delivery')
+        if (!templateid.value) return message.error('Shipping methods is required')
+        if (!productlists.value?.length) return message.error('No items to pay')
+
+        // 点击时才准备 Intent（直接复用你已有的函数）
+        const clientSecret = await ensureAwxPaymentIntent()
+
+        // 金额/币种（用前端合计兜底）
+        awxAmount.value = String(((selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0)).toFixed(2))
+        awxCurrency.value = 'USD'
+
+        // 将真实支付信息更新到按钮实例（AWX Apple Pay 需要这些）
+        awxAppleEl.update?.({
+            intent_id: awxIntentId.value,
+            client_secret: clientSecret,
+            amount: { value: awxAmount.value, currency: awxCurrency.value },
+            countryCode: 'US'
+        })
+
+        // confirm 会拉起 Apple Pay Sheet
+        const result = await awxAppleEl.confirm?.()
+
+        if (result?.status === 'SUCCEEDED') {
+            // 埋点
+            try {
+                const totalAmount = awxAmount.value
+                purchase({
+                    ...buildFbqPayload(),
+                    value: Number(totalAmount),
+                    currency: awxCurrency.value,
+                    order_id: orderNo.value || orderId.value
+                })
+                const gaItems = productlists.value.map((it: any) => ({
+                    item_id: it.productSku, item_name: it.productName,
+                    price: Number(it.productPrice) || 0, quantity: Number(it.qtyOrdered) || 1, currency: awxCurrency.value
+                }))
+                purchaseorder({
+                    transaction_id: orderNo.value || orderId.value,
+                    value: Number(totalAmount),
+                    currency: awxCurrency.value,
+                    items: gaItems,
+                    coupon: activeCoupon.value || undefined,
+                    shipping: Number(shipping.value) || 0
+                })
+            } catch (e) { console.warn('tracking error:', e) }
+
+            // 后端捕获 & 跳转成功页
+            await airWallexCaptureOrder(awxIntentId.value)
+            return router.push({
+                path: '/paysuccess',
+                query: {
+                    orderNo: orderNo.value,
+                    createTime: new Date().toISOString(),
+                    currency: awxCurrency.value,
+                    paymentMethod: 'Apple Pay',
+                    totalAmount: awxAmount.value
+                }
+            })
+        }
+
+        const msg = result?.status || 'Apple Pay failed'
+        awxError.value = msg
+        return router.push({
+            path: '/payfail',
+            query: {
+                orderNo: orderNo.value,
+                currency: awxCurrency.value,
+                paymentMethod: 'Apple Pay',
+                totalAmount: awxAmount.value || (
+                    (selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0)
+                ).toFixed(2),
+                errorMsg: msg
+            }
+        })
+    } catch (err: any) {
+        // 准备阶段错误：不跳转失败页，只提示
+        const msg = err?.message || err?.enDesc || 'Apple Pay failed'
+        awxError.value = msg
+        message.error(msg)
+    }
 }
 
 function buildFbqPayload() {
@@ -977,7 +1128,6 @@ const getProductlist = async () => {
         console.error(e);
     } finally {
         isProductLoaded.value = true; // 骨架屏结束
-        tryRenderPaypalButtons();
     }
 };
 
@@ -1057,7 +1207,6 @@ const handleGetOrder = async () => {
         console.error(e);
     } finally {
         isProductLoaded.value = true;
-        tryRenderPaypalButtons();
     }
 };
 
@@ -1098,7 +1247,6 @@ const handleGetCart = async () => {
     } finally {
         if (!isProductLoaded.value) {
             isProductLoaded.value = true
-            tryRenderPaypalButtons()
         }
     }
 }
@@ -1116,7 +1264,8 @@ const isshow = ref(false);
 // 原来：const options = [{ value: 1, label: 'paypal', icon: '/images/paypal.png' }];
 const options = [
     { value: 1, label: 'paypal', icon: '/images/paypal.png' },
-    { value: 2, label: 'airwallex', icon: '/images/mastercard.png' } // 自行准备图标
+    { value: 2, label: 'airwallex', icon: '/images/mastercard.png' },
+    { value: 3, label: 'applepay', icon: '/images/applepay.png' }
 ];
 
 
@@ -1186,6 +1335,7 @@ function isEmptyObject(obj: any) {
 
 const addaddress = async () => {
     if (!form.value.firstName) return message.error('firstName is required'), null;
+    if (!form.value.lastName) return message.error('lastName is required'), null;
     if (!form.value.country) return message.error('country is required'), null;
     if (!form.value.province) return message.error('province is required'), null;
     if (!form.value.city) return message.error('city is required'), null;
@@ -1216,20 +1366,42 @@ const addaddress = async () => {
 
 const paynow = async () => {
     try {
-        if (isEmptyObject(addressinfo.value)) {
+        // if (isEmptyObject(addressinfo.value)) {
+        if (form.value.address) {
             const countryName = countryarr.value.find((c: any) => c.countryCode === form.value.country)?.countryName || '';
-            addressinfo.value = form.value as any;
+            // addressinfo.value = form.value as any;
             (addressinfo.value as any).countryName = countryName;
 
             const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' });
             if (userType.value == 1 || userType.value === '1') {
+
                 const res = await addaddress();
                 if (!res) return;
                 getAddresslist();
+
+
             }
         }
 
+        // }
+        addressinfo.value.firstName = addressinfo.value.firstName || (form.value as any)?.firstName;
+        addressinfo.value.lastName = addressinfo.value.lastName || (form.value as any)?.lastName;
+        addressinfo.value.address = addressinfo.value.address || (form.value as any)?.address;
+        addressinfo.value.country = addressinfo.value.country || (form.value as any)?.country;
+        addressinfo.value.province = addressinfo.value.province || (form.value as any)?.province;
+        addressinfo.value.city = addressinfo.value.city || (form.value as any)?.city;
+        addressinfo.value.postalCode = addressinfo.value.postalCode || (form.value as any)?.postalCode;
+        addressinfo.value.numberCode = addressinfo.value.numberCode || (form.value as any)?.numberCode;
+        addressinfo.value.number = addressinfo.value.number || (form.value as any)?.number;
+        if (!addressinfo.value.firstName) return message.error('Please add first name'), null
+        if (!addressinfo.value.lastName) return message.error('Please add last name'), null
         if (!addressinfo.value.address) return message.error('Please add a address'), null;
+        if (!addressinfo.value.country) return message.error('Please add country'), null
+        if (!addressinfo.value.province) return message.error('Please add province'), null
+        if (!addressinfo.value.city) return message.error('Please add city'), null
+        if (!addressinfo.value.address) return message.error('Please add an address'), null
+        if (!addressinfo.value.postalCode) return message.error('Please add postal code'), null
+        if (!addressinfo.value.number) return message.error('Please add phone number'), null
         if (templateid.value < 0)
             return message.error('The current country does not support delivery, please change the delivery address'), null;
         if (!templateid.value) return message.error('Shipping methods is required'), null;
@@ -1562,9 +1734,13 @@ const awxMounted = ref(false);
 // ✅ 切换时不做卸载，最多首次切到 2 时补挂一次
 watch(selected, async (val) => {
     if (val === 2 && !awxMounted.value) {
-        await mountAirwallexSplit();
+        await mountAirwallexSplit()
     }
-});
+    if (val === 3 && !awxAppleMounted.value) {
+        await mountApplePayButton()
+    }
+})
+
 
 
 const payPalCaptureOrder = async (token: string) => {
@@ -1666,24 +1842,28 @@ async function tryRenderPaypalButtons() {
         }
     }).render('#paypal-button-container');
 }
-
-async function handleAirwallexPay() {
-    // === 内部工具：确保有 Airwallex PaymentIntent，并返回 client_secret ===
-    async function ensureAwxPaymentIntent(): Promise<string> {
-        // 1) 确保有 orderId
-        if (!orderId.value) {
-            const res = await generateOrderId();
-            orderId.value = res.result;
+async function ensureAwxPaymentIntent(): Promise<string> {
+    // 1) 确保有 orderId
+    if (!orderId.value) {
+        try {
+            const res = await generateOrderId()
+            orderId.value = res.result
+        } catch (e: any) {
+            // 生成订单号失败 ≠ 支付失败
+            message.error(e?.message || 'Failed to generate order id')
+            throw new Error('ORDER_PREPARE_FAILED')
         }
+    }
 
-        // 2) 确保订单已创建（拿到 orderNo）：不触发 PayPal，只用于 Airwallex
-        if (!orderNo.value) {
+    // 2) 确保已 createOrder（拿到 orderNo）——失败不跳转
+    if (!orderNo.value) {
+        try {
             const orderItemList = (productlists.value || []).map((item: any) => ({
                 productSku: item.productSku,
                 qtyOrdered: Number(item.qtyOrdered),
                 priceOrdered: Number(item.productPrice),
                 amountOrdered: Number(item.productPrice) * Number(item.qtyOrdered)
-            }));
+            }))
 
             const createRes = await createOrder({
                 buyerCity: addressinfo.value.city,
@@ -1704,7 +1884,6 @@ async function handleAirwallexPay() {
                 create: true,
                 orderItemList,
                 marketingActivityCouponCode: activeCoupon.value || undefined,
-                // 购物车支付需要带上 id + 数量
                 ...(from === 'cart'
                     ? {
                         choiceUserShoppingCartList: (cartarr.value || []).map((el: any) => ({
@@ -1713,88 +1892,134 @@ async function handleAirwallexPay() {
                         }))
                     }
                     : {})
-            });
+            })
 
-            orderNo.value = createRes?.result?.orderNumber || '';
+            orderNo.value = createRes?.result?.orderNumber || ''
+        } catch (err: any) {
+            let msg = 'Order create failed'
+            try {
+                const parsed = JSON.parse(err.message || '{}')
+                msg = parsed.enDesc || msg
+                const ek = parsed.errorKey
+                // 价格或运费变更，走你原有弹窗，不跳转
+                if (ek === 'calFee' || ek === 'priceOrdered' || ek === 'amountOrdered') {
+                    changedesc.value = parsed.enDesc
+                    isOpen.value = true
+                }
+            } catch { }
+            message.error(msg)
+            throw new Error('ORDER_CREATE_FAILED')
         }
-
-        // 3) 创建 Airwallex 支付单，拿 client_secret
-        if (!awxClientSecret.value) {
-            const payParams = {
-                payType: 'airwallex',
-                createSource: 'orderPay',
-                bindIdList: [orderId.value]
-            };
-            const payRes = await createPayment(payParams);
-
-            // 统一抽取（兼容不同返回路径）
-            const { id, clientSecret, status } = extractAwxFromCreatePayment(payRes);
-
-            if (!clientSecret) {
-                console.error('createPayment 返回：', payRes);
-                throw new Error('Missing Airwallex client_secret from backend');
-            }
-            awxClientSecret.value = clientSecret;
-            awxIntentId.value = id || '';
-            console.log('Airwallex PaymentIntent created:', id, status);
-        }
-
-        return awxClientSecret.value;
     }
 
-    try {
-        awxError.value = '';
-        awxPayLoading.value = true;
+    // 3) 创建 Airwallex PaymentIntent —— 失败不跳转
+    if (!awxClientSecret.value) {
+        try {
+            const payParams = { payType: 'airwallex', createSource: 'orderPay', bindIdList: [orderId.value] }
+            const payRes = await createPayment(payParams)
+            const { id, clientSecret } = extractAwxFromCreatePayment(payRes)
+            if (!clientSecret) throw new Error('Missing Airwallex client_secret')
+            awxClientSecret.value = clientSecret
+            awxIntentId.value = id || ''
+        } catch (e: any) {
+            console.error('createPayment error:', e)
+            message.error(e?.message || 'Failed to create Airwallex payment intent')
+            throw new Error('PAYMENT_INTENT_FAILED')
+        }
+    }
 
-        // --- A. 地址 & 物流校验 / 补全 ---
-        if (isEmptyObject(addressinfo.value)) {
+    return awxClientSecret.value
+}
+async function handleAirwallexPay() {
+    awxError.value = ''
+    awxPayLoading.value = true
+
+    try {
+        // --- A. 地址 & 物流校验：失败不跳转 ---
+        // if (isEmptyObject(addressinfo.value)) {
+        if (form.value.address) {
             const countryName =
-                countryarr.value.find((c: any) => c.countryCode === form.value.country)?.countryName || '';
-            addressinfo.value = { ...(form.value as any), countryName };
-            const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' });
+                countryarr.value.find((c: any) => c.countryCode === form.value.country)?.countryName || ''
+            addressinfo.value.countryName = countryName
+            const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' })
             if (userType.value == 1 || userType.value === '1') {
-                const ok = await addaddress();
-                if (!ok) {
-                    awxPayLoading.value = false;
-                    return;
-                }
-                await getAddresslist();
+
+                const ok = await addaddress()
+                if (!ok) return
+                await getAddresslist()
+
+
             }
         }
-        if (!addressinfo.value.address) {
-            message.error('Please add a address');
-            awxPayLoading.value = false;
-            return;
-        }
-        if (templateid.value < 0) {
-            message.error('The current country does not support delivery');
-            awxPayLoading.value = false;
-            return;
-        }
-        if (!templateid.value) {
-            message.error('Shipping methods is required');
-            awxPayLoading.value = false;
-            return;
-        }
-        if (!productlists.value?.length) {
-            message.error('No items to pay');
-            awxPayLoading.value = false;
-            return;
+
+
+        addressinfo.value.firstName = addressinfo.value.firstName || (form.value as any)?.firstName;
+        addressinfo.value.lastName = addressinfo.value.lastName || (form.value as any)?.lastName;
+        addressinfo.value.address = addressinfo.value.address || (form.value as any)?.address;
+        addressinfo.value.country = addressinfo.value.country || (form.value as any)?.country;
+        addressinfo.value.province = addressinfo.value.province || (form.value as any)?.province;
+        addressinfo.value.city = addressinfo.value.city || (form.value as any)?.city;
+        addressinfo.value.postalCode = addressinfo.value.postalCode || (form.value as any)?.postalCode;
+        addressinfo.value.numberCode = addressinfo.value.numberCode || (form.value as any)?.numberCode;
+        addressinfo.value.number = addressinfo.value.number || (form.value as any)?.number;
+
+        // }
+        if (!addressinfo.value.firstName) return message.error('Please add first name'), null
+        if (!addressinfo.value.lastName) return message.error('Please add last name'), null
+        if (!addressinfo.value.address) return message.error('Please add a address')
+        if (!addressinfo.value.country) return message.error('Please add country'), null
+        if (!addressinfo.value.province) return message.error('Please add province'), null
+        if (!addressinfo.value.city) return message.error('Please add city'), null
+        if (!addressinfo.value.address) return message.error('Please add an address'), null
+        if (!addressinfo.value.postalCode) return message.error('Please add postal code'), null
+        if (!addressinfo.value.number) return message.error('Please add phone number'), null
+        if (templateid.value < 0) return message.error('The current country does not support delivery')
+        if (!templateid.value) return message.error('Shipping methods is required')
+        if (!productlists.value?.length) return message.error('No items to pay')
+
+        // --- B. 准备 PaymentIntent：失败不跳转 ---
+        const clientSecret = await ensureAwxPaymentIntent()
+        if (!clientSecret) {
+            // 理论上不会走到这，但为了稳妥：不跳转
+            return message.error('Airwallex is not ready yet')
         }
 
-        // --- B. 确保有 PaymentIntent 并拿到 client_secret ---
-        const clientSecret = await ensureAwxPaymentIntent();
+        // --- C. 挂载分体元素（若未挂）：失败不跳转 ---
+        if (!awxCardNumberEl) {
+            try {
+                await mountAirwallexSplit()
+            } catch (e: any) {
+                console.error('mount AWX split error:', e)
+                return message.error('Failed to mount card fields')
+            }
+        }
 
-        // --- C. 挂载 Split Card（若尚未） ---
-        if (!awxCardNumberEl) await mountAirwallexSplit();
+        // --- D. 真正支付：仅此处失败才跳转 /payfail ---
+        let result: any
+        try {
+            result = await awxCardNumberEl.confirm({ client_secret: clientSecret })
+        } catch (confirmErr: any) {
+            const msg = confirmErr?.message || 'Payment failed'
+            awxError.value = msg
+            // ⛳️ 只有支付确认失败才跳转
+            return router.push({
+                path: '/payfail',
+                query: {
+                    orderNo: orderNo.value,
+                    currency: 'USD',
+                    paymentMethod: 'Airwallex (Card)',
+                    totalAmount: (
+                        (selectedTotal.value || 0) +
+                        (shipping.value || 0) -
+                        (discount.value || 0)
+                    ).toFixed(2),
+                    errorMsg: msg
+                }
+            })
+        }
 
-        // --- D. 通过元素实例确认支付（会自动处理 3DS）---
-        const result = await awxCardNumberEl.confirm({ client_secret: clientSecret });
-        console.log('Airwallex confirm result:', result);
-
-        // ✅ 成功
         if (result?.status === 'SUCCEEDED') {
-            message.success('Pay success');
+            message.success('Pay success')
 
             // 埋点
             try {
@@ -1802,20 +2027,20 @@ async function handleAirwallexPay() {
                     (selectedTotal.value || 0) +
                     (shipping.value || 0) -
                     (discount.value || 0)
-                ).toFixed(2);
+                ).toFixed(2)
                 purchase({
                     ...buildFbqPayload(),
                     value: Number(totalAmount),
                     currency: 'USD',
                     order_id: orderNo.value || orderId.value
-                });
+                })
                 const gaItems = productlists.value.map((it: any) => ({
                     item_id: it.productSku,
                     item_name: it.productName,
                     price: Number(it.productPrice) || 0,
                     quantity: Number(it.qtyOrdered) || 1,
                     currency: 'USD'
-                }));
+                }))
                 purchaseorder({
                     transaction_id: orderNo.value || orderId.value,
                     value: Number(totalAmount),
@@ -1823,13 +2048,16 @@ async function handleAirwallexPay() {
                     items: gaItems,
                     coupon: activeCoupon.value || undefined,
                     shipping: Number(shipping.value) || 0
-                });
+                })
             } catch (e) {
-                console.warn('tracking error:', e);
+                console.warn('tracking error:', e)
             }
+
+            // 后端捕获
             airWallexCaptureOrder(awxIntentId.value)
+
             // 成功跳转
-            router.push({
+            return router.push({
                 path: '/paysuccess',
                 query: {
                     orderNo: orderNo.value,
@@ -1842,18 +2070,13 @@ async function handleAirwallexPay() {
                         (discount.value || 0)
                     ).toFixed(2)
                 }
-            });
-            return;
+            })
         }
 
-        // ❌ 非成功状态统一视为失败，抛错进入 catch
-        throw new Error(result?.status || 'Payment failed');
-    } catch (err: any) {
-        const msg = err?.message || err?.enDesc || 'Payment failed';
-        awxError.value = msg;
-        console.error('Airwallex pay error:', err);
-        // 失败跳转
-        router.push({
+        // 其它状态统一当支付异常处理（才跳转）
+        const msg = result?.status || 'Payment failed'
+        awxError.value = msg
+        return router.push({
             path: '/payfail',
             query: {
                 orderNo: orderNo.value,
@@ -1866,12 +2089,20 @@ async function handleAirwallexPay() {
                 ).toFixed(2),
                 errorMsg: msg
             }
-        });
+        })
+    } catch (outer: any) {
+        // 这里捕获到的大多是准备阶段错误（订单/intent 等），不跳转
+        if (outer?.message && !['Payment failed'].includes(outer.message)) {
+            console.warn('prepare step error (no redirect):', outer.message)
+        } else {
+            console.warn('unknown error (no redirect):', outer)
+        }
+        awxError.value = outer?.message || 'Unexpected error'
+        message.error(awxError.value)
     } finally {
-        awxPayLoading.value = false;
+        awxPayLoading.value = false
     }
 }
-
 
 onMounted(async () => {
     const regEmail = (userinfoCookie.value && (userinfoCookie.value.email || userinfoCookie.value.userEmail)) || '';
@@ -1887,7 +2118,8 @@ onMounted(async () => {
     const ac = new g.maps.places.AutocompleteService()
     try {
         await initAirwallex();
-        await mountAirwallexSplit(); // ✅ 提前装载
+        await mountAirwallexSplit();
+        await mountApplePayButton()
     } catch { }
 
 });
