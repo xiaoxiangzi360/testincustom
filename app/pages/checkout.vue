@@ -877,13 +877,12 @@ async function mountApplePayButton() {
     await initAirwallex()
     const AWX = await getAWX()
     const el = await AWX.createElement('applePayButton', {
-        countryCode: 'US',
-        currencyCode: 'USD',       // ✅ 必填，字符串
-        total: {
-            label: 'INCUSTOM',       // 商家名或品牌名
-            amount: '0.00'           // 初始金额，字符串形式
-        }
-    })
+        amount: { value: '0.00', currency: 'USD' }, // ✅ 必填，且 value 必须是字符串
+        countryCode: 'US',                           // ✅ 必填
+        totalPriceLabel: 'INCUSTOM',                 // （可选）Apple Pay 上显示的商家名
+        // client_secret / intent_id 也可以先不传，后面 update 再补
+    });
+
     awxAppleEl = el
     await nextTick()
     el.mount('awx-apple-pay')
@@ -902,14 +901,10 @@ async function mountApplePayButton() {
 }
 const awxCurrency = ref('USD')
 const awxAmount = ref('0.00')
-
 /** 真实 Apple Pay 点击：准备订单 & Intent → 更新 → confirm */
 async function onApplePayRealClick() {
     try {
         awxError.value = ''
-        // Apple Pay / Airwallex 用到的金额与币种（字符串金额给网关最稳）
-
-
         // 与 handleAirwallexPay 的校验逻辑一致（保持你现有代码风格）
         if (form.value.address) {
             const countryName =
@@ -922,7 +917,6 @@ async function onApplePayRealClick() {
                 await getAddresslist()
             }
         }
-        // 补齐必填
         addressinfo.value.firstName = addressinfo.value.firstName || (form.value as any)?.firstName
         addressinfo.value.lastName = addressinfo.value.lastName || (form.value as any)?.lastName
         addressinfo.value.address = addressinfo.value.address || (form.value as any)?.address
@@ -945,32 +939,21 @@ async function onApplePayRealClick() {
         if (!productlists.value?.length) return message.error('No items to pay')
 
         // 点击时才准备 Intent（直接复用你已有的函数）
-        const clientSecret = await ensureAwxPaymentIntent()
+        const clientSecret = await ensureAwxPaymentIntent(); // 你已有的函数
+        const valueStr = ((selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0)).toFixed(2);
 
-        // 计算金额与币种 —— 一定是字符串
-        awxAmount.value = ((selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0)).toFixed(2)
-        awxCurrency.value = applePayCurrency.value // 一致化来源
-
-        // ✅ 关键：同时提供 currencyCode（顶层）与 total（Apple Pay 规范要求）
         awxAppleEl.update?.({
             intent_id: awxIntentId.value,
             client_secret: clientSecret,
-
-            // ApplePay Session 顶层字段
+            amount: { value: valueStr, currency: 'USD' }, // ✅ 用 amount.currency，别传 currencyCode
             countryCode: 'US',
-            currencyCode: awxCurrency.value,          // ⬅⬅ 必填且必须是字符串
-            total: {
-                label: 'INCUSTOM',                      // 你的商家名/品牌名
-                amount: awxAmount.value                 // ⬅⬅ 字符串金额
-            },
+            totalPriceLabel: 'INCUSTOM',
+            // 可选：显式声明能力
+            merchantCapabilities: ['supports3DS']         // 文档要求至少有 supports3DS
+        });
 
-            // Airwallex 自身也会用到的 amount（保留）
-            amount: { value: awxAmount.value, currency: awxCurrency.value }
-        })
-
-
-        // confirm 会拉起 Apple Pay Sheet
-        const result = await awxAppleEl.confirm?.()
+        // ✅ 这里用 confirmIntent（不是 confirm）
+        const result = await awxAppleEl.confirmIntent({ client_secret: clientSecret });
 
         if (result?.status === 'SUCCEEDED') {
             // 埋点
