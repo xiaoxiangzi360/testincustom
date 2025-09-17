@@ -745,6 +745,8 @@ const sku = route.query.sku as any;
 const number = route.query.number as any;
 const cartarr = ref([]) as any;
 let skunum = {} as any;
+const supportsApplePay = ref(false)     // 给模板用
+const applePayCurrency = ref<'USD' | 'HKD' | 'EUR'>('USD')  // 你站点当前结算币种
 
 const countries = [
     '+1', '+44', '+93', '+355', '+213', '+1684', '+376', '+244', '+1264', '+1268',
@@ -880,12 +882,18 @@ async function mountApplePayButton() {
     el.mount('awx-apple-pay')
     awxAppleMounted.value = true
 
-    // 点击时执行你的创建 Intent → confirm 逻辑
+    // ✅ 设备/钱包能力探测（尽量别在非 Safari 强行拉起）
+    try {
+        supportsApplePay.value = !!(window.ApplePaySession && ApplePaySession.canMakePayments())
+    } catch { supportsApplePay.value = false }
+
+    // ✅ 事件绑定
     el.on?.('click', onApplePayRealClick)
     el.on?.('error', (e: any) => {
         awxError.value = e?.detail?.message || 'Apple Pay failed'
     })
 }
+
 
 /** 真实 Apple Pay 点击：准备订单 & Intent → 更新 → confirm */
 async function onApplePayRealClick() {
@@ -894,10 +902,6 @@ async function onApplePayRealClick() {
         // Apple Pay / Airwallex 用到的金额与币种（字符串金额给网关最稳）
         const awxCurrency = ref('USD')
         const awxAmount = ref('0.00')
-
-        // 你模板里有 <p v-if="!supportsApplePay">，但没定义它；
-        // 如果你想按钮一直显示，不做能力判断，就把它固定为 true（表示“支持”）。
-        const supportsApplePay = ref(true)
 
         // 与 handleAirwallexPay 的校验逻辑一致（保持你现有代码风格）
         if (form.value.address) {
@@ -936,17 +940,27 @@ async function onApplePayRealClick() {
         // 点击时才准备 Intent（直接复用你已有的函数）
         const clientSecret = await ensureAwxPaymentIntent()
 
-        // 金额/币种（用前端合计兜底）
-        awxAmount.value = String(((selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0)).toFixed(2))
-        awxCurrency.value = 'USD'
+        // 计算金额与币种 —— 一定是字符串
+        awxAmount.value = ((selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0)).toFixed(2)
+        awxCurrency.value = applePayCurrency.value // 一致化来源
 
-        // 将真实支付信息更新到按钮实例（AWX Apple Pay 需要这些）
+        // ✅ 关键：同时提供 currencyCode（顶层）与 total（Apple Pay 规范要求）
         awxAppleEl.update?.({
             intent_id: awxIntentId.value,
             client_secret: clientSecret,
-            amount: { value: awxAmount.value, currency: awxCurrency.value },
-            countryCode: 'US'
+
+            // ApplePay Session 顶层字段
+            countryCode: 'US',
+            currencyCode: awxCurrency.value,          // ⬅⬅ 必填且必须是字符串
+            total: {
+                label: 'INCUSTOM',                      // 你的商家名/品牌名
+                amount: awxAmount.value                 // ⬅⬅ 字符串金额
+            },
+
+            // Airwallex 自身也会用到的 amount（保留）
+            amount: { value: awxAmount.value, currency: awxCurrency.value }
         })
+
 
         // confirm 会拉起 Apple Pay Sheet
         const result = await awxAppleEl.confirm?.()
