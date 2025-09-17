@@ -876,7 +876,14 @@ async function mountApplePayButton() {
     if (awxAppleMounted.value) return
     await initAirwallex()
     const AWX = await getAWX()
-    const el = await AWX.createElement('applePayButton', { countryCode: 'US' })
+    const el = await AWX.createElement('applePayButton', {
+        countryCode: 'US',
+        currencyCode: 'USD',       // ✅ 必填，字符串
+        total: {
+            label: 'INCUSTOM',       // 商家名或品牌名
+            amount: '0.00'           // 初始金额，字符串形式
+        }
+    })
     awxAppleEl = el
     await nextTick()
     el.mount('awx-apple-pay')
