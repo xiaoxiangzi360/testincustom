@@ -952,9 +952,47 @@ async function mountApplePayButton() {
 async function onGuardApplePayClick() {
     // 基本校验，避免未就绪时点进来就是 0.00
     const miss = firstMissingField()
-    if (miss) return message.error(`Please add ${miss}`)
+    if (miss) return message.error(`Please1 add ${miss}`)
 
     try {
+        if (form.value.address) {
+            const countryName = countryarr.value.find((c: any) => c.countryCode === form.value.country)?.countryName || '';
+            // addressinfo.value = form.value as any;
+            (addressinfo.value as any).countryName = countryName;
+
+            const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' });
+            if (userType.value == 1 || userType.value === '1') {
+
+                const res = await addaddress();
+                if (!res) return;
+                getAddresslist();
+
+
+            }
+        }
+
+        // }
+        addressinfo.value.firstName = addressinfo.value.firstName || (form.value as any)?.firstName;
+        addressinfo.value.lastName = addressinfo.value.lastName || (form.value as any)?.lastName;
+        addressinfo.value.address = addressinfo.value.address || (form.value as any)?.address;
+        addressinfo.value.country = addressinfo.value.country || (form.value as any)?.country;
+        addressinfo.value.province = addressinfo.value.province || (form.value as any)?.province;
+        addressinfo.value.city = addressinfo.value.city || (form.value as any)?.city;
+        addressinfo.value.postalCode = addressinfo.value.postalCode || (form.value as any)?.postalCode;
+        addressinfo.value.numberCode = addressinfo.value.numberCode || (form.value as any)?.numberCode;
+        addressinfo.value.number = addressinfo.value.number || (form.value as any)?.number;
+        if (!addressinfo.value.firstName) return message.error('Please add first name'), null
+        if (!addressinfo.value.lastName) return message.error('Please add last name'), null
+        if (!addressinfo.value.address) return message.error('Please add a address'), null;
+        if (!addressinfo.value.country) return message.error('Please add country'), null
+        if (!addressinfo.value.province) return message.error('Please add province'), null
+        if (!addressinfo.value.city) return message.error('Please add city'), null
+        if (!addressinfo.value.address) return message.error('Please add an address'), null
+        if (!addressinfo.value.postalCode) return message.error('Please add postal code'), null
+        if (!addressinfo.value.number) return message.error('Please add phone number'), null
+        if (templateid.value < 0)
+            return message.error('The current country does not support delivery, please change the delivery address'), null;
+        if (!templateid.value) return message.error('Shipping methods is required'), null;
         // A. 保证服务端 Intent 已按订单金额创建（非常关键，别让后端是 0）
         const clientSecret = await ensureAwxPaymentIntent()
 
