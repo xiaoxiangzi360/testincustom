@@ -899,25 +899,66 @@ async function mountApplePayButton() {
     if (awxAppleMounted.value) return
     await initAirwallex()
     const AWX = await getAWX()
+
+    // 先挂一个“占位按钮”（不带金额/intent），首次可点
     const el = await AWX.createElement('applePayButton', {
-        amount: { value: '0.00', currency: 'USD' },   // 字符串
+        amount: { value: '0.00', currency: 'USD' },
         countryCode: 'US',
         totalPriceLabel: 'INCUSTOM',
         merchantCapabilities: ['supports3DS'],
         supportedNetworks: ['visa', 'masterCard', 'amex', 'discover']
     })
-
     awxAppleEl = el
     await nextTick()
     el.mount('awx-apple-pay')
     awxAppleMounted.value = true
 
-    // ✅ 设备/钱包能力探测（尽量别在非 Safari 强行拉起）
     try {
         supportsApplePay.value = !!(window.ApplePaySession && ApplePaySession.canMakePayments())
     } catch { supportsApplePay.value = false }
 
-    // ✅ 事件绑定
+    // 点击时我们会“重挂载”并携带最新参数
+    el.on?.('click', onApplePayRealClick)
+    el.on?.('error', (e: any) => {
+        awxError.value = e?.detail?.message || 'Apple Pay failed'
+    })
+}
+
+// 放到 Apple Pay 相关变量附近
+const skipNextAppleClick = ref(false)
+
+async function recreateApplePayElement(opts: {
+    intent_id: string
+    client_secret: string
+    amount: { value: string; currency: string }
+    countryCode?: string
+    totalPriceLabel?: string
+    merchantCapabilities?: string[]
+    supportedNetworks?: string[]
+}) {
+    await initAirwallex()
+    const AWX = await getAWX()
+
+    // 先卸载旧实例
+    try { awxAppleEl?.unmount?.() } catch { }
+    awxAppleEl = null
+    awxAppleMounted.value = false
+
+    // 创建新实例（带本次最新参数）
+    const el = await AWX.createElement('applePayButton', {
+        ...opts,
+        countryCode: opts.countryCode ?? 'US',
+        totalPriceLabel: opts.totalPriceLabel ?? 'INCUSTOM',
+        merchantCapabilities: opts.merchantCapabilities ?? ['supports3DS'],
+        supportedNetworks: opts.supportedNetworks ?? ['visa', 'masterCard', 'amex', 'discover']
+    })
+    awxAppleEl = el
+
+    await nextTick()
+    el.mount('awx-apple-pay')
+    awxAppleMounted.value = true
+
+    // 事件重绑
     el.on?.('click', onApplePayRealClick)
     el.on?.('error', (e: any) => {
         awxError.value = e?.detail?.message || 'Apple Pay failed'
@@ -971,16 +1012,21 @@ async function onApplePayRealClick() {
         const clientSecret = await ensureAwxPaymentIntent(); // 你已有的函数
         const valueStr = ((selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0)).toFixed(2);
 
-        awxAppleEl.update?.({
+        await recreateApplePayElement({
             intent_id: awxIntentId.value,
             client_secret: clientSecret,
             amount: { value: valueStr, currency: 'USD' },
             countryCode: 'US',
             totalPriceLabel: 'INCUSTOM',
-            merchantCapabilities: ['supports3DS']
-        });
+            merchantCapabilities: ['supports3DS'],
+            supportedNetworks: ['visa', 'masterCard', 'amex', 'discover']
+        })
+
+        // 立刻触发一次“编程式点击”，真正打开 Apple Pay Sheet
+        skipNextAppleClick.value = true
+        awxAppleEl?.click?.()
         // ✅ 这里用 confirmIntent（不是 confirm）
-        const result = await awxAppleEl.confirm({ client_secret: clientSecret });
+        const result = await awxAppleEl.confirmIntent({ client_secret: clientSecret });
         if (result?.status === 'SUCCEEDED') {
             // 埋点
             try {
