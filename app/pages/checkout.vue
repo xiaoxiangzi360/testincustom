@@ -838,7 +838,7 @@ async function initAirwallex(): Promise<void> {
     await AWX.init({
         env,
         langKey: 'en',
-        enabledElements: ['payments'] // 新版必须启用 payments
+        enabledElements: ['payments', 'applepay']
     });
     awxInited.value = true;
 }
@@ -900,12 +900,12 @@ async function mountApplePayButton() {
     await initAirwallex()
     const AWX = await getAWX()
     const el = await AWX.createElement('applePayButton', {
-        amount: { value: '0.00', currency: 'USD' }, // ✅ 必填，且 value 必须是字符串
-        countryCode: 'US',                           // ✅ 必填
-        totalPriceLabel: 'INCUSTOM',                 // （可选）Apple Pay 上显示的商家名
-        // client_secret / intent_id 也可以先不传，后面 update 再补
-    });
-
+        amount: { value: '0.00', currency: 'USD' },   // 字符串
+        countryCode: 'US',
+        totalPriceLabel: 'INCUSTOM',
+        merchantCapabilities: ['supports3DS'],
+        supportedNetworks: ['visa', 'masterCard', 'amex', 'discover']
+    })
 
     awxAppleEl = el
     await nextTick()
