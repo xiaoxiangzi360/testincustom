@@ -739,7 +739,6 @@ const cart = useCartStore();
 const { getCart } = cartAuth();
 const changedesc = ref('');
 const isOpen = ref(false);
-const { $showLoading, $hideLoading } = useNuxtApp();
 const payloading = ref(false);
 
 const orderNo = ref('') as any;
@@ -790,8 +789,6 @@ const discount = ref(0);
 const activeCoupon = ref('');
 const applyLoading = ref(false);
 // === Airwallex Split Card 集成 ===
-// === Airwallex：稳健加载 & 初始化 ===
-const awxScriptLoaded = ref(false);
 
 // === 用本地 npm 包替代 CDN，全客户端动态导入 ===
 let Airwallex: any = null;
@@ -901,7 +898,7 @@ async function mountApplePayButton() {
     const AWX = await getAWX()
 
     const el = await AWX.createElement('applePayButton', {
-        amount: { value: '0.00', currency: 'USD' },
+        amount: { value: '20.00', currency: 'USD' },
         countryCode: 'US',
         totalPriceLabel: 'INCUSTOM',
         merchantCapabilities: ['supports3DS'],
@@ -2256,7 +2253,12 @@ const socialLogin = (provider: string) => {
         message.warning('Not supported yet');
     }
 };
-onBeforeUnmount(() => { clearTimeout(addressSearchTimer) })
+onBeforeUnmount(() => {
+    try { awxAppleEl?.off?.('click', onApplePayRealClick) } catch { }
+    try { awxAppleEl?.off?.('error') } catch { }
+    try { awxAppleEl?.unmount?.() } catch { }
+})
+
 
 </script>
 
