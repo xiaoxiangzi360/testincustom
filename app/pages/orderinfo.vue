@@ -164,7 +164,7 @@
                                     </div>
                                     <div class="flex justify-between mt-4">
                                         <span>Total(excl.tax):</span>
-                                        <span class="text-primary-500">${{ orderInfo.orderItemAmountOrdered }}</span>
+                                        <span class="text-primary-500">${{ orderInfo.paymentAmount }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -184,8 +184,11 @@
                                     <div class="flex items-center text-gray-600 gap-2">
                                         <div>Payment:</div>
                                         <NuxtImg v-if="paymentIcon" :src="paymentIcon" alt="Payment Method"
-                                            class="h-8 w-auto" />
+                                            class="h-5 w-auto" />
                                         <span class="capitalize" v-else>{{ paymentLabel }}</span>
+                                        <span class="text-gray-400 text-sm">{{ orderInfo.actualPaymentMethodType ==
+                                            'airwallex'
+                                            ? 'Credit/Debit Card' : orderInfo.actualPaymentMethodType }}</span>
                                     </div>
                                     <div class="flex items-center text-gray-600 gap-2"
                                         v-if="orderInfo.actualPaymentTransactionSerialNumber">
@@ -322,8 +325,8 @@ function getOrderStatus(status) {
 const orderInfo = ref({})
 
 const PAYMENT_ICON = {
-    paypal: '/images/paypal.png',
-    airwallex: '/images/creditcard.png',
+    paypal: '/images/paypalicon.png',
+    airwallex: '/images/creditcardicon.png',
 }
 
 const paymentType = computed(() =>
@@ -331,7 +334,7 @@ const paymentType = computed(() =>
 )
 
 const paymentIcon = computed(() =>
-    PAYMENT_ICON[paymentType.value] || '/images/payment-generic.png'
+    PAYMENT_ICON[paymentType.value] || ''
 )
 
 // ======== 弹窗状态（按需拉接口）=======

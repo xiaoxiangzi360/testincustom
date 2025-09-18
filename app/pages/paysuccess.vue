@@ -10,7 +10,7 @@
             <h1 class="text-base md:text-2xl font-semibold mb-3">Payment Successful</h1>
             <p class="text-sm md:text-base text-gray-500 text-center mb-3">
                 You have completed the order payment<br />
-                now you can check the order detail or return to the homepage to continue to go shipping
+                Now you can check the order detail or return to the homepage to continue to go shipping
             </p>
 
             <!-- 支付信息 -->

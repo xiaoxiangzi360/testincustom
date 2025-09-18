@@ -117,7 +117,7 @@ const subtitle = computed(() => props.item?.desc?.trim() || '')
 
 <template>
     <ClientOnly>
-        <section v-if="items.length" class="mt-6 md:mt-[56px]">
+        <section v-if="items.length" class="mt-6 md:mt-[72px]">
             <h1
                 class="text-xl md:text-[40px] bg-clip-text font-semibold text-primary text-center dark:text-primary mb-3">
                 {{ title }}

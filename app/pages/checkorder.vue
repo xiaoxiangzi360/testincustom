@@ -162,7 +162,7 @@
                                     </div>
                                     <div class="flex justify-between mt-4">
                                         <span>Total(excl.tax):</span>
-                                        <span class="text-primary-500">${{ orderInfo.orderItemAmountOrdered }}</span>
+                                        <span class="text-primary-500">${{ orderInfo.paymentAmount }}</span>
                                     </div>
                                 </div>
                             </div>

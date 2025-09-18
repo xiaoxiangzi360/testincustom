@@ -6,31 +6,32 @@
                 <img src="/payfail.png" alt="payfail" class="p-2 w-[100px] md:w-52" />
             </div>
             <!-- 标题与描述 -->
-            <h1 class="text-base md:text-2xl font-semibold mb-2">Payment Failed</h1>
-            <p class="text-sm md:text-base text-center mb-1 text-arialblack">
+            <h1 class="text-base md:text-2xl font-medium mb-2">Payment Failed</h1>
+            <p class="text-base md:text-base text-center mb-1 text-gray-500">
                 Your order has not been paid.
             </p>
-            <p class="text-sm md:text-base text-gray-400 text-center mb-4 text-[#F8F8F8]">
-                Please go to the order details page to make a new payment.
-            </p>
-
             <!-- 失败原因 -->
-            <div class="md:text-lg text-gray-700 mb-6">
+            <div class="text-sm md:text-base text-gray-500 mb-1 px-4 max-w-[800px]">
                 <span class="font-medium">Cause of failure：</span>
-                <span class="text-primary">{{ failReason || 'Insufficient balance, payment failed' }}</span>
+                <span class="text-red-400">{{ failReason || 'Insufficient balance, payment failed' }}</span>
             </div>
-
+            <p class="px-4 sm:px-0 text-sm md:text-base text-sm text-gray-500 text-center mb-4 text-[#F8F8F8]">
+                You can change other payment methods to pay for your order.
+            </p>
             <!-- Pay info -->
             <h2 class="text-base font-semibold mb-3">Pay info</h2>
-            <div class="bg-[#F5FCFE] w-full rounded-lg shadow-sm p-8 text-sm md:mb-8">
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-4 text-gray-500 text-sm">
-                    <div class="text-right sm:text-right">Amount Pay:</div>
-                    <div class="text-left text-primary font-medium">{{ upperCurrency }} {{ amount }}</div>
+            <div class="w-full px-4">
+                <div class="bg-[#F5FCFE]  rounded-lg shadow-sm p-8 text-sm md:mb-8">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-4 text-gray-500 text-sm">
+                        <div class="text-right sm:text-right">Amount Pay:</div>
+                        <div class="text-left text-primary font-medium">{{ upperCurrency }} {{ amount }}</div>
 
-                    <div class="text-right sm:text-right">Order No.:</div>
-                    <div class="text-left text-black">{{ orderNo || '' }}</div>
+                        <div class="text-right sm:text-right">Order No:</div>
+                        <div class="text-left text-primary font-medium">{{ orderNo || '' }}</div>
+                    </div>
                 </div>
             </div>
+
 
             <!-- 操作按钮（仅“Repayment”） -->
             <div class="my-6">

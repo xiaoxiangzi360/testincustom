@@ -1,5 +1,5 @@
 <template>
-    <div class="mt-4 md:mt-[56px]">
+    <div class="mt-4 md:mt-[72px]">
         <div class="max-row">
             <!-- 标题 -->
             <h1
