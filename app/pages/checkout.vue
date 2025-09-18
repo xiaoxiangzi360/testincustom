@@ -972,129 +972,132 @@ const awxAmount = ref('0.00')
 async function onApplePayRealClick() {
     if (applePayProcessing.value) return
     applePayProcessing.value = true
-    try {
-        awxError.value = ''
-        // Apple Pay / Airwallex 用到的金额与币种（字符串金额给网关最稳）
+    // try {
+    awxError.value = ''
+    // Apple Pay / Airwallex 用到的金额与币种（字符串金额给网关最稳）
 
 
-        // 与 handleAirwallexPay 的校验逻辑一致（保持你现有代码风格）
-        if (form.value.address) {
-            const countryName =
-                countryarr.value.find((c: any) => c.countryCode === form.value.country)?.countryName || ''
-            addressinfo.value.countryName = countryName
-            const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' })
-            if (userType.value == 1 || userType.value === '1') {
-                const ok = await addaddress()
-                if (!ok) return
-                await getAddresslist()
-            }
+    // 与 handleAirwallexPay 的校验逻辑一致（保持你现有代码风格）
+    if (form.value.address) {
+        const countryName =
+            countryarr.value.find((c: any) => c.countryCode === form.value.country)?.countryName || ''
+        addressinfo.value.countryName = countryName
+        const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' })
+        if (userType.value == 1 || userType.value === '1') {
+            const ok = await addaddress()
+            if (!ok) return
+            await getAddresslist()
         }
-        // 补齐必填
-        addressinfo.value.firstName = addressinfo.value.firstName || (form.value as any)?.firstName
-        addressinfo.value.lastName = addressinfo.value.lastName || (form.value as any)?.lastName
-        addressinfo.value.address = addressinfo.value.address || (form.value as any)?.address
-        addressinfo.value.country = addressinfo.value.country || (form.value as any)?.country
-        addressinfo.value.province = addressinfo.value.province || (form.value as any)?.province
-        addressinfo.value.city = addressinfo.value.city || (form.value as any)?.city
-        addressinfo.value.postalCode = addressinfo.value.postalCode || (form.value as any)?.postalCode
-        addressinfo.value.numberCode = addressinfo.value.numberCode || (form.value as any)?.numberCode
-        addressinfo.value.number = addressinfo.value.number || (form.value as any)?.number
-        if (!addressinfo.value.firstName) return message.error('Please add first name')
-        if (!addressinfo.value.lastName) return message.error('Please add last name')
-        if (!addressinfo.value.address) return message.error('Please add a address')
-        if (!addressinfo.value.country) return message.error('Please add country')
-        if (!addressinfo.value.province) return message.error('Please add province')
-        if (!addressinfo.value.city) return message.error('Please add city')
-        if (!addressinfo.value.postalCode) return message.error('Please add postal code')
-        if (!addressinfo.value.number) return message.error('Please add phone number')
-        if (templateid.value < 0) return message.error('The current country does not support delivery')
-        if (!templateid.value) return message.error('Shipping methods is required')
-        if (!productlists.value?.length) return message.error('No items to pay')
+    }
+    // 补齐必填
+    addressinfo.value.firstName = addressinfo.value.firstName || (form.value as any)?.firstName
+    addressinfo.value.lastName = addressinfo.value.lastName || (form.value as any)?.lastName
+    addressinfo.value.address = addressinfo.value.address || (form.value as any)?.address
+    addressinfo.value.country = addressinfo.value.country || (form.value as any)?.country
+    addressinfo.value.province = addressinfo.value.province || (form.value as any)?.province
+    addressinfo.value.city = addressinfo.value.city || (form.value as any)?.city
+    addressinfo.value.postalCode = addressinfo.value.postalCode || (form.value as any)?.postalCode
+    addressinfo.value.numberCode = addressinfo.value.numberCode || (form.value as any)?.numberCode
+    addressinfo.value.number = addressinfo.value.number || (form.value as any)?.number
+    if (!addressinfo.value.firstName) return message.error('Please add first name')
+    if (!addressinfo.value.lastName) return message.error('Please add last name')
+    if (!addressinfo.value.address) return message.error('Please add a address')
+    if (!addressinfo.value.country) return message.error('Please add country')
+    if (!addressinfo.value.province) return message.error('Please add province')
+    if (!addressinfo.value.city) return message.error('Please add city')
+    if (!addressinfo.value.postalCode) return message.error('Please add postal code')
+    if (!addressinfo.value.number) return message.error('Please add phone number')
+    if (templateid.value < 0) return message.error('The current country does not support delivery')
+    if (!templateid.value) return message.error('Shipping methods is required')
+    if (!productlists.value?.length) return message.error('No items to pay')
 
-        // 点击时才准备 Intent（直接复用你已有的函数）
-        const clientSecret = await ensureAwxPaymentIntent()
-        const valueStr = ((selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0)).toFixed(2)
+    // 点击时才准备 Intent（直接复用你已有的函数）
+    const clientSecret = await ensureAwxPaymentIntent()
+    const valueStr = ((selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0)).toFixed(2)
 
-        // ✅ 每次点击都重挂载（带最新金额/intent）
-        // await recreateApplePayElement({
-        //     intent_id: awxIntentId.value,
-        //     client_secret: clientSecret,
-        //     amount: { value: valueStr, currency: 'USD' },
-        //     countryCode: 'US',
-        //     totalPriceLabel: 'INCUSTOM',
-        //     merchantCapabilities: ['supports3DS'],
-        //     supportedNetworks: ['visa', 'masterCard', 'amex', 'discover']
-        // })
-        await awxAppleEl.update?.({
-            amount: { value: valueStr, currency: 'USD' },
-            intent_id: awxIntentId.value,
-            client_secret: clientSecret,
-            countryCode: 'US',
-            totalPriceLabel: 'INCUSTOM',
-            merchantCapabilities: ['supports3DS'],
-            supportedNetworks: ['visa', 'masterCard', 'amex', 'discover']
-        })
+    // ✅ 每次点击都重挂载（带最新金额/intent）
+    // await recreateApplePayElement({
+    //     intent_id: awxIntentId.value,
+    //     client_secret: clientSecret,
+    //     amount: { value: valueStr, currency: 'USD' },
+    //     countryCode: 'US',
+    //     totalPriceLabel: 'INCUSTOM',
+    //     merchantCapabilities: ['supports3DS'],
+    //     supportedNetworks: ['visa', 'masterCard', 'amex', 'discover']
+    // })
+    console.log(valueStr);
+    console.log(clientSecret);
+    console.log(awxIntentId.value);
+    await awxAppleEl.update?.({
+        amount: { value: valueStr, currency: 'USD' },
+        intent_id: awxIntentId.value,
+        client_secret: clientSecret,
+        countryCode: 'US',
+        totalPriceLabel: 'INCUSTOM',
+        merchantCapabilities: ['supports3DS'],
+        supportedNetworks: ['visa', 'masterCard', 'amex', 'discover']
+    })
 
-        // ❌ 不要再 awxAppleEl.click()；直接走 confirmIntent
-        const result = await awxAppleEl.confirmIntent({ client_secret: clientSecret })
-        if (result?.status === 'SUCCEEDED') {
-            // 埋点
-            try {
-                const totalAmount = awxAmount.value
-                purchase({
-                    ...buildFbqPayload(),
-                    value: Number(totalAmount),
-                    currency: awxCurrency.value,
-                    order_id: orderNo.value || orderId.value
-                })
-                const gaItems = productlists.value.map((it: any) => ({
-                    item_id: it.productSku, item_name: it.productName,
-                    price: Number(it.productPrice) || 0, quantity: Number(it.qtyOrdered) || 1, currency: awxCurrency.value
-                }))
-                purchaseorder({
-                    transaction_id: orderNo.value || orderId.value,
-                    value: Number(totalAmount),
-                    currency: awxCurrency.value,
-                    items: gaItems,
-                    coupon: activeCoupon.value || undefined,
-                    shipping: Number(shipping.value) || 0
-                })
-            } catch (e) { console.warn('tracking error:', e) }
-
-            // 后端捕获 & 跳转成功页
-            await airWallexCaptureOrder(awxIntentId.value)
-            return router.push({
-                path: '/paysuccess',
-                query: {
-                    orderNo: orderNo.value,
-                    createTime: new Date().toISOString(),
-                    currency: awxCurrency.value,
-                    paymentMethod: 'Apple Pay',
-                    totalAmount: awxAmount.value
-                }
+    // ❌ 不要再 awxAppleEl.click()；直接走 confirmIntent
+    const result = await awxAppleEl.confirmIntent({ client_secret: clientSecret })
+    if (result?.status === 'SUCCEEDED') {
+        // 埋点
+        try {
+            const totalAmount = awxAmount.value
+            purchase({
+                ...buildFbqPayload(),
+                value: Number(totalAmount),
+                currency: awxCurrency.value,
+                order_id: orderNo.value || orderId.value
             })
-        }
+            const gaItems = productlists.value.map((it: any) => ({
+                item_id: it.productSku, item_name: it.productName,
+                price: Number(it.productPrice) || 0, quantity: Number(it.qtyOrdered) || 1, currency: awxCurrency.value
+            }))
+            purchaseorder({
+                transaction_id: orderNo.value || orderId.value,
+                value: Number(totalAmount),
+                currency: awxCurrency.value,
+                items: gaItems,
+                coupon: activeCoupon.value || undefined,
+                shipping: Number(shipping.value) || 0
+            })
+        } catch (e) { console.warn('tracking error:', e) }
 
-        const msg = result?.status || 'Apple Pay failed'
-        awxError.value = msg
+        // 后端捕获 & 跳转成功页
+        await airWallexCaptureOrder(awxIntentId.value)
         return router.push({
-            path: '/payfail',
+            path: '/paysuccess',
             query: {
                 orderNo: orderNo.value,
+                createTime: new Date().toISOString(),
                 currency: awxCurrency.value,
                 paymentMethod: 'Apple Pay',
-                totalAmount: awxAmount.value || (
-                    (selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0)
-                ).toFixed(2),
-                errorMsg: msg
+                totalAmount: awxAmount.value
             }
         })
-    } catch (err: any) {
-        // 准备阶段错误：不跳转失败页，只提示
-        const msg = err?.message || err?.enDesc || 'Apple Pay failed'
-        awxError.value = msg
-        message.error(msg)
     }
+
+    const msg = result?.status || 'Apple Pay failed'
+    awxError.value = msg
+    return router.push({
+        path: '/payfail',
+        query: {
+            orderNo: orderNo.value,
+            currency: awxCurrency.value,
+            paymentMethod: 'Apple Pay',
+            totalAmount: awxAmount.value || (
+                (selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0)
+            ).toFixed(2),
+            errorMsg: msg
+        }
+    })
+    // } catch (err: any) {
+    //     // 准备阶段错误：不跳转失败页，只提示
+    //     const msg = err?.message || err?.enDesc || 'Apple Pay failed'
+    //     awxError.value = msg
+    //     message.error(msg)
+    // }
 }
 
 function buildFbqPayload() {
