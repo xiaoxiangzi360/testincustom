@@ -900,7 +900,6 @@ async function mountApplePayButton() {
     await initAirwallex()
     const AWX = await getAWX()
 
-    // 先挂一个“占位按钮”（不带金额/intent），首次可点
     const el = await AWX.createElement('applePayButton', {
         amount: { value: '0.00', currency: 'USD' },
         countryCode: 'US',
@@ -917,15 +916,17 @@ async function mountApplePayButton() {
         supportsApplePay.value = !!(window.ApplePaySession && ApplePaySession.canMakePayments())
     } catch { supportsApplePay.value = false }
 
-    // 点击时我们会“重挂载”并携带最新参数
+    // ✅ “只绑定一次”的点击入口
     el.on?.('click', onApplePayRealClick)
     el.on?.('error', (e: any) => {
         awxError.value = e?.detail?.message || 'Apple Pay failed'
     })
 }
 
+
 // 放到 Apple Pay 相关变量附近
 const skipNextAppleClick = ref(false)
+const applePayProcessing = ref(false)
 
 async function recreateApplePayElement(opts: {
     intent_id: string
@@ -939,12 +940,15 @@ async function recreateApplePayElement(opts: {
     await initAirwallex()
     const AWX = await getAWX()
 
-    // 先卸载旧实例
+    // ✅ 卸载前，先尝试解绑旧事件，避免监听器越绑越多
+    try { awxAppleEl?.off?.('click', onApplePayRealClick) } catch { }
+    try { awxAppleEl?.off?.('error') } catch { }
     try { awxAppleEl?.unmount?.() } catch { }
+
     awxAppleEl = null
     awxAppleMounted.value = false
 
-    // 创建新实例（带本次最新参数）
+    // ✅ 新建实例（带最新参数）
     const el = await AWX.createElement('applePayButton', {
         ...opts,
         countryCode: opts.countryCode ?? 'US',
@@ -958,17 +962,19 @@ async function recreateApplePayElement(opts: {
     el.mount('awx-apple-pay')
     awxAppleMounted.value = true
 
-    // 事件重绑
-    el.on?.('click', onApplePayRealClick)
+    // ⚠️ 这里只保留错误监听，不再绑定 click（入口只在首次 mount 时绑定一次）
     el.on?.('error', (e: any) => {
         awxError.value = e?.detail?.message || 'Apple Pay failed'
     })
 }
 
+
 const awxCurrency = ref('USD')
 const awxAmount = ref('0.00')
 /** 真实 Apple Pay 点击：准备订单 & Intent → 更新 → confirm */
 async function onApplePayRealClick() {
+    if (applePayProcessing.value) return
+    applePayProcessing.value = true
     try {
         awxError.value = ''
         // Apple Pay / Airwallex 用到的金额与币种（字符串金额给网关最稳）
@@ -1009,9 +1015,10 @@ async function onApplePayRealClick() {
         if (!productlists.value?.length) return message.error('No items to pay')
 
         // 点击时才准备 Intent（直接复用你已有的函数）
-        const clientSecret = await ensureAwxPaymentIntent(); // 你已有的函数
-        const valueStr = ((selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0)).toFixed(2);
+        const clientSecret = await ensureAwxPaymentIntent()
+        const valueStr = ((selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0)).toFixed(2)
 
+        // ✅ 每次点击都重挂载（带最新金额/intent）
         await recreateApplePayElement({
             intent_id: awxIntentId.value,
             client_secret: clientSecret,
@@ -1022,11 +1029,8 @@ async function onApplePayRealClick() {
             supportedNetworks: ['visa', 'masterCard', 'amex', 'discover']
         })
 
-        // 立刻触发一次“编程式点击”，真正打开 Apple Pay Sheet
-        skipNextAppleClick.value = true
-        awxAppleEl?.click?.()
-        // ✅ 这里用 confirmIntent（不是 confirm）
-        const result = await awxAppleEl.confirmIntent({ client_secret: clientSecret });
+        // ❌ 不要再 awxAppleEl.click()；直接走 confirmIntent
+        const result = await awxAppleEl.confirmIntent({ client_secret: clientSecret })
         if (result?.status === 'SUCCEEDED') {
             // 埋点
             try {
