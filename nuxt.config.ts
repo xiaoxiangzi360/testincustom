@@ -135,7 +135,12 @@ export default defineNuxtConfig({
     },
   ],
   routeRules: {
-    '/productdetail/**': { ssr: false }, // 或 false，根据您的需求
+    '/.well-known/apple-developer-merchantid-domain-association': {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Content-Disposition': 'inline'
+      }
+    }
   },
   colorMode: {
     preference: 'light',
@@ -312,10 +317,6 @@ export default defineNuxtConfig({
   sourcemap: {
     client: false,
     server: false,
-  },
-
-  routeRules: {
-    '/hidden': { robots: false },
   },
 
   // Used by all modules in the @nuxtjs/seo collection
