@@ -838,7 +838,7 @@ async function initAirwallex(): Promise<void> {
     await AWX.init({
         env,
         langKey: 'en',
-        enabledElements: ['payments', 'applepay']
+        enabledElements: ['payments']
     });
     awxInited.value = true;
 }
