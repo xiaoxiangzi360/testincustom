@@ -980,7 +980,7 @@ async function onApplePayRealClick() {
             merchantCapabilities: ['supports3DS']
         });
         // ✅ 这里用 confirmIntent（不是 confirm）
-        const result = await awxAppleEl.confirmIntent({ client_secret: clientSecret });
+        const result = await awxAppleEl.confirm({ client_secret: clientSecret });
         if (result?.status === 'SUCCEEDED') {
             // 埋点
             try {
