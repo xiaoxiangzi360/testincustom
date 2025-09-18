@@ -898,7 +898,7 @@ async function mountApplePayButton() {
     const AWX = await getAWX()
 
     const el = await AWX.createElement('applePayButton', {
-        amount: { value: '20.00', currency: 'USD' },
+        amount: { value: '1.00', currency: 'USD' },
         countryCode: 'US',
         totalPriceLabel: 'INCUSTOM',
         merchantCapabilities: ['supports3DS'],
@@ -1016,10 +1016,19 @@ async function onApplePayRealClick() {
         const valueStr = ((selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0)).toFixed(2)
 
         // ✅ 每次点击都重挂载（带最新金额/intent）
-        await recreateApplePayElement({
+        // await recreateApplePayElement({
+        //     intent_id: awxIntentId.value,
+        //     client_secret: clientSecret,
+        //     amount: { value: valueStr, currency: 'USD' },
+        //     countryCode: 'US',
+        //     totalPriceLabel: 'INCUSTOM',
+        //     merchantCapabilities: ['supports3DS'],
+        //     supportedNetworks: ['visa', 'masterCard', 'amex', 'discover']
+        // })
+        await awxAppleEl.update?.({
+            amount: { value: valueStr, currency: 'USD' },
             intent_id: awxIntentId.value,
             client_secret: clientSecret,
-            amount: { value: valueStr, currency: 'USD' },
             countryCode: 'US',
             totalPriceLabel: 'INCUSTOM',
             merchantCapabilities: ['supports3DS'],
