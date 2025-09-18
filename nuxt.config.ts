@@ -137,8 +137,8 @@ export default defineNuxtConfig({
   routeRules: {
     '/.well-known/apple-developer-merchantid-domain-association': {
       headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Content-Disposition': 'inline'
+        'Content-Type': 'application/octet-stream',
+        'Cache-Control': 'public, max-age=3600'
       }
     }
   },
