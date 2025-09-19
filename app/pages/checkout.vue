@@ -983,6 +983,8 @@ async function mountApplePayButton() {
             initiative_context: window.location.hostname, // 如 test.incustom.com（需在 Apple 完成域名验证）
             payment_intent_id: awxIntentId.value
         })
+        console.log(Sessionres)
+
         const merchantSession = Sessionres?.result ?? Sessionres
         console.log(merchantSession)
 
