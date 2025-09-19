@@ -943,6 +943,7 @@ async function mountApplePayButton() {
             // B) 点击后此处才创建订单 & PaymentIntent（你现有函数里已经会 createOrder）
             const clientSecret = await ensureAwxPaymentIntent();
             if (!clientSecret) return message.error('Airwallex is not ready yet');
+            alert(clientSecret)
 
             // C) 将 Intent 注入 Apple Pay 元素（允许后补）
             awxAppleEl.update?.({
@@ -958,6 +959,8 @@ async function mountApplePayButton() {
                 initiative_context: "test.incustom.com",
                 payment_intent_id: awxIntentId.value, // 你创建 PaymentIntent 后保存的 ID
             })
+            alert(JSON.stringify(Sessionres))
+
             let merchantSession = Sessionres.result
             // E) 完成商户校验，继续弹出支付面板
             awxAppleEl.completeValidation(merchantSession);
