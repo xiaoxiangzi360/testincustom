@@ -938,6 +938,7 @@ async function mountApplePayButton() {
             // A) 先做本地校验（地址/运费/商品）
             const msg = await precheckForWallet();
             if (msg) return message.error(msg);
+            alert('merchant_validation')
 
             // B) 点击后此处才创建订单 & PaymentIntent（你现有函数里已经会 createOrder）
             const clientSecret = await ensureAwxPaymentIntent();
