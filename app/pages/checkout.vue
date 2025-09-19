@@ -978,10 +978,10 @@ async function mountApplePayButton() {
 
         // D) 向后端换 merchantSession（GET）
         const Sessionres = await startAirwallexPaymentSession({
-            validationURL,
+            validationUrl: validationURL,
             initiative: 'web',
-            initiative_context: window.location.hostname, // 如 test.incustom.com（需在 Apple 完成域名验证）
-            payment_intent_id: awxIntentId.value
+            initiativeContext: window.location.hostname, // 如 test.incustom.com（需在 Apple 完成域名验证）
+            paymentIntentId: awxIntentId.value
         })
         console.log(Sessionres)
 
