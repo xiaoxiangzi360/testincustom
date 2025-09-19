@@ -954,7 +954,7 @@ async function mountApplePayButton() {
             const validationURL = e?.detail?.validationURL;
             const Sessionres = await startAirwallexPaymentSession({
                 validationURL: validationURL,
-                initiative_context: "dev.airwallex.com",
+                initiative_context: "test.incustom.com",
                 payment_intent_id: awxIntentId.value, // 你创建 PaymentIntent 后保存的 ID
             })
             let merchantSession = Sessionres.result
