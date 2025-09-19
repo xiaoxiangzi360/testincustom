@@ -936,6 +936,8 @@ async function mountApplePayButton() {
     // ⬇️ 关键：商户校验阶段（点击按钮后触发）
     awxAppleEl.on?.('merchant_validation', async (e: any) => {
         try {
+            alert('onmerchant_validation')
+
             // A) 先做本地校验（地址/运费/商品）
             const msg = await precheckForWallet();
             if (msg) return message.error(msg);
