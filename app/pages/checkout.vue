@@ -932,6 +932,7 @@ async function mountApplePayButton() {
         requiredShippingContactFields: ['name', 'email', 'phone']
     });
 
+    alert('createElement')
     // ⬇️ 关键：商户校验阶段（点击按钮后触发）
     awxAppleEl.on?.('merchant_validation', async (e: any) => {
         try {
