@@ -461,7 +461,7 @@
                                 </div>
 
                                 <!-- ✅ Apple Pay 按钮容器（仅当选中 Apple Pay 且设备支持） -->
-                                <div v-show="selected === 3 && canUseApplePay"
+                                <div v-show="selected === 3"
                                     class="sticky bottom-1 p-4 pt-0 bg-white shadow-[0_-2px_6px_rgba(0,0,0,0.1)] md:shadow-none">
                                     <div id="awx-apple-pay" class="w-full"></div>
                                     <p v-if="awxError" class="text-red-500 text-sm mt-2">{{ awxError }}</p>
@@ -714,7 +714,7 @@ function validateContactEmail() {
 }
 const awxClientSecret = ref<string>('');
 const awxIntentId = ref<string>('');
-const canUseApplePay = ref(false)
+const canUseApplePay = ref(true)
 let awxAppleBtnEl: any = null
 const totalPayable = computed(() => {
     const goods = Number(selectedTotal.value || 0)
@@ -1599,7 +1599,7 @@ watch(selected, async (val) => {
     if (val === 2 && !awxMounted.value) {
         await mountAirwallexSplit()
     }
-    if (val === 3 && canUseApplePay) {
+    if (val === 3) {
         await mountApplePay()
     }
 })
@@ -1965,19 +1965,9 @@ async function handleAirwallexPay() {
         awxPayLoading.value = false
     }
 }
-async function detectApplePay() {
-    // Safari 环境判断 + Apple Pay Wallet 可用性
-    try {
-        const hasSession = typeof (window as any).ApplePaySession !== 'undefined'
-        const canPay = hasSession && (window as any).ApplePaySession.canMakePayments()
-        canUseApplePay.value = !!canPay
-    } catch {
-        canUseApplePay.value = false
-    }
-}
 
 async function mountApplePay() {
-    if (!canUseApplePay.value) return
+
     const AWX = await getAWX()
 
     // 确保订单与 PaymentIntent（拿到 client_secret）
@@ -2118,9 +2108,8 @@ onMounted(async () => {
     try {
         await initAirwallex();
         await mountAirwallexSplit();
-        await detectApplePay()       // ✅ 新增：检测 Apple Pay
         // 若默认选中 Apple Pay 或设备支持且用户切到 3，再挂载
-        if (selected.value === 3 && canUseApplePay.value) {
+        if (selected.value === 3) {
             await mountApplePay()
         }
     } catch { }
