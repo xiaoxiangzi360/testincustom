@@ -918,135 +918,154 @@ async function precheckForWallet(): Promise<string | null> {
     return null;
 }
 async function mountApplePayButton() {
-    if (awxAppleMounted.value) return;
+    if (awxAppleMounted.value) return
 
-    await initAirwallex();               // 仅初始化 SDK，不创建 Intent
-    const AWX = await getAWX();
+    await initAirwallex()
+    const AWX = await getAWX()
 
-    // 先不传 intent/client_secret —— 点按钮进入校验后再创建/注入
+    // 先不传 intent / client_secret —— 点按钮进入校验后再创建/注入
     awxAppleEl = await AWX.createElement('applePayButton', {
-        amount: { value: payableTotal.value, currency: 'USD' }, // 先给金额
-        countryCode: 'US',             // 按你的商户所在国家填：'US'/'HK'/...
+        amount: { value: payableTotal.value, currency: 'USD' }, // 展示占位
+        countryCode: 'US',
         buttonType: 'buy',
         buttonColor: 'black',
         requiredShippingContactFields: ['name', 'email', 'phone']
-    });
+    })
 
-    alert('createElement')
-    // ⬇️ 关键：商户校验阶段（点击按钮后触发）
-    awxAppleEl.on?.('validateMerchant', async (e: any) => {
+    // 调试日志可留着
+    awxAppleEl.on?.('ready', () => console.log('[AWX] applePay ready'))
+    awxAppleEl.on?.('click', () => console.log('[AWX] applePay click'))
+
+    // 统一的校验处理器（支持多版本事件 & 字段）
+    const handleValidate = async (e: any) => {
         try {
-            alert('onmerchant_validation')
+            console.log('[AWX] validate event payload:', e)
 
-            // A) 先做本地校验（地址/运费/商品）
-            const msg = await precheckForWallet();
-            if (msg) return message.error(msg);
-            alert('merchant_validation')
+            // 兼容 validationURL / validationUrl，且可能在 e.detail 或根上
+            const validationURL =
+                e?.detail?.validationURL ||
+                e?.detail?.validationUrl ||
+                e?.validationURL ||
+                e?.validationUrl
 
-            // B) 点击后此处才创建订单 & PaymentIntent（你现有函数里已经会 createOrder）
-            const clientSecret = await ensureAwxPaymentIntent();
-            if (!clientSecret) return message.error('Airwallex is not ready yet');
-            alert(clientSecret)
+            if (!validationURL) {
+                console.error('[AWX] no validationURL on event payload')
+                return
+            }
 
-            // C) 将 Intent 注入 Apple Pay 元素（允许后补）
+            // A) 本地校验（地址/运费/商品）
+            const msg = await precheckForWallet()
+            if (msg) { message.error(msg); return }
+
+            // B) 点击后才创建订单 & PaymentIntent（拿到 client_secret / intent_id / 实付金额）
+            const clientSecret = await ensureAwxPaymentIntent()
+            if (!clientSecret || !awxIntentId.value) {
+                message.error('Airwallex is not ready yet')
+                return
+            }
+
+            // C) 注入 intent / 金额（金额务必用后端返回的 actualPayableAmount）
             awxAppleEl.update?.({
                 intent_id: awxIntentId.value,
                 client_secret: awxClientSecret.value,
-                amount: { value: awxActualPayableAmount.value, currency: awxCurrency.value }
-            });
-
-            // D) 向后端索要 merchantSession（后端转调 Airwallex）
-            const validationURL = e?.detail?.validationURL;
-            const Sessionres = await startAirwallexPaymentSession({
-                validationURL: validationURL,
-                initiative_context: "test.incustom.com",
-                payment_intent_id: awxIntentId.value, // 你创建 PaymentIntent 后保存的 ID
+                amount: { value: awxActualPayableAmount.value, currency: awxCurrency.value || 'USD' }
             })
-            alert(JSON.stringify(Sessionres))
+            console.log('[AWX] element updated with intent/amount')
 
-            let merchantSession = Sessionres.result
-            // E) 完成商户校验，继续弹出支付面板
-            awxAppleEl.completeValidation(merchantSession);
+            // D) 向后端换 merchantSession（GET）
+            const Sessionres = await startAirwallexPaymentSession({
+                validationURL,
+                initiative: 'web',
+                initiative_context: window.location.hostname, // 如 test.incustom.com（需在 Apple 完成域名验证）
+                payment_intent_id: awxIntentId.value
+            })
+            const merchantSession = Sessionres?.result ?? Sessionres
+
+            // E) 完成商户校验（尽快执行，不要用 alert 阻塞）
+            awxAppleEl.completeValidation(merchantSession)
+            console.log('[AWX] completeValidation called')
         } catch (err: any) {
-            awxAppleError.value = err?.message || 'Apple Pay validation failed';
-            message.error(awxAppleError.value);
+            console.error('[AWX] validate error', err)
+            awxAppleError.value = err?.message || 'Apple Pay validation failed'
+            message.error(awxAppleError.value)
         }
-    });
+    }
 
-    // 支付成功
+    // 绑定官方现在使用的事件名：validateMerchant
+    awxAppleEl.on?.('validateMerchant' as any, handleValidate)
+    // 同时兼容老写法，避免 SDK 变体
+    awxAppleEl.on?.('merchant_validation' as any, handleValidate)
+    awxAppleEl.on?.('merchantValidation' as any, handleValidate)
+    awxAppleEl.on?.('merchant-validation' as any, handleValidate)
+
+    // 成功
     awxAppleEl.on?.('success', async (e: any) => {
+        console.log('[AWX] success', e?.detail?.intent)
         try {
-            const intent = e?.detail?.intent;
+            const intent = e?.detail?.intent
             if (intent?.id) {
-                awxIntentId.value = intent.id;
-                // 你的后端捕获（幂等）
-                airWallexCaptureOrder(awxIntentId.value);
+                awxIntentId.value = intent.id
+                await airWallexCaptureOrder(awxIntentId.value)
             }
+            purchase({
+                ...buildFbqPayload(),
+                value: Number(awxActualPayableAmount.value || payableTotal.value),
+                currency: awxCurrency.value || 'USD',
+                order_id: orderNo.value || orderId.value
+            })
+            const gaItems = productlists.value.map((it: any) => ({
+                item_id: it.productSku,
+                item_name: it.productName,
+                price: Number(it.productPrice) || 0,
+                quantity: Number(it.qtyOrdered) || 1,
+                currency: awxCurrency.value || 'USD'
+            }))
+            purchaseorder({
+                transaction_id: orderNo.value || orderId.value,
+                value: Number(awxActualPayableAmount.value || payableTotal.value),
+                currency: awxCurrency.value || 'USD',
+                items: gaItems,
+                coupon: activeCoupon.value || undefined,
+                shipping: Number(shipping.value) || 0
+            })
+        } catch { }
 
-            // 埋点
-            try {
-                purchase({
-                    ...buildFbqPayload(),
-                    value: Number(payableTotal.value),
-                    currency: 'USD',
-                    order_id: orderNo.value || orderId.value
-                });
-                const gaItems = productlists.value.map((it: any) => ({
-                    item_id: it.productSku,
-                    item_name: it.productName,
-                    price: Number(it.productPrice) || 0,
-                    quantity: Number(it.qtyOrdered) || 1,
-                    currency: 'USD'
-                }));
-                purchaseorder({
-                    transaction_id: orderNo.value || orderId.value,
-                    value: Number(payableTotal.value),
-                    currency: 'USD',
-                    items: gaItems,
-                    coupon: activeCoupon.value || undefined,
-                    shipping: Number(shipping.value) || 0
-                });
-            } catch { }
-
-            const paymentTime = intent?.created_at
-                ? formatUtcToLocal(intent.created_at)
-                : formatUtcToLocal(new Date().toISOString());
-
-            router.push({
-                path: '/paysuccess',
-                query: {
-                    orderNo: orderNo.value,
-                    createTime: paymentTime,
-                    currency: 'USD',
-                    paymentMethod: 'Apple Pay',
-                    totalAmount: payableTotal.value
-                }
-            });
-        } catch (err: any) {
-            console.error('Apple Pay success handler error:', err);
-        }
-    });
+        const now = new Date().toISOString()
+        router.push({
+            path: '/paysuccess',
+            query: {
+                orderNo: orderNo.value,
+                createTime: formatUtcToLocal(now),
+                currency: awxCurrency.value || 'USD',
+                paymentMethod: 'Apple Pay',
+                totalAmount: awxActualPayableAmount.value || payableTotal.value
+            }
+        })
+    })
 
     // 失败/取消
     awxAppleEl.on?.('error', (e: any) => {
-        const emsg = e?.detail?.error?.message || 'Apple Pay failed';
-        awxAppleError.value = emsg;
+        const emsg = e?.detail?.error?.message || e?.detail?.message || 'Apple Pay failed'
+        console.error('[AWX] error', e)
+        awxAppleError.value = emsg
         router.push({
             path: '/payfail',
             query: {
                 orderNo: orderNo.value,
-                currency: 'USD',
+                currency: awxCurrency.value || 'USD',
                 paymentMethod: 'Apple Pay',
-                totalAmount: payableTotal.value,
+                totalAmount: awxActualPayableAmount.value || payableTotal.value,
                 errorMsg: emsg
             }
-        });
-    });
+        })
+    })
 
-    await nextTick();
-    awxAppleEl.mount('awx-apple-pay');
-    awxAppleMounted.value = true;
+    await nextTick()
+    awxAppleEl.mount('awx-apple-pay')
+    awxAppleMounted.value = true
+    console.log('[AWX] applePay mounted')
 }
+
 
 function unmountAirwallexSplit() {
     try { awxCardNumberEl?.unmount?.(); awxCardNumberEl?.destroy?.(); } catch { }
