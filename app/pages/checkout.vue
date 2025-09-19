@@ -1052,17 +1052,18 @@ async function mountApplePayButton() {
     awxAppleEl.on?.('error', (e: any) => {
         const emsg = e?.detail?.error?.message || e?.detail?.message || 'Apple Pay failed'
         console.error('[AWX] error', e)
+        console.log(e)
         awxAppleError.value = emsg
-        router.push({
-            path: '/payfail',
-            query: {
-                orderNo: orderNo.value,
-                currency: awxCurrency.value || 'USD',
-                paymentMethod: 'Apple Pay',
-                totalAmount: awxActualPayableAmount.value || payableTotal.value,
-                errorMsg: emsg
-            }
-        })
+        // router.push({
+        //     path: '/payfail',
+        //     query: {
+        //         orderNo: orderNo.value,
+        //         currency: awxCurrency.value || 'USD',
+        //         paymentMethod: 'Apple Pay',
+        //         totalAmount: awxActualPayableAmount.value || payableTotal.value,
+        //         errorMsg: emsg
+        //     }
+        // })
     })
 
 
