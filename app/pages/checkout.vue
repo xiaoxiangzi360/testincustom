@@ -952,12 +952,12 @@ async function mountApplePayButton() {
 
             // D) 向后端索要 merchantSession（后端转调 Airwallex）
             const validationURL = e?.detail?.validationURL;
-            const merchantSession = await startAirwallexPaymentSession({
+            const Sessionres = await startAirwallexPaymentSession({
                 validationURL: validationURL,
                 initiative_context: "dev.airwallex.com",
                 payment_intent_id: awxIntentId.value, // 你创建 PaymentIntent 后保存的 ID
             })
-
+            let merchantSession = Sessionres.result
             // E) 完成商户校验，继续弹出支付面板
             awxAppleEl.completeValidation(merchantSession);
         } catch (err: any) {
