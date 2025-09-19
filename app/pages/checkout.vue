@@ -784,7 +784,8 @@ const applyLoading = ref(false);
 // === Airwallex Split Card 集成 ===
 // === Airwallex：稳健加载 & 初始化 ===
 const awxScriptLoaded = ref(false);
-
+const awxActualPayableAmount = ref<string>('0.00')
+const awxCurrency = ref<string>('USD')
 // === 用本地 npm 包替代 CDN，全客户端动态导入 ===
 let Airwallex: any = null;
 
@@ -798,22 +799,38 @@ async function getAWX() {
     return Airwallex;
 }
 function extractAwxFromCreatePayment(payRes: any) {
-    // 你这次给的是 result.airwallexPaymentIntentsResult.airwallexPaymentIntents
-    const v1 = payRes?.result?.airwallexPaymentIntentsResult?.airwallexPaymentIntents;
+    // 原有多路径兼容
+    const v1 = payRes?.result?.airwallexPaymentIntentsResult?.airwallexPaymentIntents
+    const v2 = payRes?.result?.airwallexResult?.paymentIntent
+    const v3 = payRes?.result?.airwallexResult?.payment_intent
+    const awxObj = v1 || v2 || v3 || {}
 
-    // 也兼容之前我考虑过的几种写法
-    const v2 = payRes?.result?.airwallexResult?.paymentIntent;
-    const v3 = payRes?.result?.airwallexResult?.payment_intent;
+    // 兼容多处返回：优先 result.actualPayableAmount
+    const rawActual =
+        payRes?.result?.actualPayableAmount ??
+        awxObj?.actualPayableAmount ??
+        payRes?.actualPayableAmount ??
+        awxObj?.amount ??          // 兜底
+        awxObj?.originalAmount ??  // 兜底
+        0
 
-    const awxObj = v1 || v2 || v3 || {};
+    const currency =
+        awxObj?.currency ||
+        awxObj?.originalCurrency ||
+        payRes?.result?.currency ||
+        'USD'
+
     return {
         id: awxObj?.id || '',
         clientSecret: awxObj?.clientSecret || awxObj?.client_secret || '',
         status: awxObj?.status || '',
-        currency: awxObj?.currency || awxObj?.originalCurrency || '',
-        amount: awxObj?.amount || awxObj?.originalAmount || 0
-    };
+        currency,
+        // 这俩保留做参考
+        amount: awxObj?.amount || awxObj?.originalAmount || 0,
+        actualPayableAmount: Number(rawActual) || 0
+    }
 }
+
 
 const awxInited = ref(false);
 const awxPayLoading = ref(false);
@@ -930,7 +947,7 @@ async function mountApplePayButton() {
             awxAppleEl.update?.({
                 intent_id: awxIntentId.value,
                 client_secret: awxClientSecret.value,
-                amount: { value: payableTotal.value, currency: 'USD' }
+                amount: { value: awxActualPayableAmount.value, currency: awxCurrency.value }
             });
 
             // D) 向后端索要 merchantSession（后端转调 Airwallex）
@@ -1939,16 +1956,21 @@ async function ensureAwxPaymentIntent(): Promise<string> {
         try {
             const payParams = { payType: 'airwallex', createSource: 'orderPay', bindIdList: [orderId.value] }
             const payRes = await createPayment(payParams)
-            const { id, clientSecret } = extractAwxFromCreatePayment(payRes)
+
+            const { id, clientSecret, actualPayableAmount, currency } = extractAwxFromCreatePayment(payRes)
             if (!clientSecret) throw new Error('Missing Airwallex client_secret')
+
             awxClientSecret.value = clientSecret
             awxIntentId.value = id || ''
+            awxActualPayableAmount.value = (Number(actualPayableAmount) || 0).toFixed(2) // ★ 用服务端金额
+            awxCurrency.value = currency || 'USD'
         } catch (e: any) {
             console.error('createPayment error:', e)
             message.error(e?.message || 'Failed to create Airwallex payment intent')
             throw new Error('PAYMENT_INTENT_FAILED')
         }
     }
+
 
     return awxClientSecret.value
 }
