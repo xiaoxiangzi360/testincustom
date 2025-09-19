@@ -934,7 +934,7 @@ async function mountApplePayButton() {
 
     alert('createElement')
     // ⬇️ 关键：商户校验阶段（点击按钮后触发）
-    awxAppleEl.on?.('merchant_validation', async (e: any) => {
+    awxAppleEl.on?.('validateMerchant', async (e: any) => {
         try {
             alert('onmerchant_validation')
 
