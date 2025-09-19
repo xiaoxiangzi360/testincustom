@@ -989,7 +989,7 @@ async function mountApplePayButton() {
         console.log(merchantSession)
 
         // E) 完成商户校验（尽快执行，不要用 alert 阻塞）
-        awxAppleEl.completeValidation(merchantSession.json())
+        awxAppleEl.completeValidation(merchantSession)
         console.log('[AWX] completeValidation called')
 
     }
