@@ -53,22 +53,18 @@ export const PayAuth = () => {
      * Apple Pay 商户校验：向你的后端请求 Airwallex 的 payment_session/start
      * 后端拿 validationURL + payment_intent_id 去请求 Airwallex，
      * 把返回的 merchantSession 原样回给前端。
-     *
-     * @param params.validationURL  从前端校验事件里拿到的 validationURL
-     * @param params.payment_intent_id  Payment Intent ID（可用 airwallexPaymentIntentsId / paymentIntentId 作为别名）
      */
     const startAirwallexPaymentSession = async (params: any) => {
         try {
-            const query = new URLSearchParams(params).toString()
-            const response = await $api(`/pay/airwallex/airwallexPaymentSessionStart?${query}`, {
-                method: 'GET',
+            const response = await $api('/pay/airwallex/airwallexPaymentSessionStart', {
+                method: 'POST',
+                body: params,
             })
             return response
         } catch (error) {
             throw error
         }
     }
-
     return {
         createPayment,
         completePayment,
