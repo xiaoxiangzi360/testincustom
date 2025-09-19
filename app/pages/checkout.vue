@@ -1048,21 +1048,31 @@ async function mountApplePayButton() {
 
     // 失败/取消
     awxAppleEl.on?.('error', (e: any) => {
-        const emsg = e?.detail?.error?.message || e?.detail?.message || 'Apple Pay failed'
-        console.error('[AWX] error', e)
-        console.log(e)
-        awxAppleError.value = emsg
-        // router.push({
-        //     path: '/payfail',
-        //     query: {
-        //         orderNo: orderNo.value,
-        //         currency: awxCurrency.value || 'USD',
-        //         paymentMethod: 'Apple Pay',
-        //         totalAmount: awxActualPayableAmount.value || payableTotal.value,
-        //         errorMsg: emsg
-        //     }
-        // })
+        const raw = e?.detail ?? e
+        const err = raw?.error ?? raw
+
+        // 常见字段位于这些位置
+        const code = err?.code ?? raw?.code
+        const message = err?.message ?? raw?.message
+        const status = err?.status ?? raw?.status
+        const detail = err?.detail ?? raw?.detail
+        const source = err?.source ?? raw?.source
+
+        // 更可读的日志
+        console.group('[AWX] error')
+        console.log('event:', e)
+        console.log('detail:', raw)
+        console.log('errorObj:', err)
+        console.log('code/status/source:', code, status, source)
+        console.log('detail msg:', detail)
+        console.groupEnd()
+
+        // 用户可见文案
+        const parts = [message, code && `code:${code}`, status && `status:${status}`].filter(Boolean)
+        awxAppleError.value = parts.join(' | ')
+        message.error(awxAppleError.value || 'Apple Pay failed')
     })
+
 
 
 }
