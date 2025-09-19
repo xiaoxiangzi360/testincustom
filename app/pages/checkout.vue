@@ -460,12 +460,24 @@
                                         {{ awxPayLoading ? 'Processing...' : 'Pay Now' }}
                                     </UButton>
                                 </div>
-                                <!-- ✅ Apple Pay 按钮（仅当选中 Apple Pay 且设备支持） -->
+                                <!-- ✅ Apple Pay 区域（仅选中 Apple Pay 才显示） -->
                                 <div :class="['px-4 pb-4', { hidden: selected !== 3 }]">
-                                    <div id="awx-apple-pay" class="w-full"></div>
+                                    <div v-if="canUseApplePay">
+                                        <!-- 第一次点击前显示自定义按钮；点击后我们再挂载官方按钮 -->
+                                        <UButton v-show="!awxAppleMounted" size="lg"
+                                            class="w-full rounded bg-black text-white" @click="handleApplePayClick">
+                                            Continue with Apple Pay
+                                        </UButton>
 
+                                        <!-- 懒创建完成后，显示官方 Apple Pay 按钮 -->
+                                        <div v-show="awxAppleMounted" id="awx-apple-pay" class="w-full"></div>
+                                    </div>
+                                    <p v-else class="text-sm text-gray-500">
+                                        Apple Pay is not available on this device/browser.
+                                    </p>
                                     <p v-if="awxAppleError" class="text-red-500 text-sm mt-2">{{ awxAppleError }}</p>
                                 </div>
+
 
                             </template>
 
@@ -1553,6 +1565,11 @@ const handleSignIn = async () => {
 };
 
 const Invalidlist = ref([] as any[]);
+watch([selectedTotal, shipping, discount], () => {
+    if (awxAppleEl) {
+        awxAppleEl.update?.({ amount: { value: payableTotal.value, currency: 'USD' } });
+    }
+});
 
 watch(
     () => addressinfo.value,
@@ -1603,14 +1620,12 @@ watch(selected, async (val) => {
         await mountAirwallexSplit();
     }
     if (val === 3) {
-        detectApplePaySupport();
-        if (canUseApplePay.value && !awxAppleMounted.value) {
-            // Apple Pay 也需要有订单与地址、运费，沿用你的校验
-            // 简化：沿用你 handleAirwallexPay 的前置校验
-            const validMsg = await precheckForWallet(); //👇我们在下面给它
-            if (validMsg) return message.error(validMsg);
-            await mountAirwallexApplePay();
-        }
+        // detectApplePaySupport();
+        // if (canUseApplePay.value && !awxAppleMounted.value) {
+        //     const validMsg = await precheckForWallet(); //👇我们在下面给它
+        //     if (validMsg) return message.error(validMsg);
+        //     await mountAirwallexApplePay();
+        // }
     }
 });
 
@@ -1802,6 +1817,106 @@ async function ensureAwxPaymentIntent(): Promise<string> {
 
     return awxClientSecret.value
 }
+async function handleApplePayClick() {
+    awxAppleError.value = '';
+    try {
+        // A) 前置校验
+        const msg = await precheckForWallet();
+        if (msg) return message.error(msg);
+
+        // B) 创建订单 + 创建 Airwallex PaymentIntent（就在点击时）
+        const clientSecret = await ensureAwxPaymentIntent();
+        if (!clientSecret) return message.error('Airwallex is not ready yet');
+
+        // C) 首次点击：懒挂载官方 Apple Pay 按钮
+        if (!awxAppleMounted.value) {
+            const AWX = await getAWX();
+
+            // ✅ 按你的商户国家设置（US/HK/…），也可从后端配置下发
+            const countryCode = 'US';
+
+            awxAppleEl = await AWX.createElement('applePayButton', {
+                intent_id: awxIntentId.value,
+                client_secret: awxClientSecret.value,
+                amount: { value: payableTotal.value, currency: 'USD' },
+                countryCode,
+                buttonType: 'buy',
+                buttonColor: 'black',
+                requiredShippingContactFields: ['name', 'email', 'phone']
+            });
+
+            // 成功回调：与你卡支付一致，捕获+埋点+跳转
+            awxAppleEl.on?.('success', async (e: any) => {
+                try {
+                    const intent = e?.detail?.intent;
+                    if (intent?.id) {
+                        awxIntentId.value = intent.id;
+                        airWallexCaptureOrder(awxIntentId.value); // 幂等
+                    }
+
+                    // 埋点
+                    try {
+                        purchase({
+                            ...buildFbqPayload(),
+                            value: Number(payableTotal.value),
+                            currency: 'USD',
+                            order_id: orderNo.value || orderId.value
+                        });
+                        const gaItems = productlists.value.map((it: any) => ({
+                            item_id: it.productSku, item_name: it.productName,
+                            price: Number(it.productPrice) || 0,
+                            quantity: Number(it.qtyOrdered) || 1, currency: 'USD'
+                        }));
+                        purchaseorder({
+                            transaction_id: orderNo.value || orderId.value,
+                            value: Number(payableTotal.value),
+                            currency: 'USD',
+                            items: gaItems,
+                            coupon: activeCoupon.value || undefined,
+                            shipping: Number(shipping.value) || 0
+                        });
+                    } catch { }
+
+                    const paymentTime = intent?.created_at ? formatUtcToLocal(intent.created_at) : formatUtcToLocal(new Date().toISOString());
+                    router.push({
+                        path: '/paysuccess',
+                        query: { orderNo: orderNo.value, createTime: paymentTime, currency: 'USD', paymentMethod: 'Apple Pay', totalAmount: payableTotal.value }
+                    });
+                } catch (err: any) {
+                    console.error('Apple Pay success handler error:', err);
+                }
+            });
+
+            // 失败/取消
+            awxAppleEl.on?.('error', (e: any) => {
+                const emsg = e?.detail?.error?.message || 'Apple Pay failed';
+                awxAppleError.value = emsg;
+                router.push({
+                    path: '/payfail',
+                    query: {
+                        orderNo: orderNo.value, currency: 'USD', paymentMethod: 'Apple Pay',
+                        totalAmount: payableTotal.value, errorMsg: emsg
+                    }
+                });
+            });
+
+            await nextTick();
+            awxAppleEl.mount('awx-apple-pay');
+            awxAppleMounted.value = true;
+
+            // ⚠️ 尝试立刻触发一次点击（是否被浏览器认定为同一“用户手势”不保证）
+            try { (document.getElementById('awx-apple-pay') as HTMLElement)?.click?.(); } catch { }
+            return;
+        }
+
+        // D) 已挂载：只更新金额（如用户调整了优惠/运费后再次点击）
+        awxAppleEl.update?.({ amount: { value: payableTotal.value, currency: 'USD' } });
+    } catch (e: any) {
+        awxAppleError.value = e?.message || 'Failed to start Apple Pay';
+        message.error(awxAppleError.value);
+    }
+}
+
 async function mountAirwallexApplePay() {
     try {
         await initAirwallex();
