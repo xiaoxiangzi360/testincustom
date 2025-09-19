@@ -942,58 +942,54 @@ async function mountApplePayButton() {
 
     // 统一的校验处理器（支持多版本事件 & 字段）
     const handleValidate = async (e: any) => {
-        try {
-            console.log('[AWX] validate event payload:', e)
 
-            // 兼容 validationURL / validationUrl，且可能在 e.detail 或根上
-            const validationURL =
-                e?.detail?.validationURL ||
-                e?.detail?.validationUrl ||
-                e?.validationURL ||
-                e?.validationUrl
+        console.log('[AWX] validate event payload:', e)
 
-            if (!validationURL) {
-                console.error('[AWX] no validationURL on event payload')
-                return
-            }
+        // 兼容 validationURL / validationUrl，且可能在 e.detail 或根上
+        const validationURL =
+            e?.detail?.validationURL ||
+            e?.detail?.validationUrl ||
+            e?.validationURL ||
+            e?.validationUrl
 
-            // A) 本地校验（地址/运费/商品）
-            const msg = await precheckForWallet()
-            if (msg) { message.error(msg); return }
-
-            // B) 点击后才创建订单 & PaymentIntent（拿到 client_secret / intent_id / 实付金额）
-            const clientSecret = await ensureAwxPaymentIntent()
-            if (!clientSecret || !awxIntentId.value) {
-                message.error('Airwallex is not ready yet')
-                return
-            }
-
-            // C) 注入 intent / 金额（金额务必用后端返回的 actualPayableAmount）
-            awxAppleEl.update?.({
-                intent_id: awxIntentId.value,
-                client_secret: awxClientSecret.value,
-                amount: { value: awxActualPayableAmount.value, currency: awxCurrency.value || 'USD' }
-            })
-            console.log('[AWX] element updated with intent/amount')
-
-            // D) 向后端换 merchantSession（GET）
-            const Sessionres = await startAirwallexPaymentSession({
-                validationURL,
-                initiative: 'web',
-                initiative_context: window.location.hostname, // 如 test.incustom.com（需在 Apple 完成域名验证）
-                payment_intent_id: awxIntentId.value
-            })
-            const merchantSession = Sessionres?.result ?? Sessionres
-            console.log(merchantSession)
-
-            // E) 完成商户校验（尽快执行，不要用 alert 阻塞）
-            awxAppleEl.completeValidation(merchantSession)
-            console.log('[AWX] completeValidation called')
-        } catch (err: any) {
-            console.error('[AWX] validate error', err)
-            awxAppleError.value = err?.message || 'Apple Pay validation failed'
-            message.error(awxAppleError.value)
+        if (!validationURL) {
+            console.error('[AWX] no validationURL on event payload')
+            return
         }
+
+        // A) 本地校验（地址/运费/商品）
+        const msg = await precheckForWallet()
+        if (msg) { message.error(msg); return }
+
+        // B) 点击后才创建订单 & PaymentIntent（拿到 client_secret / intent_id / 实付金额）
+        const clientSecret = await ensureAwxPaymentIntent()
+        if (!clientSecret || !awxIntentId.value) {
+            message.error('Airwallex is not ready yet')
+            return
+        }
+
+        // C) 注入 intent / 金额（金额务必用后端返回的 actualPayableAmount）
+        awxAppleEl.update?.({
+            intent_id: awxIntentId.value,
+            client_secret: awxClientSecret.value,
+            amount: { value: awxActualPayableAmount.value, currency: awxCurrency.value || 'USD' }
+        })
+        console.log('[AWX] element updated with intent/amount')
+
+        // D) 向后端换 merchantSession（GET）
+        const Sessionres = await startAirwallexPaymentSession({
+            validationURL,
+            initiative: 'web',
+            initiative_context: window.location.hostname, // 如 test.incustom.com（需在 Apple 完成域名验证）
+            payment_intent_id: awxIntentId.value
+        })
+        const merchantSession = Sessionres?.result ?? Sessionres
+        console.log(merchantSession)
+
+        // E) 完成商户校验（尽快执行，不要用 alert 阻塞）
+        awxAppleEl.completeValidation(merchantSession)
+        console.log('[AWX] completeValidation called')
+
     }
 
     // 绑定官方现在使用的事件名：validateMerchant
