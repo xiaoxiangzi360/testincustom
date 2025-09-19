@@ -984,6 +984,7 @@ async function mountApplePayButton() {
                 payment_intent_id: awxIntentId.value
             })
             const merchantSession = Sessionres?.result ?? Sessionres
+            console.log(merchantSession)
 
             // E) 完成商户校验（尽快执行，不要用 alert 阻塞）
             awxAppleEl.completeValidation(merchantSession)
