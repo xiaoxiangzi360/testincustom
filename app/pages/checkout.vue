@@ -931,6 +931,10 @@ async function mountApplePayButton() {
         buttonColor: 'black',
         requiredShippingContactFields: ['name', 'email', 'phone']
     })
+    awxAppleEl.mount('awx-apple-pay')
+    awxAppleMounted.value = true
+    console.log('[AWX] applePay mounted')
+    await nextTick()
 
     // 调试日志可留着
     awxAppleEl.on?.('ready', () => console.log('[AWX] applePay ready'))
@@ -1060,10 +1064,7 @@ async function mountApplePayButton() {
         })
     })
 
-    await nextTick()
-    awxAppleEl.mount('awx-apple-pay')
-    awxAppleMounted.value = true
-    console.log('[AWX] applePay mounted')
+
 }
 
 
