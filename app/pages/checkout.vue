@@ -930,7 +930,28 @@ async function mountApplePayButton() {
         buttonType: 'buy',
         buttonColor: 'black',
         merchantCapabilities: ['supports3DS', 'supportsDebit', 'supportsCredit', 'supportsEMV'], // Remove supportsEMV if China UnionPay is not needed
-        supportedNetworks: ['visa', 'masterCard', 'chinaUnionPay', 'amex', 'discover'],
+        supportedNetworks: [
+            'amex',
+            'bancomat',
+            'bancontact',
+            'cartesBancaires',
+            'chinaUnionPay',
+            'dankort',
+            'discover',
+            'eftpos',
+            'electron',
+            'elo',
+            'girocard',
+            'interac',
+            'jcb',
+            'mada',
+            'maestro',
+            'masterCard',
+            'mir',
+            'privateLabel',
+            'visa',
+            'vPay',
+        ],
         requiredShippingContactFields: ['name', 'email', 'phone']
     })
     awxAppleEl.mount('awx-apple-pay')
