@@ -929,6 +929,8 @@ async function mountApplePayButton() {
         countryCode: 'US',
         buttonType: 'buy',
         buttonColor: 'black',
+        merchantCapabilities: ['supports3DS', 'supportsDebit', 'supportsCredit', 'supportsEMV'], // Remove supportsEMV if China UnionPay is not needed
+        supportedNetworks: ['visa', 'masterCard', 'chinaUnionPay', 'amex', 'discover'],
         requiredShippingContactFields: ['name', 'email', 'phone']
     })
     awxAppleEl.mount('awx-apple-pay')
@@ -967,15 +969,12 @@ async function mountApplePayButton() {
             message.error('Airwallex is not ready yet')
             return
         }
-
         // C) 注入 intent / 金额（金额务必用后端返回的 actualPayableAmount）
         awxAppleEl.update?.({
             intent_id: awxIntentId.value,
             client_secret: awxClientSecret.value,
             amount: { value: awxActualPayableAmount.value, currency: awxCurrency.value || 'USD' }
         })
-        console.log('[AWX] element updated with intent/amount')
-
         // D) 向后端换 merchantSession（GET）
         const Sessionres = await startAirwallexPaymentSession({
             validationUrl: validationURL,
@@ -983,24 +982,17 @@ async function mountApplePayButton() {
             initiativeContext: window.location.hostname, // 如 test.incustom.com（需在 Apple 完成域名验证）
             paymentIntentId: awxIntentId.value
         })
-        console.log(Sessionres)
-
         const merchantSession = Sessionres?.result ?? Sessionres
-        console.log(merchantSession)
-
         // E) 完成商户校验（尽快执行，不要用 alert 阻塞）
         awxAppleEl.completeValidation(merchantSession)
         console.log('[AWX] completeValidation called')
-
     }
-
     // 绑定官方现在使用的事件名：validateMerchant
     awxAppleEl.on?.('validateMerchant' as any, handleValidate)
     // 同时兼容老写法，避免 SDK 变体
     awxAppleEl.on?.('merchant_validation' as any, handleValidate)
     awxAppleEl.on?.('merchantValidation' as any, handleValidate)
     awxAppleEl.on?.('merchant-validation' as any, handleValidate)
-
     // 成功
     awxAppleEl.on?.('success', async (e: any) => {
         console.log('[AWX] success', e?.detail?.intent)
@@ -1050,31 +1042,13 @@ async function mountApplePayButton() {
     awxAppleEl.on?.('error', (e: any) => {
         const raw = e?.detail ?? e
         const err = raw?.error ?? raw
-
         // 常见字段位于这些位置
         const code = err?.code ?? raw?.code
         const message = err?.message ?? raw?.message
         const status = err?.status ?? raw?.status
-        const detail = err?.detail ?? raw?.detail
-        const source = err?.source ?? raw?.source
-
-        // 更可读的日志
-        console.group('[AWX] error')
-        console.log('event:', e)
-        console.log('detail:', raw)
-        console.log('errorObj:', err)
-        console.log('code/status/source:', code, status, source)
-        console.log('detail msg:', detail)
-        console.groupEnd()
-
-        // 用户可见文案
-        const parts = [message, code && `code:${code}`, status && `status:${status}`].filter(Boolean)
-        awxAppleError.value = parts.join(' | ')
+        awxAppleError.value = message
         message.error(awxAppleError.value || 'Apple Pay failed')
     })
-
-
-
 }
 
 
