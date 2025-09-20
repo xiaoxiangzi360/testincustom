@@ -917,6 +917,21 @@ async function precheckForWallet(): Promise<string | null> {
     if (!productlists.value?.length) return 'No items to pay';
     return null;
 }
+function redirectPayFail(method: string, msg?: string) {
+    const currency = awxCurrency.value || 'USD'
+    const total = awxActualPayableAmount.value || payableTotal.value || '0.00'
+    router.push({
+        path: '/payfail',
+        query: {
+            orderNo: orderNo.value,
+            currency,
+            paymentMethod: method,
+            totalAmount: total,
+            errorMsg: msg || 'Payment failed'
+        }
+    })
+}
+
 async function mountApplePayButton() {
     if (awxAppleMounted.value) return
 
@@ -956,7 +971,6 @@ async function mountApplePayButton() {
     })
     awxAppleEl.mount('awx-apple-pay')
     awxAppleMounted.value = true
-    console.log('[AWX] applePay mounted')
     await nextTick()
 
     // 调试日志可留着
@@ -965,8 +979,6 @@ async function mountApplePayButton() {
 
     // 统一的校验处理器（支持多版本事件 & 字段）
     const handleValidate = async (e: any) => {
-
-        console.log('[AWX] validate event payload:', e)
 
         // 兼容 validationURL / validationUrl，且可能在 e.detail 或根上
         const validationURL =
@@ -1060,16 +1072,19 @@ async function mountApplePayButton() {
     })
 
     // 失败/取消
+    // 失败：统一跳转 payfail
     awxAppleEl.on?.('error', (e: any) => {
         const raw = e?.detail ?? e
         const err = raw?.error ?? raw
-        // 常见字段位于这些位置
         const code = err?.code ?? raw?.code
-        const message = err?.message ?? raw?.message
-        const status = err?.status ?? raw?.status
-        awxAppleError.value = message
+        const msg = err?.message ?? raw?.message ?? err?.status ?? 'Payment failed'
+
+        awxAppleError.value = msg
         message.error(awxAppleError.value || 'Apple Pay failed')
+
+        redirectPayFail('Apple Pay', code ? `${msg} (code: ${code})` : msg)
     })
+
 }
 
 
