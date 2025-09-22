@@ -1692,7 +1692,7 @@ async function tryRenderPaypalButtons() {
         }
     }).render('#paypal-button-container');
 }
-async function ensureAwxPaymentIntent(payType: 'airwallex' | 'googlepay' = 'airwallex'): Promise<string> {
+async function ensureAwxPaymentIntent(payType): Promise<string> {
     // 1) 确保有 orderId
     if (!orderId.value) {
         try {
@@ -1830,7 +1830,7 @@ async function handleAirwallexPay() {
         if (!productlists.value?.length) return message.error('No items to pay')
 
         // --- B. 准备 PaymentIntent：失败不跳转 ---
-        const clientSecret = await ensureAwxPaymentIntent()
+        const clientSecret = await ensureAwxPaymentIntent('airwallex')
         if (!clientSecret) {
             // 理论上不会走到这，但为了稳妥：不跳转
             return message.error('Airwallex is not ready yet')
