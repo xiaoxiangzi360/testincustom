@@ -2051,7 +2051,7 @@ async function onGooglePayClick() {
 
         // ---- C) 用 Google Pay 元素确认（注意：是 confirmIntent）----
         const result = await gpayEl.value.confirmIntent({ client_secret: clientSecret })
-
+        console.log(result);
         // 成功与失败统一走回调（保底这里也判断一下）
         if (result?.status === 'SUCCEEDED') {
             onGooglePaySuccess({ detail: { intent: result } } as any)
