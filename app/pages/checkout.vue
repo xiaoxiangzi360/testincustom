@@ -1984,6 +1984,7 @@ async function mountGooglePay() {
     gpayEl.value = await AWX.createElement('googlePayButton', {
         countryCode,
         amount: { value: totalPayable.value.toFixed(2), currency: awxCurrency.value },
+        autoCapture: true,
         buttonType: 'buy',
         buttonColor: 'black'
     });
