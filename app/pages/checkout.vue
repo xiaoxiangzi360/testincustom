@@ -682,6 +682,8 @@ import { nextTick } from 'vue';
 import { onBeforeUnmount } from 'vue';
 const router = useRouter();
 const route = useRoute();
+const awxAmount = ref<number | null>(null);
+const awxCurrency = ref<string>('USD');
 
 const showPassword = ref(false);
 const togglePassword = () => (showPassword.value = !showPassword.value);
@@ -785,22 +787,21 @@ async function getAWX() {
     return Airwallex;
 }
 function extractAwxFromCreatePayment(payRes: any) {
-    // 你这次给的是 result.airwallexPaymentIntentsResult.airwallexPaymentIntents
     const v1 = payRes?.result?.airwallexPaymentIntentsResult?.airwallexPaymentIntents;
-
-    // 也兼容之前我考虑过的几种写法
     const v2 = payRes?.result?.airwallexResult?.paymentIntent;
     const v3 = payRes?.result?.airwallexResult?.payment_intent;
-
     const awxObj = v1 || v2 || v3 || {};
+    const amountRaw = awxObj?.amount ?? awxObj?.originalAmount ?? 0;
+    const currencyRaw = awxObj?.currency ?? awxObj?.originalCurrency ?? 'USD';
     return {
         id: awxObj?.id || '',
         clientSecret: awxObj?.clientSecret || awxObj?.client_secret || '',
         status: awxObj?.status || '',
-        currency: awxObj?.currency || awxObj?.originalCurrency || '',
-        amount: awxObj?.amount || awxObj?.originalAmount || 0
+        currency: String(currencyRaw),
+        amount: Number(amountRaw)   // 👈 确保是 number
     };
 }
+
 
 const awxInited = ref(false);
 const awxPayLoading = ref(false);
@@ -1691,20 +1692,19 @@ async function tryRenderPaypalButtons() {
         }
     }).render('#paypal-button-container');
 }
-async function ensureAwxPaymentIntent(): Promise<string> {
+async function ensureAwxPaymentIntent(payType: 'airwallex' | 'googlepay' = 'airwallex'): Promise<string> {
     // 1) 确保有 orderId
     if (!orderId.value) {
         try {
-            const res = await generateOrderId()
-            orderId.value = res.result
+            const res = await generateOrderId();
+            orderId.value = res.result;
         } catch (e: any) {
-            // 生成订单号失败 ≠ 支付失败
-            message.error(e?.message || 'Failed to generate order id')
-            throw new Error('ORDER_PREPARE_FAILED')
+            message.error(e?.message || 'Failed to generate order id');
+            throw new Error('ORDER_PREPARE_FAILED');
         }
     }
 
-    // 2) 确保已 createOrder（拿到 orderNo）——失败不跳转
+    // 2) 确保已 createOrder（拿到 orderNo）
     if (!orderNo.value) {
         try {
             const orderItemList = (productlists.value || []).map((item: any) => ({
@@ -1712,8 +1712,7 @@ async function ensureAwxPaymentIntent(): Promise<string> {
                 qtyOrdered: Number(item.qtyOrdered),
                 priceOrdered: Number(item.productPrice),
                 amountOrdered: Number(item.productPrice) * Number(item.qtyOrdered)
-            }))
-
+            }));
             const createRes = await createOrder({
                 buyerCity: addressinfo.value.city,
                 buyerCountryCode: addressinfo.value.country,
@@ -1741,44 +1740,48 @@ async function ensureAwxPaymentIntent(): Promise<string> {
                         }))
                     }
                     : {})
-            })
-
-            orderNo.value = createRes?.result?.orderNumber || ''
+            });
+            orderNo.value = createRes?.result?.orderNumber || '';
         } catch (err: any) {
-            let msg = 'Order create failed'
+            let msg = 'Order create failed';
             try {
-                const parsed = JSON.parse(err.message || '{}')
-                msg = parsed.enDesc || msg
-                const ek = parsed.errorKey
-                // 价格或运费变更，走你原有弹窗，不跳转
+                const parsed = JSON.parse(err.message || '{}');
+                msg = parsed.enDesc || msg;
+                const ek = parsed.errorKey;
                 if (ek === 'calFee' || ek === 'priceOrdered' || ek === 'amountOrdered') {
-                    changedesc.value = parsed.enDesc
-                    isOpen.value = true
+                    changedesc.value = parsed.enDesc;
+                    isOpen.value = true;
                 }
             } catch { }
-            message.error(msg)
-            throw new Error('ORDER_CREATE_FAILED')
+            message.error(msg);
+            throw new Error('ORDER_CREATE_FAILED');
         }
     }
 
-    // 3) 创建 Airwallex PaymentIntent —— 失败不跳转
+    // 3) 创建 PaymentIntent —— 这里传入你指定的 payType
     if (!awxClientSecret.value) {
         try {
-            const payParams = { payType: 'airwallex', createSource: 'orderPay', bindIdList: [orderId.value] }
-            const payRes = await createPayment(payParams)
-            const { id, clientSecret } = extractAwxFromCreatePayment(payRes)
-            if (!clientSecret) throw new Error('Missing Airwallex client_secret')
-            awxClientSecret.value = clientSecret
-            awxIntentId.value = id || ''
+            const payParams = { payType, createSource: 'orderPay', bindIdList: [orderId.value] };
+            const payRes = await createPayment(payParams);
+            const { id, clientSecret, amount, currency } = extractAwxFromCreatePayment(payRes);
+            if (!clientSecret) throw new Error('Missing Airwallex client_secret');
+
+            awxClientSecret.value = clientSecret;
+            awxIntentId.value = id || '';
+
+            // ✅ 以服务端返回为准的金额 & 币种
+            if (Number.isFinite(amount)) awxAmount.value = Number(amount);
+            if (currency) awxCurrency.value = currency;
         } catch (e: any) {
-            console.error('createPayment error:', e)
-            message.error(e?.message || 'Failed to create Airwallex payment intent')
-            throw new Error('PAYMENT_INTENT_FAILED')
+            console.error('createPayment error:', e);
+            message.error(e?.message || 'Failed to create payment intent');
+            throw new Error('PAYMENT_INTENT_FAILED');
         }
     }
 
-    return awxClientSecret.value
+    return awxClientSecret.value;
 }
+
 async function handleAirwallexPay() {
     awxError.value = ''
     awxPayLoading.value = true
@@ -1958,9 +1961,15 @@ const gpayEl = ref<any>(null)
 const gpayError = ref<string>('')
 const Invalidlist = ref([] as any[]);
 // 计算应付总额（与右侧汇总保持一致）
-const totalPayable = computed(() =>
-    Number(((selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0)).toFixed(2))
-)
+const totalPayable = computed(() => {
+    // 如果服务端已经返回权威金额，则以它为准
+    if (awxAmount.value != null && Number.isFinite(awxAmount.value)) {
+        return Number(awxAmount.value.toFixed(2));
+    }
+    // 否则退回到本地汇总
+    return Number(((selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0)).toFixed(2));
+});
+
 // 替换你的 mountGooglePay 函数
 async function mountGooglePay() {
     await initAirwallex()
@@ -1974,10 +1983,11 @@ async function mountGooglePay() {
     // 这里只用于展示/可用性检查；不传 intent_id / client_secret
     gpayEl.value = await AWX.createElement('googlePayButton', {
         countryCode,
-        amount: { value: totalPayable.value.toFixed(2), currency: 'USD' },
+        amount: { value: totalPayable.value.toFixed(2), currency: awxCurrency.value },
         buttonType: 'buy',
         buttonColor: 'black'
-    })
+    });
+
 
     if (!gpayEl.value) {
         gpayError.value = 'Google Pay is not available on this device/account.'
@@ -2042,12 +2052,14 @@ async function onGooglePayClick() {
         // 由于之前不在 mount 阶段创建，这里会真正执行创建
         awxClientSecret.value = '' // 强制从零开始，确保“点击”才创建
         awxIntentId.value = ''
-        const clientSecret = await ensureAwxPaymentIntent()
+        // 👇 指定 payType 为 'googlepay'
+        const clientSecret = await ensureAwxPaymentIntent('googlepay');
 
-        // 金额对齐（防止金额不一致导致校验失败）
+        // 用服务端金额与币种更新 GPay 元素（必要时服务器金额覆盖本地）
         await gpayEl.value.update({
-            amount: { value: totalPayable.value.toFixed(2), currency: 'USD' }
-        })
+            amount: { value: totalPayable.value.toFixed(2), currency: awxCurrency.value }
+        });
+
 
         // ---- C) 用 Google Pay 元素确认（注意：是 confirmIntent）----
         const result = await gpayEl.value.confirmIntent({ client_secret: clientSecret })
