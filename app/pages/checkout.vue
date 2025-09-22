@@ -2053,7 +2053,7 @@ async function onGooglePayClick() {
         awxClientSecret.value = '' // 强制从零开始，确保“点击”才创建
         awxIntentId.value = ''
         // 👇 指定 payType 为 'googlepay'
-        const clientSecret = await ensureAwxPaymentIntent('googlepay');
+        const clientSecret = await ensureAwxPaymentIntent('airwallex_google_pay');
 
         // 用服务端金额与币种更新 GPay 元素（必要时服务器金额覆盖本地）
         await gpayEl.value.update({
