@@ -814,7 +814,7 @@ let awxCvcEl: any = null;
 async function initAirwallex(): Promise<void> {
     if (awxInited.value) return;
     const AWX = await getAWX();
-    const env = 'demo'; // 'demo' or 'prod'
+    const env = 'prod'; // 'demo' or 'prod'
     await AWX.init({
         env,
         langKey: 'en',
