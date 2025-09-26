@@ -236,6 +236,10 @@
                                                     class="text-d3black text-sm ml-2 font-medium">
                                                     Google&nbsp;Pay
                                                 </div>
+                                                <div v-if="option.value === 4"
+                                                    class="text-d3black text-sm ml-2 font-medium">
+                                                    Apple&nbsp;Pay
+                                                </div>
                                             </div>
 
                                         </div>
