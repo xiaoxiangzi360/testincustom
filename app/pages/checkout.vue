@@ -2011,12 +2011,15 @@ async function mountApplePay() {
     if (awxAppleMounted.value) return
     const AWX = await getAWX()
     // 创建时只放展示金额；真正金额会在校验后用服务端值覆盖
+    let countryCode = (addressinfo.value?.country || form.value.country || 'US')
+        .toString()
+        .toUpperCase()
     awxAppleEl = await AWX.createElement('applePayButton', {
         amount: {
             value: totalPayable.value.toFixed(2)
             , currency: 'USD'
         }, // 展示占位
-        countryCode: 'US',
+        countryCode: countryCode,
         buttonType: 'buy',
         buttonColor: 'black',
         merchantCapabilities: ['supports3DS', 'supportsDebit', 'supportsCredit', 'supportsEMV'], // Remove supportsEMV if China UnionPay is not needed
@@ -2088,9 +2091,12 @@ async function mountApplePay() {
             awxClientSecret.value = await ensureAwxPaymentIntent('airwallex_apple_pay')
             console.log(awxClientSecret.value);
             console.log(awxIntentId.value);
-
+            let updatecountryCode = (addressinfo.value?.country || form.value.country || 'US')
+                .toString()
+                .toUpperCase()
             // 用服务端金额/币种覆盖
             await awxAppleEl.update?.({
+                countryCode: updatecountryCode,
                 intent_id: awxIntentId.value,
                 client_secret: awxClientSecret.value,
                 amount: { value: totalPayable.value.toFixed(2), currency: awxCurrency.value || 'USD' }
@@ -2175,7 +2181,7 @@ async function mountGooglePay() {
 
     // 这里只用于展示/可用性检查；不传 intent_id / client_secret
     gpayEl.value = await AWX.createElement('googlePayButton', {
-        countryCode: 'US',
+        countryCode: countryCode,
         amount: { value: totalPayable.value.toFixed(2), currency: awxCurrency.value },
         autoCapture: true,
         buttonType: 'buy',
@@ -2250,7 +2256,11 @@ async function onGooglePayClick() {
         const clientSecret = await ensureAwxPaymentIntent('airwallex_google_pay');
 
         // 用服务端金额与币种更新 GPay 元素（必要时服务器金额覆盖本地）
+        let updatecountryCode = (addressinfo.value?.country || form.value.country || 'US')
+            .toString()
+            .toUpperCase()
         await gpayEl.value.update({
+            countryCode: updatecountryCode,
             amount: { value: totalPayable.value.toFixed(2), currency: awxCurrency.value }
         });
 
