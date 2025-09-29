@@ -2175,7 +2175,7 @@ async function mountGooglePay() {
 
     // 这里只用于展示/可用性检查；不传 intent_id / client_secret
     gpayEl.value = await AWX.createElement('googlePayButton', {
-        countryCode: 'HK',
+        countryCode: 'US',
         amount: { value: totalPayable.value.toFixed(2), currency: awxCurrency.value },
         autoCapture: true,
         buttonType: 'buy',
