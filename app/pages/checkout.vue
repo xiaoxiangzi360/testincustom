@@ -2039,6 +2039,15 @@ async function mountApplePay() {
                     await getAddresslist()
                 }
             }
+            addressinfo.value.firstName = addressinfo.value.firstName || (form.value as any)?.firstName
+            addressinfo.value.lastName = addressinfo.value.lastName || (form.value as any)?.lastName
+            addressinfo.value.address = addressinfo.value.address || (form.value as any)?.address
+            addressinfo.value.country = addressinfo.value.country || (form.value as any)?.country
+            addressinfo.value.province = addressinfo.value.province || (form.value as any)?.province
+            addressinfo.value.city = addressinfo.value.city || (form.value as any)?.city
+            addressinfo.value.postalCode = addressinfo.value.postalCode || (form.value as any)?.postalCode
+            addressinfo.value.numberCode = addressinfo.value.numberCode || (form.value as any)?.numberCode
+            addressinfo.value.number = addressinfo.value.number || (form.value as any)?.number
             if (!addressinfo.value.firstName) return message.error('Please add first name')
             if (!addressinfo.value.lastName) return message.error('Please add last name')
             if (!addressinfo.value.address) return message.error('Please add an address')
