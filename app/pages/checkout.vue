@@ -2014,7 +2014,7 @@ async function mountApplePay() {
     // 创建时只放展示金额；真正金额会在校验后用服务端值覆盖
     awxAppleEl = await AWX.createElement('applePayButton', {
         amount: { value: totalPayable.value.toFixed(2), currency: awxCurrency.value || 'USD' },
-        countryCode: (addressinfo.value?.country || form.value.country || 'US').toString().toUpperCase(),
+        countryCode: 'HK',
         buttonType: 'buy',
         buttonColor: 'black',
         merchantCapabilities: ['supports3DS', 'supportsDebit', 'supportsCredit'],
@@ -2142,7 +2142,7 @@ async function mountGooglePay() {
 
     // 这里只用于展示/可用性检查；不传 intent_id / client_secret
     gpayEl.value = await AWX.createElement('googlePayButton', {
-        countryCode,
+        countryCode: 'HK',
         amount: { value: totalPayable.value.toFixed(2), currency: awxCurrency.value },
         autoCapture: true,
         buttonType: 'buy',
