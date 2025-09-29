@@ -2063,7 +2063,7 @@ async function mountApplePay() {
             // ★ 点击后才真正创建 Intent（换成你后端支持的 payType 名称）
             awxClientSecret.value = ''
             awxIntentId.value = ''
-            const clientSecret = await ensureAwxPaymentIntent('airwallex_apple_pay')
+            awxClientSecret.value = await ensureAwxPaymentIntent('airwallex_apple_pay')
 
             // 用服务端金额/币种覆盖
             await awxAppleEl.update?.({
