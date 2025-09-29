@@ -2009,16 +2009,39 @@ const totalPayable = computed(() => {
 async function mountApplePay() {
     await initAirwallex()
     if (awxAppleMounted.value) return
-
     const AWX = await getAWX()
     // 创建时只放展示金额；真正金额会在校验后用服务端值覆盖
     awxAppleEl = await AWX.createElement('applePayButton', {
-        amount: { value: totalPayable.value.toFixed(2), currency: awxCurrency.value || 'USD' },
-        countryCode: 'HK',
+        amount: {
+            value: totalPayable.value.toFixed(2)
+            , currency: 'USD'
+        }, // 展示占位
+        countryCode: 'US',
         buttonType: 'buy',
         buttonColor: 'black',
-        merchantCapabilities: ['supports3DS', 'supportsDebit', 'supportsCredit'],
-        supportedNetworks: ['amex', 'discover', 'jcb', 'masterCard', 'visa'],
+        merchantCapabilities: ['supports3DS', 'supportsDebit', 'supportsCredit', 'supportsEMV'], // Remove supportsEMV if China UnionPay is not needed
+        supportedNetworks: [
+            'amex',
+            'bancomat',
+            'bancontact',
+            'cartesBancaires',
+            'chinaUnionPay',
+            'dankort',
+            'discover',
+            'eftpos',
+            'electron',
+            'elo',
+            'girocard',
+            'interac',
+            'jcb',
+            'mada',
+            'maestro',
+            'masterCard',
+            'mir',
+            'privateLabel',
+            'visa',
+            'vPay',
+        ],
         requiredShippingContactFields: ['name', 'email', 'phone']
     })
 
@@ -2048,6 +2071,7 @@ async function mountApplePay() {
             addressinfo.value.postalCode = addressinfo.value.postalCode || (form.value as any)?.postalCode
             addressinfo.value.numberCode = addressinfo.value.numberCode || (form.value as any)?.numberCode
             addressinfo.value.number = addressinfo.value.number || (form.value as any)?.number
+
             if (!addressinfo.value.firstName) return message.error('Please add first name')
             if (!addressinfo.value.lastName) return message.error('Please add last name')
             if (!addressinfo.value.address) return message.error('Please add an address')
@@ -2060,10 +2084,10 @@ async function mountApplePay() {
             if (!templateid.value) return message.error('Shipping methods is required')
             if (!productlists.value?.length) return message.error('No items to pay')
 
-            // ★ 点击后才真正创建 Intent（换成你后端支持的 payType 名称）
-            awxClientSecret.value = ''
-            awxIntentId.value = ''
+
             awxClientSecret.value = await ensureAwxPaymentIntent('airwallex_apple_pay')
+            console.log(awxClientSecret.value);
+            console.log(awxIntentId.value);
 
             // 用服务端金额/币种覆盖
             await awxAppleEl.update?.({
