@@ -2193,36 +2193,89 @@ async function mountGooglePay() {
     if (gpayMounted.value) return
 
     const AWX = await getAWX()
-    const countryCode = (addressinfo.value?.country || form.value.country || 'US')
-        .toString()
-        .toUpperCase()
+    const countryCode = (addressinfo.value?.country || form.value.country || 'US').toUpperCase()
 
-    // 这里只用于展示/可用性检查；不传 intent_id / client_secret
     gpayEl.value = await AWX.createElement('googlePayButton', {
-        countryCode: countryCode,
-        amount: { value: totalPayable.value.toFixed(2), currency: awxCurrency.value },
+        countryCode,
+        amount: { value: totalPayable.value.toFixed(2), currency: awxCurrency.value || 'USD' },
         autoCapture: true,
         buttonType: 'buy',
         buttonColor: 'black'
-    });
-
-
-    if (!gpayEl.value) {
-        gpayError.value = 'Google Pay is not available on this device/account.'
-        return
-    }
+    })
 
     await nextTick()
     gpayEl.value.mount('awx-google-pay')
     gpayMounted.value = true
 
-    // 绑定点击 & 成功事件
-    gpayEl.value.on?.('click', onGooglePayClick)
-    gpayEl.value.on?.('success', onGooglePaySuccess)
+    // 1. 点击 → 创建 Intent
+    gpayEl.value.on?.('click', async () => {
+        try {
+            awxClientSecret.value = '' // 确保重新创建
+            awxIntentId.value = ''
+
+            const clientSecret = await ensureAwxPaymentIntent('googlepay')
+            if (!clientSecret) throw new Error('Failed to create Google Pay intent')
+
+            // 用服务端金额/币种更新按钮
+            const updateCountry = (addressinfo.value?.country || form.value.country || 'US').toUpperCase()
+            await gpayEl.value.update({
+                countryCode: updateCountry,
+                intent_id: awxIntentId.value,
+                client_secret: clientSecret,
+                amount: { value: totalPayable.value.toFixed(2), currency: awxCurrency.value || 'USD' }
+            })
+        } catch (err: any) {
+            const msg = err?.message || 'Google Pay init failed'
+            gpayError.value = msg
+            message.error(msg)
+        }
+    })
+
+    // 2. 用户完成授权 → confirmIntent
+    gpayEl.value.on?.('authorized', async () => {
+        try {
+            const result = await gpayEl.value.confirmIntent({ client_secret: awxClientSecret.value })
+            if (result?.status === 'SUCCEEDED') {
+                await airWallexCaptureOrder(result.id)
+
+                const totalAmount = totalPayable.value
+                purchase({ ...buildFbqPayload(), value: Number(totalAmount), currency: awxCurrency.value || 'USD', order_id: orderNo.value || orderId.value })
+
+                router.push({
+                    path: '/paysuccess',
+                    query: {
+                        orderNo: orderNo.value,
+                        createTime: formatUtcToLocal(new Date().toISOString()),
+                        currency: awxCurrency.value || 'USD',
+                        paymentMethod: 'Google Pay',
+                        totalAmount: totalPayable.value.toFixed(2)
+                    }
+                })
+            } else {
+                redirectPayFail('Google Pay', result?.status || 'Payment failed')
+            }
+        } catch (err: any) {
+            const msg = err?.message || 'Google Pay confirm failed'
+            gpayError.value = msg
+            message.error(msg)
+            redirectPayFail('Google Pay', msg)
+        }
+    })
+
+    // 3. 成功（可选：有的 SDK 会直接触发）
+    gpayEl.value.on?.('success', (e: any) => {
+        console.log('Google Pay success event:', e)
+    })
+
+    // 4. 错误处理
     gpayEl.value.on?.('error', (e: any) => {
-        gpayError.value = e?.detail?.message || 'Google Pay error'
+        const msg = e?.detail?.message || 'Google Pay error'
+        gpayError.value = msg
+        message.error(msg)
+        redirectPayFail('Google Pay', msg)
     })
 }
+
 const gpayClickLoading = ref(false)
 
 async function onGooglePayClick() {
