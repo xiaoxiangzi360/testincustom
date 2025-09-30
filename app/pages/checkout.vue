@@ -2246,7 +2246,7 @@ async function mountGooglePay() {
             if (!templateid.value) return message.error('Shipping methods is required')
             if (!productlists.value?.length) return message.error('No items to pay')
 
-            const clientSecret = await ensureAwxPaymentIntent('googlepay')
+            const clientSecret = await ensureAwxPaymentIntent('airwallex_google_pay')
             if (!clientSecret) throw new Error('Failed to create Google Pay intent')
 
             // 用服务端金额/币种更新按钮
