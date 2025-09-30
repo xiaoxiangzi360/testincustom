@@ -2121,7 +2121,7 @@ async function mountApplePay() {
     awxAppleEl.on?.('validateMerchant' as any, handleValidate)
     awxAppleEl.on?.('merchant_validation' as any, handleValidate)
     awxAppleEl.on?.('merchantValidation' as any, handleValidate)
-    awxAppleEl.on?.('success', async (e: any) => {
+    awxAppleEl.on?.('authorized', async (e: any) => {
         try {
             const result = await awxAppleEl.confirmIntent({ client_secret: awxClientSecret.value })
             console.log(result);
