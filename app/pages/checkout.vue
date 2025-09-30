@@ -822,7 +822,7 @@ let awxCvcEl: any = null;
 async function initAirwallex(): Promise<void> {
     if (awxInited.value) return;
     const AWX = await getAWX();
-    const env = 'prod'; // 'demo' or 'prod'
+    const env = 'demo'; // 'demo' or 'prod'
     await AWX.init({
         env,
         langKey: 'en',
@@ -2121,6 +2121,48 @@ async function mountApplePay() {
     awxAppleEl.on?.('validateMerchant' as any, handleValidate)
     awxAppleEl.on?.('merchant_validation' as any, handleValidate)
     awxAppleEl.on?.('merchantValidation' as any, handleValidate)
+    awxAppleEl.on?.('success', async (e: any) => {
+        try {
+            const result = await awxAppleEl.confirmIntent({ client_secret: awxClientSecret.value })
+            console.log(result);
+            if (result?.status === 'SUCCEEDED') {
+                await airWallexCaptureOrder(result.id)  // 后端捕获
+                // → 执行埋点 + 跳转 paysuccess
+                const totalAmount = totalPayable.value
+                purchase({ ...buildFbqPayload(), value: Number(totalAmount), currency: awxCurrency.value || 'USD', order_id: orderNo.value || orderId.value })
+                const gaItems = productlists.value.map((it: any) => ({
+                    item_id: it.productSku, item_name: it.productName,
+                    price: Number(it.productPrice) || 0, quantity: Number(it.qtyOrdered) || 1,
+                    currency: awxCurrency.value || 'USD'
+                }))
+                purchaseorder({
+                    transaction_id: orderNo.value || orderId.value,
+                    value: Number(totalAmount),
+                    currency: awxCurrency.value || 'USD',
+                    items: gaItems,
+                    coupon: activeCoupon.value || undefined,
+                    shipping: Number(shipping.value) || 0
+                })
+                const now = new Date().toISOString()
+                router.push({
+                    path: '/paysuccess',
+                    query: {
+                        orderNo: orderNo.value,
+                        createTime: formatUtcToLocal(now),
+                        currency: awxCurrency.value || 'USD',
+                        paymentMethod: 'Apple Pay',
+                        totalAmount: totalPayable.value.toFixed(2)
+                    }
+                })
+            } else {
+                redirectPayFail('Apple Pay', result?.status || 'Payment failed')
+            }
+        } catch (err: any) {
+            const msg = err?.message || 'Apple Pay confirm failed'
+            message.error(msg)
+            redirectPayFail('Apple Pay', msg)
+        }
+    })
 
     // 成功
     awxAppleEl.on?.('success', async (e: any) => {
@@ -2129,34 +2171,10 @@ async function mountApplePay() {
             if (intent?.id) await airWallexCaptureOrder(intent.id)
 
             // 埋点（与其它方式一致）
-            const totalAmount = totalPayable.value
-            purchase({ ...buildFbqPayload(), value: Number(totalAmount), currency: awxCurrency.value || 'USD', order_id: orderNo.value || orderId.value })
-            const gaItems = productlists.value.map((it: any) => ({
-                item_id: it.productSku, item_name: it.productName,
-                price: Number(it.productPrice) || 0, quantity: Number(it.qtyOrdered) || 1,
-                currency: awxCurrency.value || 'USD'
-            }))
-            purchaseorder({
-                transaction_id: orderNo.value || orderId.value,
-                value: Number(totalAmount),
-                currency: awxCurrency.value || 'USD',
-                items: gaItems,
-                coupon: activeCoupon.value || undefined,
-                shipping: Number(shipping.value) || 0
-            })
+
         } catch { }
 
-        const now = new Date().toISOString()
-        router.push({
-            path: '/paysuccess',
-            query: {
-                orderNo: orderNo.value,
-                createTime: formatUtcToLocal(now),
-                currency: awxCurrency.value || 'USD',
-                paymentMethod: 'Apple Pay',
-                totalAmount: totalPayable.value.toFixed(2)
-            }
-        })
+
     })
 
     // 失败/取消
