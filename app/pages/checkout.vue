@@ -2213,6 +2213,39 @@ async function mountGooglePay() {
             awxClientSecret.value = '' // 确保重新创建
             awxIntentId.value = ''
 
+            if (form.value.address) {
+                const countryName =
+                    countryarr.value.find((c: any) => c.countryCode === form.value.country)?.countryName || ''
+                addressinfo.value.countryName = countryName
+                const userTypeCookie = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' })
+                if (userTypeCookie.value == 1 || userTypeCookie.value === '1') {
+                    const ok = await addaddress()
+                    if (!ok) return
+                    await getAddresslist()
+                }
+            }
+            addressinfo.value.firstName = addressinfo.value.firstName || (form.value as any)?.firstName
+            addressinfo.value.lastName = addressinfo.value.lastName || (form.value as any)?.lastName
+            addressinfo.value.address = addressinfo.value.address || (form.value as any)?.address
+            addressinfo.value.country = addressinfo.value.country || (form.value as any)?.country
+            addressinfo.value.province = addressinfo.value.province || (form.value as any)?.province
+            addressinfo.value.city = addressinfo.value.city || (form.value as any)?.city
+            addressinfo.value.postalCode = addressinfo.value.postalCode || (form.value as any)?.postalCode
+            addressinfo.value.numberCode = addressinfo.value.numberCode || (form.value as any)?.numberCode
+            addressinfo.value.number = addressinfo.value.number || (form.value as any)?.number
+
+            if (!addressinfo.value.firstName) return message.error('Please add first name')
+            if (!addressinfo.value.lastName) return message.error('Please add last name')
+            if (!addressinfo.value.address) return message.error('Please add an address')
+            if (!addressinfo.value.country) return message.error('Please add country')
+            if (!addressinfo.value.province) return message.error('Please add province')
+            if (!addressinfo.value.city) return message.error('Please add city')
+            if (!addressinfo.value.postalCode) return message.error('Please add postal code')
+            if (!addressinfo.value.number) return message.error('Please add phone number')
+            if (templateid.value < 0) return message.error('The current country does not support delivery')
+            if (!templateid.value) return message.error('Shipping methods is required')
+            if (!productlists.value?.length) return message.error('No items to pay')
+
             const clientSecret = await ensureAwxPaymentIntent('googlepay')
             if (!clientSecret) throw new Error('Failed to create Google Pay intent')
 
@@ -2235,6 +2268,7 @@ async function mountGooglePay() {
     gpayEl.value.on?.('authorized', async () => {
         try {
             const result = await gpayEl.value.confirmIntent({ client_secret: awxClientSecret.value })
+            console.log(result);
             if (result?.status === 'SUCCEEDED') {
                 await airWallexCaptureOrder(result.id)
 
