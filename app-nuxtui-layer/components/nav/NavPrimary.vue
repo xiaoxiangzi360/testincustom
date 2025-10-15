@@ -353,6 +353,11 @@ const handleDeliverSubmitInline = () => {
   writeLocationCookie(data)
   deliverOpen.value = false
 }
+const formatCatalogPath = (name: string, id: number | string) => {
+  // 去掉首尾空格并把中间连续空格替换为单个横杠
+  const safeName = name.trim().replace(/\s+/g, '-')
+  return `/${safeName}-${id}`
+}
 
 // 启动
 onMounted(async () => {
@@ -438,9 +443,10 @@ onMounted(async () => {
           <div v-for="(item, i) in menuData" :key="item.catalogId" class="category-level-2">
             <div class="flex items-center justify-between p-3 border-b border-b-blackcolor/10 "
               @click="toggleLevel2(-1, i, $event)">
-              <div @click="navigate(`/${item.catalogEnName}-${item.catalogId}`, $event)">
+              <div @click="navigate(formatCatalogPath(item.catalogEnName || item.catalogName, item.catalogId), $event)">
                 <span>{{ item.catalogEnName || item.catalogName }}</span>
               </div>
+
               <BaseIcon v-if="item?.children?.length"
                 class="arrow-icon w-5 h-5 text-gray-500 transition-transform duration-300 ease-in-out"
                 name="i-material-symbols:expand-more" :class="{ 'rotate-180': expandedLevel2[-1] === i }" />
@@ -450,9 +456,11 @@ onMounted(async () => {
               <div v-if="expandedLevel2[-1] === i" class="pl-4">
                 <div v-for="(sub, j) in item?.children" :key="sub.catalogId" class="category-level-3">
                   <div class="flex items-center justify-between p-3 border-b border-b-blackcolor/10">
-                    <div @click="navigate(`/${sub.catalogEnName}-${sub.catalogId}`, $event)">
+                    <div
+                      @click="navigate(formatCatalogPath(sub.catalogEnName || sub.catalogName, sub.catalogId), $event)">
                       <span>{{ sub.catalogEnName || sub.catalogName }}</span>
                     </div>
+
                   </div>
                 </div>
               </div>
@@ -466,9 +474,11 @@ onMounted(async () => {
     <div v-for="(category, index) in recommendData" :key="category.catalogId" class="mobile-category-item">
       <div class="category-level-1 flex items-center justify-between p-3 border-b border-b-blackcolor/10 last:border-0"
         @click="toggleLevel1(index, $event)">
-        <div @click="navigate(`/${category.catalogEnName}-${category.catalogId}`, $event)">
+        <div
+          @click="navigate(formatCatalogPath(category.catalogEnName || category.catalogName, category.catalogId), $event)">
           <span>{{ category.catalogEnName || category.catalogName }}</span>
         </div>
+
         <BaseIcon v-if="category?.children?.length"
           class="arrow-icon w-5 h-5 text-gray-500 transition-transform duration-300 ease-in-out"
           name="i-material-symbols:expand-more" :class="{ 'rotate-180': expandedLevel1 === index }" />
@@ -479,9 +489,10 @@ onMounted(async () => {
           <div v-for="(sub, j) in category?.children" :key="sub.catalogId" class="category-level-2">
             <div class="flex items-center justify-between p-3 border-b border-b-blackcolor/10"
               @click="toggleLevel2(index, j, $event)">
-              <div @click="navigate(`/${sub.catalogEnName}-${sub.catalogId}`, $event)">
+              <div @click="navigate(formatCatalogPath(sub.catalogEnName || sub.catalogName, sub.catalogId), $event)">
                 <span>{{ sub.catalogEnName || sub.catalogName }}</span>
               </div>
+
               <BaseIcon v-if="sub?.children?.length"
                 class="arrow-icon w-5 h-5 text-gray-500 transition-transform duration-300 ease-in-out"
                 name="i-material-symbols:expand-more" :class="{ 'rotate-180': expandedLevel2[index] === j }" />
@@ -491,9 +502,10 @@ onMounted(async () => {
               <div v-if="expandedLevel2[index] === j" class="pl-4">
                 <div v-for="child in sub?.children" :key="child.catalogId" class="category-level-3">
                   <div class="flex items-center justify-between p-3 border-b border-b-blackcolor/10"
-                    @click="navigate(`/${child.catalogEnName}-${child.catalogId}`, $event)">
+                    @click="navigate(formatCatalogPath(child.catalogEnName || child.catalogName, child.catalogId), $event)">
                     <span>{{ child.catalogEnName || child.catalogName }}</span>
                   </div>
+
                 </div>
               </div>
             </transition>
@@ -520,7 +532,7 @@ onMounted(async () => {
         <ul class="text-sm w-60">
           <li v-for="(item, i) in menuData" :key="item.catalogId" class="group"
             @mouseenter="hoverLevel2 = i; hoverSub = null">
-            <NuxtLink :to="`/${item.catalogEnName}-${item.catalogId}`"
+            <NuxtLink :to="formatCatalogPath(item.catalogEnName || item.catalogName, item.catalogId)"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap w-full"
               @click="emit('closeSlideover')">
               <span>{{ item.catalogEnName || item.catalogName }}</span>
@@ -534,7 +546,7 @@ onMounted(async () => {
         <ul v-if="hoverLevel2 !== null && menuData[hoverLevel2]?.children" class="text-sm w-60">
           <li v-for="(sub, j) in menuData[hoverLevel2]?.children" :key="sub.catalogId" class="group"
             @mouseenter="hoverSub = j">
-            <NuxtLink :to="`/${sub.catalogEnName}-${sub.catalogId}`"
+            <NuxtLink :to="formatCatalogPath(sub.catalogEnName || sub.catalogName, sub.catalogId)"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap"
               @click="emit('closeSlideover')">
               <span>{{ sub.catalogEnName || sub.catalogName }}</span>
@@ -548,7 +560,7 @@ onMounted(async () => {
         <ul v-if="hoverLevel2 !== null && hoverSub !== null && menuData[hoverLevel2]?.children?.[hoverSub]?.children"
           class="text-sm w-60">
           <li v-for="child in menuData[hoverLevel2]?.children?.[hoverSub]?.children" :key="child.catalogId">
-            <NuxtLink :to="`/${child.catalogEnName}-${child.catalogId}`"
+            <NuxtLink :to="formatCatalogPath(child.catalogEnName || child.catalogName, child.catalogId)"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] cursor-pointer whitespace-nowrap"
               @click="emit('closeSlideover')">
               {{ child.catalogEnName || child.catalogName }}
@@ -562,7 +574,7 @@ onMounted(async () => {
     <div v-for="(category, index) in recommendData" :key="category.catalogId"
       class="relative flex items-center p-2 cursor-pointer whitespace-nowrap" @mouseenter="hoverRecommend = index"
       @mouseleave="hoverRecommend = null; hoverRecommendSub = null">
-      <NuxtLink :to="`/${category.catalogEnName}-${category.catalogId}`"
+      <NuxtLink :to="formatCatalogPath(category.catalogEnName || category.catalogName, category.catalogId)"
         class="text-base duration-200 border border-transparent md:border-none leading-none"
         @click="emit('closeSlideover')">
         {{ category.catalogEnName || category.catalogName }}
@@ -574,7 +586,7 @@ onMounted(async () => {
         <ul class="text-sm w-60">
           <li v-for="(sub, j) in category?.children" :key="sub.catalogId" class="group"
             @mouseenter="hoverRecommendSub = j">
-            <NuxtLink :to="`/${sub.catalogEnName}-${sub.catalogId}`"
+            <NuxtLink :to="formatCatalogPath(sub.catalogEnName || sub.catalogName, sub.catalogId)"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap"
               @click="emit('closeSlideover')">
               <span>{{ sub.catalogEnName || sub.catalogName }}</span>
@@ -586,7 +598,7 @@ onMounted(async () => {
         <!-- 三级 -->
         <ul v-if="hoverRecommendSub !== null && category?.children?.[hoverRecommendSub]?.children" class="text-sm w-60">
           <li v-for="child in category?.children?.[hoverRecommendSub]?.children" :key="child.catalogId">
-            <NuxtLink :to="`/${child.catalogEnName}-${child.catalogId}`"
+            <NuxtLink :to="formatCatalogPath(child.catalogEnName || child.catalogName, child.catalogId)"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] cursor-pointer whitespace-nowrap"
               @click="emit('closeSlideover')">
               {{ child.catalogEnName || child.catalogName }}

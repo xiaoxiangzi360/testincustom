@@ -453,154 +453,188 @@
           </div>
         </div>
       </div>
-
-      <!-- Tabs / 详情 / 评价（原样） -->
-      <div class="bg-[#F8F8F8]">
-        <div class="mx-auto mt-2">
-          <div class="text-base font-normal bg-white">
-            <div class="flex justify-start">
-              <div class="w-auto" v-if="productinfo.erpProduct.remarks">
-                <div
-                  class="inline-block p-4 rounded-xl rounded-b-none cursor-pointer text-center text-sm sm:text-base dark:text-black"
-                  :class="{ 'border-b-2 border-black font-semibold': tabindex === 1 }" @click="changetab(1)">
-                  Basic Information
-                </div>
-              </div>
-              <div class="w-auto" v-if="productinfo.printPropertyList.length > 0">
-                <div
-                  class="inline-block p-4 rounded-xl rounded-b-none cursor-pointer text-center text-sm sm:text-base dark:text-black"
-                  :class="{ 'border-b-2 border-black font-semibold': tabindex === 2 }" @click="changetab(2)">
-                  Print Information
-                </div>
-              </div>
-              <div class="w-auto" v-if="reviews.length > 0">
-                <div
-                  class="inline-block p-4 rounded-xl rounded-b-none cursor-pointer text-center text-base dark:text-black"
-                  :class="{ 'border-b-2 border-black font-semibold': tabindex === 3 }" @click="changetab(3)">
-                  Reviews
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="mx-auto p-5 px-0 rounded p-2 grid grid-cols-1 gap-6 bg-white"
-            v-if="productinfo.erpProduct.remarks || productinfo.printPropertyList.length > 0 || reviews.length > 0">
-            <ClientOnly>
-              <div v-show="tabindex === 1 && productinfo.erpProduct.remarks" class="overflow-hidden lg:col-span-3"
-                v-shadow-html="productinfo.erpProduct.remarks"></div>
-            </ClientOnly>
-            <div v-show="tabindex === 2 && productinfo.printPropertyList.length > 0"
-              class="lg:col-span-3 mx-auto max-row p-6 grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-y-6 gap-x-8 text-gray-800 bg-[#F8F8F8] py-16 rounded p-2">
-              <div class="flex justify-between" v-for="Propertyitem in productinfo.printPropertyList"
-                :key="Propertyitem.value">
-                <span class="text-sm sm:text-base">{{ Propertyitem.value }}</span>
-              </div>
-            </div>
-
-            <div v-show="tabindex === 3" class="w-full">
-              <h3 class="text-base font-semibold mb-6 text-gray-900">Customer Reviews</h3>
-              <div class="flex flex-col lg:flex-row gap-6 mb-8 border-b pb-6 border-gray-300">
-                <div class="w-full lg:w-1/2">
-                  <div class="space-y-3">
-                    <div v-for="stars in 5" :key="stars" class="flex items-center gap-4">
-                      <span class="w-12 text-sm text-[#FFD359]">{{ 6 - stars }} star</span>
-                      <div class="flex-1 bg-primary-100 h-5 rounded overflow-hidden">
-                        <div :style="{ width: `${starPercentages[6 - stars]}%` }"
-                          class="h-full bg-[#FFD359] transition-all duration-300"></div>
-                      </div>
-                      <span class="w-12 text-sm text-right text-[#FFD359]">{{ starPercentages[6 - stars] }}%</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="w-full lg:w-1/2 flex items-center justify-end bg-gray-100 p-4 bg-primary-100 rounded-lg">
-                  <div class="text-center w-full">
-                    <p class="text-3xl font-bold text-gray-900"><span>{{ averageRating.toFixed(1) }}</span></p>
-                    <div class="my-2 flex justify-center">
-                      <span v-for="star in 5" :key="star" class="text-2xl text-[#FFD359]">
-                        <BaseIcon v-if="getStarStatus(star) === 'full'" name="i-mdi:star" class="text-[#FFD359]" />
-                        <BaseIcon v-else-if="getStarStatus(star) === 'half'" name="i-mdi:star-half-full"
-                          class="text-[#FFD359]" />
-                        <BaseIcon v-else name="i-mdi:star-outline" class="text-gray-300" />
-                      </span>
-                    </div>
-                    <p class="text-lg text-gray-300">{{ totalReviews }} global ratings</p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <div v-if="reviews.length === 0" class="text-center text-gray-500 py-4">No reviews yet.</div>
-
-                <div v-for="review in reviews" :key="review.date" class="bg-white p-4 border-b border-[#D1D1D1] mt-4">
-                  <div class="flex items-center">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3">
-                      <img src="/reviewer.png" class="w-11 h-11" />
-                    </div>
-                    <div>
-                      <p class="text-sm font-semibold text-black">{{ review.name }}</p>
-                      <p class="text-sm text-gray-300">{{ review.date }}</p>
-                    </div>
-                    <div class="ml-auto flex">
-                      <span v-for="star in 5" :key="star" class="text-xl text-[#FFD359]">
-                        <BaseIcon v-if="star <= review.rating" name="i-mdi:star" class="text-[#FFD359]" />
-                        <BaseIcon v-else name="i-mdi:star-outline" class="text-gray-300" />
-                      </span>
-                    </div>
-                  </div>
-
-                  <p class="text-sm text-gray-400 my-2 mb-4">{{ review.text }}</p>
-
-                  <div class="flex gap-2 flex-wrap" v-if="review.pictureUrlList?.length || review.videoUrlList?.length">
-                    <Image.PreviewGroup :preview="{
-                      visible: review.previewVisible,
-                      onVisibleChange: (visible) => {
-                        review.previewVisible = visible;
-                        if (!visible) {
-                          review.previewIndex = 0;
-                          selectedReview.value = null;
-                          selectedMediaIndex.value = 0;
-                          mediaList.value = [];
-                        }
-                      },
-                      current: review.previewIndex,
-                      onChange: (index) => {
-                        review.previewIndex = index;
-                        selectedMediaIndex.value = getMediaIndex(review, index, 'image');
-                        selectedReview.value = review;
-                        mediaList.value = [
-                          ...(review.pictureUrlList || []).map((url) => ({ url, type: 'image' })),
-                          ...(review.videoUrlList || []).map((url) => ({ url, type: 'video' })),
-                        ];
-                      },
-                    }">
-                      <div class="flex gap-2 flex-wrap">
-                        <Image v-for="(image, index) in review.pictureUrlList?.slice(0, 5)" :key="'image-' + index"
-                          :src="image" :alt="'Review image ' + (index + 1)" class="w-16 h-16 rounded object-cover"
-                          @error="onImageError(index, review)" @click="selectReview(review, index, 'image')" />
-                      </div>
-                    </Image.PreviewGroup>
-
-                    <div v-for="(video, index) in review.videoUrlList?.slice(0, 5)" :key="'video-' + index"
-                      class="w-16 h-16 rounded overflow-hidden shadow-md cursor-pointer relative video-thumbnail"
-                      @click="openImageModal(video, 'video', review, index)">
-                      <video class="w-full h-full object-cover" :src="video" muted
-                        @error="onVideoError(index, review)"></video>
-                      <div class="absolute inset-0 flex items-center justify-center bg-primary bg-opacity-10">
-                        <BaseIcon name="i-mdi:play-circle" width="32" height="32" class="text-white w-8 h-8" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="flex justify-between mt-3 md:mt-6 items-center">
-                <Button :disabled="currentPage === 1" @click="prevPage" class="custom-btn">Previous</Button>
-                <Button :disabled="currentPage === totalPages" @click="nextPage" class="custom-btn">Next</Button>
-              </div>
-            </div>
+      <!-- ✅ Tabs（滚动到自身位置才固定） -->
+      <div ref="tabsContainer" class="bg-white z-40 transition-all duration-300 ease-in-out mt-4" :class="{
+        'backdrop-blur-sm sticky top-[100px]': isSticky,
+      }">
+        <div class="flex justify-start overflow-x-auto whitespace-nowrap gap-10">
+          <div v-for="(tab, i) in tabs" :key="tab.key"
+            class="inline-block cursor-pointer text-sm sm:text-base transition-colors duration-200 py-3" :class="{
+              'border-b-2 border-arialblack text-arialblack font-semibold': activeSection === tab.key,
+              'text-gray-500 hover:text-primary': activeSection !== tab.key
+            }" @click="scrollToSection(tab.key)">
+            {{ tab.label }}
           </div>
         </div>
       </div>
+
+
+      <!-- ✅ 实际内容段落（连续展示） -->
+      <ClientOnly>
+        <div class="bg-[#F8F8F8]" v-if="sections && Object.keys(sections).length">
+          <div class="mx-auto mt-4 bg-white py-6 space-y-10">
+
+            <!-- Description -->
+            <section v-if="sections.description" :id="'section-description'">
+              <h2 class="text-lg font-semibold mb-6">Description</h2>
+              <div v-shadow-html="sections.description" class="prose max-w-none"></div>
+            </section>
+
+            <!-- Specifications -->
+            <section v-if="sections.specifications" :id="'section-specifications'">
+              <h2 class="text-lg font-semibold mb-6">Specifications</h2>
+              <div v-shadow-html="sections.specifications" class="prose max-w-none"></div>
+            </section>
+
+            <!-- FAQ -->
+            <section v-if="sections.faqItems?.length" id="section-faq">
+              <h2 class="text-lg font-semibold mb-6">FAQ</h2>
+
+              <div class="w-full mt-[10px]">
+                <!-- ✅ SSR安全处理：在ClientOnly内渲染 -->
+                <ClientOnly>
+                  <UAccordion variant="solid" size="xl" :items="sections.faqItems"
+                    :ui="{ container: 'border-b border-[#00000014]' }" class="text-title">
+                    <template #default="{ item, open }">
+                      <UButton color="gray" variant="ghost"
+                        class="text-arialblack w-full flex justify-between items-center gap-3 text-base sm:text-lg font-normal hover:bg-transparent dark:hover:bg-transparent dark:text-arialblack hover:text-primary dark:hover:text-primary"
+                        :ui="{ rounded: 'rounded-none', padding: { sm: 'px-0 py-3 sm:py-4' } }">
+                        <span class="flex-1 min-w-0 text-left font-normal leading-snug line-clamp-2 clamp-2">
+                          {{ item.label }}
+                        </span>
+                        <BaseIcon name="i-heroicons-chevron-down-20-solid"
+                          class="w-5 h-5 shrink-0 transition-transform duration-200"
+                          :class="[open ? 'rotate-180' : '']" />
+                      </UButton>
+                    </template>
+
+                    <template #item="{ item }">
+                      <div class="text-[#4B5563] sm:text-base">
+                        <p class="content" v-html="item.content"></p>
+                      </div>
+                    </template>
+                  </UAccordion>
+                </ClientOnly>
+              </div>
+            </section>
+
+            <!-- 自定义详情 -->
+            <section v-for="item in sections.customs" :key="item.key" :id="'section-' + item.key">
+              <h2 class="text-lg font-semibold mb-6">{{ item.label }}</h2>
+              <div v-shadow-html="item.content" class="prose max-w-none"></div>
+            </section>
+
+            <!-- Reviews -->
+            <section v-if="reviews.length > 0" id="section-reviews">
+              <h2 class="text-lg font-semibold mb-6">Customer Reviews</h2>
+
+              <!-- ✅ 保留完整 Reviews 渲染逻辑 -->
+              <div>
+                <div class="flex flex-col lg:flex-row gap-6 mb-8 border-b pb-6 border-gray-300">
+                  <div class="w-full lg:w-1/2">
+                    <div class="space-y-3">
+                      <div v-for="stars in 5" :key="stars" class="flex items-center gap-4">
+                        <span class="w-12 text-sm text-[#FFD359]">{{ 6 - stars }} star</span>
+                        <div class="flex-1 bg-primary-100 h-5 rounded overflow-hidden">
+                          <div :style="{ width: `${starPercentages[6 - stars]}%` }"
+                            class="h-full bg-[#FFD359] transition-all duration-300"></div>
+                        </div>
+                        <span class="w-12 text-sm text-right text-[#FFD359]">
+                          {{ starPercentages[6 - stars] }}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="w-full lg:w-1/2 flex items-center justify-end bg-gray-100 p-4 bg-primary-100 rounded-lg">
+                    <div class="text-center w-full">
+                      <p class="text-3xl font-bold text-gray-900">
+                        <span>{{ averageRating.toFixed(1) }}</span>
+                      </p>
+                      <div class="my-2 flex justify-center">
+                        <span v-for="star in 5" :key="star" class="text-2xl text-[#FFD359]">
+                          <BaseIcon v-if="getStarStatus(star) === 'full'" name="i-mdi:star" class="text-[#FFD359]" />
+                          <BaseIcon v-else-if="getStarStatus(star) === 'half'" name="i-mdi:star-half-full"
+                            class="text-[#FFD359]" />
+                          <BaseIcon v-else name="i-mdi:star-outline" class="text-gray-300" />
+                        </span>
+                      </div>
+                      <p class="text-lg text-gray-300">{{ totalReviews }} global ratings</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div v-if="reviews.length === 0" class="text-center text-gray-500 py-4">No reviews yet.</div>
+
+                  <div v-for="review in reviews" :key="review.date" class="bg-white p-4 border-b border-[#D1D1D1] mt-4">
+                    <div class="flex items-center">
+                      <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3">
+                        <img src="/reviewer.png" class="w-11 h-11" />
+                      </div>
+                      <div>
+                        <p class="text-sm font-semibold text-black">{{ review.name }}</p>
+                        <p class="text-sm text-gray-300">{{ review.date }}</p>
+                      </div>
+                      <div class="ml-auto flex">
+                        <span v-for="star in 5" :key="star" class="text-xl text-[#FFD359]">
+                          <BaseIcon v-if="star <= review.rating" name="i-mdi:star" class="text-[#FFD359]" />
+                          <BaseIcon v-else name="i-mdi:star-outline" class="text-gray-300" />
+                        </span>
+                      </div>
+                    </div>
+
+                    <p class="text-sm text-gray-400 my-2 mb-4">{{ review.text }}</p>
+
+                    <div class="flex gap-2 flex-wrap"
+                      v-if="review.pictureUrlList?.length || review.videoUrlList?.length">
+                      <Image.PreviewGroup :preview="{
+                        visible: review.previewVisible,
+                        onVisibleChange: (visible) => {
+                          review.previewVisible = visible;
+                          if (!visible) {
+                            review.previewIndex = 0;
+                            selectedReview.value = null;
+                            selectedMediaIndex.value = 0;
+                            mediaList.value = [];
+                          }
+                        },
+                        current: review.previewIndex,
+                        onChange: (index) => {
+                          review.previewIndex = index;
+                          selectedMediaIndex.value = getMediaIndex(review, index, 'image');
+                          selectedReview.value = review;
+                          mediaList.value = [
+                            ...(review.pictureUrlList || []).map((url) => ({ url, type: 'image' })),
+                            ...(review.videoUrlList || []).map((url) => ({ url, type: 'video' })),
+                          ];
+                        },
+                      }">
+                        <div class="flex gap-2 flex-wrap">
+                          <Image v-for="(image, index) in review.pictureUrlList?.slice(0, 5)" :key="'image-' + index"
+                            :src="image" :alt="'Review image ' + (index + 1)" class="w-16 h-16 rounded object-cover"
+                            @error="onImageError(index, review)" @click="selectReview(review, index, 'image')" />
+                        </div>
+                      </Image.PreviewGroup>
+
+                      <div v-for="(video, index) in review.videoUrlList?.slice(0, 5)" :key="'video-' + index"
+                        class="w-16 h-16 rounded overflow-hidden shadow-md cursor-pointer relative video-thumbnail"
+                        @click="openImageModal(video, 'video', review, index)">
+                        <video class="w-full h-full object-cover" :src="video" muted
+                          @error="onVideoError(index, review)"></video>
+                        <div class="absolute inset-0 flex items-center justify-center bg-primary bg-opacity-10">
+                          <BaseIcon name="i-mdi:play-circle" width="32" height="32" class="text-white w-8 h-8" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      </ClientOnly>
+
 
       <!-- 推荐产品部分（原样） -->
       <div class="mt-[30px] md:mt-12 pb-4" v-if="products.length > 0">
@@ -706,7 +740,7 @@
 
 
 
-    <Faq />
+    <!-- <Faq /> -->
     <div :style="{ height: isBottomBarVisible ? '76px' : '0px' }"></div>
   </div>
 </template>
@@ -739,7 +773,13 @@ const goCart = () => {
   addSuccessOpen.value = false
   router.push('/cart') // 按你的实际购物车路径改
 }
+const HEADER_HEIGHT = 100
+const TAB_HEIGHT = 40
 
+const tabsContainer = ref(null)
+const isSticky = ref(false)
+const activeSection = ref('')
+const ticking = ref(false)
 function resetPropErrors() {
   const len = (productinfo.value && productinfo.value.normalPropertyList)
     ? productinfo.value.normalPropertyList.length
@@ -806,6 +846,31 @@ const showDimensions = ref(true)
 const designimage = ref('')
 const mainImage = ref('')
 const productinfo = ref(serverProductData.value?.result ?? {})
+if (productinfo.value?.seoPageTitle || productinfo.value?.seoMetaDescription) {
+  useHead({
+    title: productinfo.value.seoPageTitle || productinfo.value.erpProduct?.productEnglishName || 'Product Detail',
+    meta: [
+      {
+        name: 'description',
+        content: productinfo.value.seoMetaDescription || ''
+      }
+    ]
+  })
+
+  useServerSeoMeta({
+    title: () => productinfo.value.seoPageTitle || productinfo.value.erpProduct?.productEnglishName || 'Product Detail',
+    description: () => productinfo.value.seoMetaDescription || ''
+  })
+} else {
+  // ✅ 如果 SEO 字段为空，回退到商品英文名
+  useHead({
+    title: productinfo.value.erpProduct?.productEnglishName || 'Product Detail'
+  })
+
+  useServerSeoMeta({
+    description: () => productinfo.value.erpProduct?.remarks || ''
+  })
+}
 
 if (productinfo.value.erpProduct?.mainPic) {
   mainImage.value = productinfo.value.erpProduct.mainPic
@@ -842,6 +907,71 @@ const onMainImageLoaded = () => {
     swiperRefThumb.value?.swiper?.update()
   })
 }
+const sections = computed(() => {
+  const s = {}
+
+  if (productinfo.value.erpProduct?.remarks)
+    s.description = productinfo.value.erpProduct.remarks
+
+  if (productinfo.value.detailedParam?.show && productinfo.value.detailedParam.groupList?.length) {
+    let html = ''
+    productinfo.value.detailedParam.groupList.forEach(group => {
+      html += `<h4 style="font-weight:600;margin-top:1rem;">${group.name}</h4><table style="width:100%;border-collapse:collapse;">`
+      group.valueList.forEach(v => {
+        html += `<tr><td style="border-bottom:1px solid #eee;padding:6px 4px;">${v.name}</td><td style="border-bottom:1px solid #eee;padding:6px 4px;">${v.value}</td></tr>`
+      })
+      html += '</table>'
+    })
+    s.specifications = html
+  }
+
+  if (productinfo.value.detailedFaq?.show && productinfo.value.detailedFaq.detailedFaqList?.length) {
+    s.faqItems = productinfo.value.detailedFaq.detailedFaqList.map(f => ({
+      label: f.title,
+      content: f.value
+    }))
+  }
+
+
+
+  s.customs = []
+  if (productinfo.value.detailedCustomList?.length) {
+    productinfo.value.detailedCustomList
+      .filter(i => i.show)
+      .sort((a, b) => a.sort - b.sort)
+      .forEach(i => {
+        s.customs.push({
+          key: i.title.toLowerCase().replace(/\s+/g, '-'),
+          label: i.title,
+          content: i.value
+        })
+      })
+  }
+
+  return s
+})
+const tabs = computed(() => {
+  const arr = []
+  if (sections.value.description) arr.push({ key: 'description', label: 'Description' })
+  if (sections.value.specifications) arr.push({ key: 'specifications', label: 'Specifications' })
+
+  // ✅ 修改这里：判断 FAQ 数组是否存在
+  if (sections.value.faqItems?.length) arr.push({ key: 'faq', label: 'FAQ' })
+
+  if (sections.value.customs?.length) arr.push(...sections.value.customs)
+  if (reviews.value?.length > 0) arr.push({ key: 'reviews', label: 'Reviews' })
+  return arr
+})
+
+const scrollToSection = (key) => {
+  if (!process.client) return // ✅ SSR 保护
+  const el = document.getElementById(`section-${key}`)
+  if (el) {
+    const top = el.getBoundingClientRect().top + window.scrollY - HEADER_HEIGHT - TAB_HEIGHT - 10
+    window.scrollTo({ top, behavior: 'smooth' })
+  }
+}
+
 
 const changetab = (index) => { tabindex.value = index }
 const increment = () => { quantity.value++ }
@@ -1252,6 +1382,23 @@ const addtocart = async () => {
     const gaItem = toGa4Item({ withQuantity: true })
     if (gaItem) trackAddToCart(gaItem)
 
+    // ✅ ✅ TikTok Pixel
+    if (window.ttq) {
+      window.ttq.track('AddToCart', {
+        content_id: String(selectsku),
+        quantity: quantity.value,
+        value: totalPrice.value,
+        currency: 'USD',
+        contents: [{
+          id: String(selectsku),
+          quantity: quantity.value,
+          item_price: skuprice.value
+        }],
+        description: productinfo.value.erpProduct?.productEnglishName || ''
+      })
+      console.log('🟢 TikTok AddToCart sent:', selectsku)
+    }
+
     cart.refreshCart()
     addSuccessOpen.value = true
   } catch (error) {
@@ -1320,6 +1467,30 @@ const createorder = async () => {
     const gaItem = toGa4Item({ withQuantity: true })
     if (gaItem) beginCheckout({ items: [gaItem], value: Number(totalPrice.value), currency: 'USD' })
 
+    // ✅ ✅ TikTok Pixel
+    if (window.ttq) {
+      try {
+        window.ttq.track('InitiateCheckout', {
+          content_id: String(selectsku), // ⚠️ 必填
+          content_type: 'product',
+          quantity: quantity.value,
+          price: Number(skuprice.value),
+          value: Number(totalPrice.value),
+          currency: 'USD',
+          contents: [
+            {
+              content_id: String(selectsku),
+              quantity: quantity.value,
+              price: Number(skuprice.value)
+            }
+          ],
+          description: productinfo.value.erpProduct?.productEnglishName || ''
+        })
+        console.log('🟢 TikTok InitiateCheckout sent:', selectsku)
+      } catch (e) {
+        console.warn('TikTok InitiateCheckout failed:', e)
+      }
+    }
     const linkurl = '/checkout?from=detail&sku=' + selectsku + '&number=' + quantity.value
     redirect_to.value = linkurl
     router.push(linkurl)
@@ -1390,6 +1561,7 @@ const handleGetProudct = async () => {
     recomputeAvailabilityAndFix()
 
     await fetchComments()
+
   } catch (error) {
     console.error(error)
   } finally {
@@ -1432,6 +1604,34 @@ const organizeproduct = () => {
       })
     })
     productinfo.value.normalPropertyList[0].showType = true
+
+    // ✅ 自动选择属性：从第一个往下依次选，遇到不能选的就停止
+    for (let i = 0; i < productinfo.value.normalPropertyList.length; i++) {
+      const prop = productinfo.value.normalPropertyList[i]
+
+      // ① 跳过含有 customDetailList（需要输入/下拉）的属性
+      const hasCustomDetail = prop.detailList?.some(d => d.customDetailList && d.customDetailList.length)
+      if (hasCustomDetail) break
+
+      // ② 找出该属性下可选项
+      const options =
+        (prop.noneedinputlist && prop.noneedinputlist.length)
+          ? prop.noneedinputlist
+          : prop.detailList || []
+
+      // ③ 找第一个未禁用的选项
+      const firstActive = options.find(o => !o.disabled)
+
+      // ④ 如果能选，就执行选中；否则直接退出循环（停止后续属性选中）
+      if (firstActive) {
+        selectproperty(i, firstActive)
+      } else {
+        break
+      }
+    }
+
+
+
   } catch (error) {
     console.error(error)
   } finally {
@@ -1559,6 +1759,34 @@ const handleScroll = () => {
   const rect = detailSectionRef.value.getBoundingClientRect()
   // 当“产品详情块”的底部滚出视口（<= 0）后，底部栏一直显示
   isBottomBarVisible.value = rect.bottom <= 0
+
+  if (!process.client) return // ✅ SSR 保护
+  if (ticking.value) return
+  ticking.value = true
+
+  window.requestAnimationFrame(() => {
+    const tabsEl = tabsContainer.value
+    if (tabsEl) {
+      const tabsTop = tabsEl.getBoundingClientRect().top
+      isSticky.value = tabsTop <= HEADER_HEIGHT
+    }
+
+    // 激活逻辑
+    let current = ''
+    const windowTop = window.scrollY
+    const activationOffset = HEADER_HEIGHT + TAB_HEIGHT + 30
+
+    tabs.value.forEach(tab => {
+      const section = document.getElementById(`section-${tab.key}`)
+      if (section) {
+        const sectionTop = section.offsetTop - activationOffset
+        if (windowTop >= sectionTop) current = tab.key
+      }
+    })
+
+    activeSection.value = current || tabs.value[0]?.key
+    ticking.value = false
+  })
 }
 
 const getStarStatus = (starIndex) => {
@@ -1729,14 +1957,28 @@ watch(mainImageIndex, (newVal) => {
 watch(sortOption, () => { sortReviews() })
 
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
   handleGetrelated()
   fetchComments()
   reportViewItem()
-  handleScroll() // ← 新增：挂载后先检查一次
+  if (!process.client) return // ✅ SSR 保护
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  // ✅ TikTok Pixel - ViewContent
+  if (window.ttq && productinfo.value?.erpProduct) {
+    const p = productinfo.value.erpProduct
+    window.ttq.track('ViewContent', {
+      content_id: String(productinfo.value.id || p.productId),
+      content_type: 'product',
+      price: Number(p.customPrice ?? 0),
+      value: Number(p.customPrice ?? 0),
+      currency: 'USD',
+      description: p.productEnglishName || ''
+    })
+    console.log('🟢 TikTok ViewContent sent:', productinfo.value.id)
+  }
 })
 
 onUnmounted(() => {
+  if (!process.client) return
   window.removeEventListener('scroll', handleScroll)
 })
 const slugify = (str) => {
@@ -2045,5 +2287,20 @@ input:where(:not([type])):focus {}
 :deep(.ant-image-mask-info .anticon) {
   font-size: 16px !important;
   margin-inline-end: 0 !important;
+}
+
+.content {
+  white-space: pre-line;
+}
+
+.clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+:deep(.custom-input.ant-input-number-focused) {
+  box-shadow: none !important;
 }
 </style>

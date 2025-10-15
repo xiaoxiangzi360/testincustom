@@ -10,13 +10,13 @@
                 pagination: false,
                 autoplay: false,
                 speed: 600,
-                padding: '12px'
+                padding: '60px'
             }" class="bg-white rounded ">
                 <SplideSlide v-for="(feature, index) in features" :key="'m-' + index">
-                    <div class="flex items-center justify-center gap-[28px] px-4 py-[26px] rounded-lg"
+                    <div class="flex items-center justify-start gap-2 py-[20px] rounded-lg px-[10px]"
                         style="box-shadow: 0px 4px 10px 0px rgba(167,167,167,0.2);">
                         <NuxtImg class="w-11 h-11" :alt="feature.title" :src="feature.icon" />
-                        <span class="text-blackcolor text-base text-left whitespace-pre-line leading-snug">
+                        <span class="text-blackcolor text-base text-left  leading-snug">
                             {{ feature.title }}
                         </span>
                     </div>
@@ -28,7 +28,7 @@
         <div class="hidden md:grid md:grid-cols-4 bg-white rounded py-[26px]"
             style="box-shadow: 0px 4px 10px 0px rgba(167,167,167,0.2);">
             <div v-for="(feature, index) in features" :key="'d-' + index"
-                class="flex flex-row items-center justify-center gap-[28px] px-2 text-left"
+                class="flex flex-row items-center justify-center gap-2 px-2 text-left"
                 :class="{ 'md:border-l md:border-gray-100': index !== 0 }">
                 <NuxtImg class="w-11 h-11 flex-shrink-0" :alt="feature.title" :src="feature.icon" />
                 <span class="text-blackcolor text-base text-left whitespace-pre-line leading-snug">

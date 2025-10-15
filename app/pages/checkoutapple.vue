@@ -234,12 +234,9 @@
                                                 </div>
                                                 <div v-if="option.value === 3"
                                                     class="text-d3black text-sm ml-2 font-medium">
-                                                    Google&nbsp;Pay
+                                                    Apple Pay
                                                 </div>
-                                                <div v-if="option.value === 4"
-                                                    class="text-d3black text-sm ml-2 font-medium">
-                                                    Apple&nbsp;Pay
-                                                </div>
+
                                             </div>
 
                                         </div>
@@ -463,14 +460,12 @@
                                         {{ awxPayLoading ? 'Processing...' : 'Pay Now' }}
                                     </UButton>
                                 </div>
-                                <div v-show="selected === 3" class="px-4 pb-4">
-                                    <div id="awx-google-pay"></div>
-                                    <p v-if="gpayError" class="text-red-500 text-sm mt-2">{{ gpayError }}</p>
-                                </div>
-                                <div v-show="selected === 4" class="px-4 pb-4">
-                                    <div id="awx-apple-pay"></div>
+                                <!-- ✅ Apple Pay（不做兼容性判断；仅切到 Apple Pay 时显示容器） -->
+                                <div :class="['px-4 pb-4', { hidden: selected !== 3 }]">
+                                    <div id="awx-apple-pay" class="w-full"></div>
                                     <p v-if="awxAppleError" class="text-red-500 text-sm mt-2">{{ awxAppleError }}</p>
                                 </div>
+
                             </template>
 
                             <!-- 无商品 -->
@@ -663,8 +658,8 @@
 <script lang="ts" setup>
 definePageMeta({
     layout: 'blank',
-    name: 'checkout',
-    title: 'checkout',
+    name: 'checkoutapple',
+    title: 'checkoutapple',
     description: 'INcustom checkout'
 });
 
@@ -690,8 +685,6 @@ import { nextTick } from 'vue';
 import { onBeforeUnmount } from 'vue';
 const router = useRouter();
 const route = useRoute();
-const awxAmount = ref<number | null>(null);
-const awxCurrency = ref<string>('USD');
 
 const showPassword = ref(false);
 const togglePassword = () => (showPassword.value = !showPassword.value);
@@ -744,6 +737,16 @@ const sku = route.query.sku as any;
 const number = route.query.number as any;
 const cartarr = ref([]) as any;
 let skunum = {} as any;
+// Apple Pay 懒创建（点击后才建单/Intent）
+const awxAppleMounted = ref(false);
+let awxAppleEl: any = null;
+const awxAppleError = ref<string>('');
+
+// Apple Pay 金额（两位小数，字符串）
+const payableTotal = computed(() => {
+    const total = (selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0);
+    return (Number.isFinite(total) ? total : 0).toFixed(2);
+});
 
 const countries = [
     '+1', '+44', '+93', '+355', '+213', '+1684', '+376', '+244', '+1264', '+1268',
@@ -781,7 +784,8 @@ const applyLoading = ref(false);
 // === Airwallex Split Card 集成 ===
 // === Airwallex：稳健加载 & 初始化 ===
 const awxScriptLoaded = ref(false);
-
+const awxActualPayableAmount = ref<string>('0.00')
+const awxCurrency = ref<string>('USD')
 // === 用本地 npm 包替代 CDN，全客户端动态导入 ===
 let Airwallex: any = null;
 
@@ -795,19 +799,36 @@ async function getAWX() {
     return Airwallex;
 }
 function extractAwxFromCreatePayment(payRes: any) {
-    const v1 = payRes?.result?.airwallexPaymentIntentsResult?.airwallexPaymentIntents;
-    const v2 = payRes?.result?.airwallexResult?.paymentIntent;
-    const v3 = payRes?.result?.airwallexResult?.payment_intent;
-    const awxObj = v1 || v2 || v3 || {};
-    const amountRaw = awxObj?.amount ?? awxObj?.originalAmount ?? 0;
-    const currencyRaw = awxObj?.currency ?? awxObj?.originalCurrency ?? 'USD';
+    // 原有多路径兼容
+    const v1 = payRes?.result?.airwallexPaymentIntentsResult?.airwallexPaymentIntents
+    const v2 = payRes?.result?.airwallexResult?.paymentIntent
+    const v3 = payRes?.result?.airwallexResult?.payment_intent
+    const awxObj = v1 || v2 || v3 || {}
+
+    // 兼容多处返回：优先 result.actualPayableAmount
+    const rawActual =
+        payRes?.result?.actualPayableAmount ??
+        awxObj?.actualPayableAmount ??
+        payRes?.actualPayableAmount ??
+        awxObj?.amount ??          // 兜底
+        awxObj?.originalAmount ??  // 兜底
+        0
+
+    const currency =
+        awxObj?.currency ||
+        awxObj?.originalCurrency ||
+        payRes?.result?.currency ||
+        'USD'
+
     return {
         id: awxObj?.id || '',
         clientSecret: awxObj?.clientSecret || awxObj?.client_secret || '',
         status: awxObj?.status || '',
-        currency: String(currencyRaw),
-        amount: Number(amountRaw)   // 👈 确保是 number
-    };
+        currency,
+        // 这俩保留做参考
+        amount: awxObj?.amount || awxObj?.originalAmount || 0,
+        actualPayableAmount: Number(rawActual) || 0
+    }
 }
 
 
@@ -822,11 +843,10 @@ let awxCvcEl: any = null;
 async function initAirwallex(): Promise<void> {
     if (awxInited.value) return;
     const AWX = await getAWX();
-    const env = 'prod'; // 'demo' or 'prod'
+    const env = (useRuntimeConfig().public as any)?.airwallexEnv
     await AWX.init({
         env,
         langKey: 'en',
-        origin: window.location.origin,
         enabledElements: ['payments'] // 新版必须启用 payments
     });
     awxInited.value = true;
@@ -863,6 +883,208 @@ async function mountAirwallexSplit() {
     });
 
     awxMounted.value = true; // ✅ 记得置位
+}
+
+async function precheckForWallet(): Promise<string | null> {
+    if (form.value.address) {
+        const countryName = countryarr.value.find((c: any) => c.countryCode === form.value.country)?.countryName || '';
+        (addressinfo.value as any).countryName = countryName;
+
+        const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' });
+        if (userType.value == 1 || userType.value === '1') {
+            const ok = await addaddress();
+            if (!ok) return 'Please complete your address';
+            await getAddresslist();
+        }
+    }
+
+    addressinfo.value.firstName = addressinfo.value.firstName || (form.value as any)?.firstName;
+    addressinfo.value.lastName = addressinfo.value.lastName || (form.value as any)?.lastName;
+    addressinfo.value.address = addressinfo.value.address || (form.value as any)?.address;
+    addressinfo.value.country = addressinfo.value.country || (form.value as any)?.country;
+    addressinfo.value.province = addressinfo.value.province || (form.value as any)?.province;
+    addressinfo.value.city = addressinfo.value.city || (form.value as any)?.city;
+    addressinfo.value.postalCode = addressinfo.value.postalCode || (form.value as any)?.postalCode;
+    addressinfo.value.numberCode = addressinfo.value.numberCode || (form.value as any)?.numberCode;
+    addressinfo.value.number = addressinfo.value.number || (form.value as any)?.number;
+
+    if (!addressinfo.value.firstName) return 'Please add first name';
+    if (!addressinfo.value.lastName) return 'Please add last name';
+    if (!addressinfo.value.address) return 'Please add an address';
+    if (!addressinfo.value.country) return 'Please add country';
+    if (!templateid.value) return 'Shipping methods is required';
+    if (templateid.value < 0) return 'The current country does not support delivery';
+    if (!productlists.value?.length) return 'No items to pay';
+    return null;
+}
+function redirectPayFail(method: string, msg?: string) {
+    const currency = awxCurrency.value || 'USD'
+    const total = awxActualPayableAmount.value || payableTotal.value || '0.00'
+    router.push({
+        path: '/payfail',
+        query: {
+            orderNo: orderNo.value,
+            currency,
+            paymentMethod: method,
+            totalAmount: total,
+            errorMsg: msg || 'Payment failed'
+        }
+    })
+}
+
+async function mountApplePayButton() {
+    if (awxAppleMounted.value) return
+
+    await initAirwallex()
+    const AWX = await getAWX()
+
+    // 先不传 intent / client_secret —— 点按钮进入校验后再创建/注入
+    awxAppleEl = await AWX.createElement('applePayButton', {
+        amount: { value: payableTotal.value, currency: 'USD' }, // 展示占位
+        countryCode: 'US',
+        buttonType: 'buy',
+        buttonColor: 'black',
+        merchantCapabilities: ['supports3DS', 'supportsDebit', 'supportsCredit', 'supportsEMV'], // Remove supportsEMV if China UnionPay is not needed
+        supportedNetworks: [
+            'amex',
+            'bancomat',
+            'bancontact',
+            'cartesBancaires',
+            'chinaUnionPay',
+            'dankort',
+            'discover',
+            'eftpos',
+            'electron',
+            'elo',
+            'girocard',
+            'interac',
+            'jcb',
+            'mada',
+            'maestro',
+            'masterCard',
+            'mir',
+            'privateLabel',
+            'visa',
+            'vPay',
+        ],
+        requiredShippingContactFields: ['name', 'email', 'phone']
+    })
+    awxAppleEl.mount('awx-apple-pay')
+    awxAppleMounted.value = true
+    await nextTick()
+
+    // 调试日志可留着
+    awxAppleEl.on?.('ready', () => console.log('[AWX] applePay ready'))
+    awxAppleEl.on?.('click', () => console.log('[AWX] applePay click'))
+
+    // 统一的校验处理器（支持多版本事件 & 字段）
+    const handleValidate = async (e: any) => {
+
+        // 兼容 validationURL / validationUrl，且可能在 e.detail 或根上
+        const validationURL =
+            e?.detail?.validationURL ||
+            e?.detail?.validationUrl ||
+            e?.validationURL ||
+            e?.validationUrl
+
+        if (!validationURL) {
+            console.error('[AWX] no validationURL on event payload')
+            return
+        }
+
+        // A) 本地校验（地址/运费/商品）
+        const msg = await precheckForWallet()
+        if (msg) { message.error(msg); return }
+
+        // B) 点击后才创建订单 & PaymentIntent（拿到 client_secret / intent_id / 实付金额）
+        const clientSecret = await ensureAwxPaymentIntent()
+        if (!clientSecret || !awxIntentId.value) {
+            message.error('Airwallex is not ready yet')
+            return
+        }
+        // C) 注入 intent / 金额（金额务必用后端返回的 actualPayableAmount）
+        awxAppleEl.update?.({
+            intent_id: awxIntentId.value,
+            client_secret: awxClientSecret.value,
+            amount: { value: awxActualPayableAmount.value, currency: awxCurrency.value || 'USD' }
+        })
+        // D) 向后端换 merchantSession（GET）
+        const Sessionres = await startAirwallexPaymentSession({
+            validationUrl: validationURL,
+            initiative: 'web',
+            initiativeContext: window.location.hostname, // 如 test.incustom.com（需在 Apple 完成域名验证）
+            paymentIntentId: awxIntentId.value
+        })
+        const merchantSession = Sessionres?.result ?? Sessionres
+        // E) 完成商户校验（尽快执行，不要用 alert 阻塞）
+        awxAppleEl.completeValidation(merchantSession)
+        console.log('[AWX] completeValidation called')
+    }
+    // 绑定官方现在使用的事件名：validateMerchant
+    awxAppleEl.on?.('validateMerchant' as any, handleValidate)
+    // 同时兼容老写法，避免 SDK 变体
+    awxAppleEl.on?.('merchant_validation' as any, handleValidate)
+    awxAppleEl.on?.('merchantValidation' as any, handleValidate)
+    awxAppleEl.on?.('merchant-validation' as any, handleValidate)
+    // 成功
+    awxAppleEl.on?.('success', async (e: any) => {
+        console.log('[AWX] success', e?.detail?.intent)
+        try {
+            const intent = e?.detail?.intent
+            if (intent?.id) {
+                awxIntentId.value = intent.id
+                await airWallexCaptureOrder(awxIntentId.value)
+            }
+            purchase({
+                ...buildFbqPayload(),
+                value: Number(awxActualPayableAmount.value || payableTotal.value),
+                currency: awxCurrency.value || 'USD',
+                order_id: orderNo.value || orderId.value
+            })
+            const gaItems = productlists.value.map((it: any) => ({
+                item_id: it.productSku,
+                item_name: it.productName,
+                price: Number(it.productPrice) || 0,
+                quantity: Number(it.qtyOrdered) || 1,
+                currency: awxCurrency.value || 'USD'
+            }))
+            purchaseorder({
+                transaction_id: orderNo.value || orderId.value,
+                value: Number(awxActualPayableAmount.value || payableTotal.value),
+                currency: awxCurrency.value || 'USD',
+                items: gaItems,
+                coupon: activeCoupon.value || undefined,
+                shipping: Number(shipping.value) || 0
+            })
+        } catch { }
+
+        const now = new Date().toISOString()
+        router.push({
+            path: '/paysuccess',
+            query: {
+                orderNo: orderNo.value,
+                createTime: formatUtcToLocal(now),
+                currency: awxCurrency.value || 'USD',
+                paymentMethod: 'Apple Pay',
+                totalAmount: awxActualPayableAmount.value || payableTotal.value
+            }
+        })
+    })
+
+    // 失败/取消
+    // 失败：统一跳转 payfail
+    awxAppleEl.on?.('error', (e: any) => {
+        const raw = e?.detail ?? e
+        const err = raw?.error ?? raw
+        const code = err?.code ?? raw?.code
+        const msg = err?.message ?? raw?.message ?? err?.status ?? 'Payment failed'
+
+        awxAppleError.value = msg
+        message.error(awxAppleError.value || 'Apple Pay failed')
+
+        redirectPayFail('Apple Pay', code ? `${msg} (code: ${code})` : msg)
+    })
+
 }
 
 
@@ -1123,13 +1345,12 @@ if (from == 'order') handleGetOrder();
 
 const showModal = ref(false);
 const isshow = ref(false);
+// 原来：const options = [{ value: 1, label: 'paypal', icon: '/images/paypal.png' }];
 const options = [
     { value: 1, label: 'paypal', icon: '/images/paypal.png' },
     { value: 2, label: 'airwallex', icon: '/images/mastercard.png' },
-    { value: 3, label: 'googlepay', icon: '/images/googlepay.png' },
-    { value: 4, label: 'applepay', icon: '/images/applepay.png' } // ← 新增
+    { value: 3, label: 'applepay', icon: '/images/applepay.png' } // 新增
 ];
-
 
 
 const form = ref({
@@ -1331,54 +1552,8 @@ const handleSubmit = async () => {
         orderNo.value = createres.result.orderNumber;
         try {
             addPaymentInfo({ ...buildFbqPayload(), order_id: orderNo.value || orderId.value });
-
         } catch (e) {
             console.warn('fbq AddPaymentInfo error:', e);
-        }
-        // ✅ TikTok Pixel - AddPaymentInfo
-        if (window.ttq) {
-            try {
-                const payload = buildFbqPayload();
-                window.ttq.track('AddPaymentInfo', {
-                    content_id: payload.content_ids?.[0] || 'unknown',
-                    content_type: 'product',
-                    contents: payload.contents?.map((it: any) => ({
-                        content_id: String(it.id),
-                        quantity: it.quantity,
-                        price: it.item_price
-                    })),
-                    value: payload.value,
-                    currency: payload.currency || 'USD',
-                    description: 'Checkout initiated',
-                    num_items: payload.num_items || 1
-                });
-                console.log('🟢 TikTok AddPaymentInfo sent');
-            } catch (e) {
-                console.warn('TikTok AddPaymentInfo failed:', e);
-            }
-        }
-        // ✅ TikTok Pixel - PlaceAnOrder
-        if (window.ttq) {
-            try {
-                const payload = buildFbqPayload();
-                window.ttq.track('PlaceAnOrder', {
-                    content_id: payload.content_ids?.[0] || 'unknown',
-                    content_type: 'product',
-                    contents: payload.contents?.map((it: any) => ({
-                        content_id: String(it.id),
-                        quantity: it.quantity,
-                        price: it.item_price
-                    })),
-                    value: payload.value,
-                    currency: payload.currency || 'USD',
-                    description: 'Order created',
-                    order_id: orderNo.value || orderId.value,
-                    num_items: payload.num_items || 1
-                });
-                console.log('🟢 TikTok PlaceAnOrder sent');
-            } catch (e) {
-                console.warn('TikTok PlaceAnOrder failed:', e);
-            }
         }
 
         cart.refreshCart();
@@ -1594,6 +1769,7 @@ const handleSignIn = async () => {
     }
 };
 
+const Invalidlist = ref([] as any[]);
 
 watch(
     () => addressinfo.value,
@@ -1626,16 +1802,6 @@ watch(
         }
     }
 )
-watch([selectedTotal, shipping, discount, awxAmount], () => {
-    const currency = awxCurrency.value || 'USD'
-    const value = totalPayable.value.toFixed(2)
-    if (gpayEl.value?.update) {
-        gpayEl.value.update({ amount: { value, currency } })
-    }
-    if (awxAppleEl?.update) {
-        awxAppleEl.update({ amount: { value, currency } })
-    }
-})
 
 watch(
     () => templateid.value,
@@ -1647,30 +1813,19 @@ watch(
         }
     }
 );
-function redirectPayFail(method: string, msg?: string) {
-    router.push({
-        path: '/payfail',
-        query: {
-            orderNo: orderNo.value,
-            currency: awxCurrency.value || 'USD',
-            paymentMethod: method,
-            totalAmount: totalPayable.value.toFixed(2),
-            errorMsg: msg || 'Payment failed'
-        }
-    })
-}
-
 const awxMounted = ref(false);
 // ✅ 切换时不做卸载，最多首次切到 2 时补挂一次
 watch(selected, async (val) => {
     if (val === 2 && !awxMounted.value) {
         await mountAirwallexSplit();
     }
-    if (val === 3 && !gpayMounted.value) {
-        await mountGooglePay();
+    if (val === 3 && !awxAppleMounted.value) {
+        await mountApplePayButton();
     }
-    if (val === 4 && !awxAppleMounted.value) { // ← 新增
-        await mountApplePay();
+});
+watch([selectedTotal, shipping, discount], () => {
+    if (awxAppleEl) {
+        awxAppleEl.update?.({ amount: { value: payableTotal.value, currency: 'USD' } });
     }
 });
 
@@ -1741,30 +1896,6 @@ async function tryRenderPaypalButtons() {
                     console.warn('fbq Purchase error:', e);
                 }
 
-                // ✅ TikTok Pixel - Purchase
-                if (window.ttq) {
-                    try {
-                        const payload = buildFbqPayload();
-                        window.ttq.track('Purchase', {
-                            content_id: payload.content_ids?.[0] || 'unknown',
-                            content_type: 'product',
-                            contents: payload.contents?.map((it: any) => ({
-                                content_id: String(it.id),
-                                quantity: it.quantity,
-                                price: it.item_price
-                            })),
-                            value: Number(totalAmount),
-                            currency,
-                            description: 'PayPal checkout',
-                            order_id: orderNo.value || orderId.value
-                        });
-                        console.log('🟢 TikTok Purchase sent (PayPal)');
-                    } catch (e) {
-                        console.warn('TikTok Purchase failed (PayPal):', e);
-                    }
-                }
-
-
                 try {
                     const gaItems = productlists.value.map((it: any) => ({
                         item_id: it.productSku,
@@ -1797,19 +1928,20 @@ async function tryRenderPaypalButtons() {
         }
     }).render('#paypal-button-container');
 }
-async function ensureAwxPaymentIntent(payType): Promise<string> {
+async function ensureAwxPaymentIntent(): Promise<string> {
     // 1) 确保有 orderId
     if (!orderId.value) {
         try {
-            const res = await generateOrderId();
-            orderId.value = res.result;
+            const res = await generateOrderId()
+            orderId.value = res.result
         } catch (e: any) {
-            message.error(e?.message || 'Failed to generate order id');
-            throw new Error('ORDER_PREPARE_FAILED');
+            // 生成订单号失败 ≠ 支付失败
+            message.error(e?.message || 'Failed to generate order id')
+            throw new Error('ORDER_PREPARE_FAILED')
         }
     }
 
-    // 2) 确保已 createOrder（拿到 orderNo）
+    // 2) 确保已 createOrder（拿到 orderNo）——失败不跳转
     if (!orderNo.value) {
         try {
             const orderItemList = (productlists.value || []).map((item: any) => ({
@@ -1817,7 +1949,8 @@ async function ensureAwxPaymentIntent(payType): Promise<string> {
                 qtyOrdered: Number(item.qtyOrdered),
                 priceOrdered: Number(item.productPrice),
                 amountOrdered: Number(item.productPrice) * Number(item.qtyOrdered)
-            }));
+            }))
+
             const createRes = await createOrder({
                 buyerCity: addressinfo.value.city,
                 buyerCountryCode: addressinfo.value.country,
@@ -1845,48 +1978,49 @@ async function ensureAwxPaymentIntent(payType): Promise<string> {
                         }))
                     }
                     : {})
-            });
-            orderNo.value = createRes?.result?.orderNumber || '';
+            })
+
+            orderNo.value = createRes?.result?.orderNumber || ''
         } catch (err: any) {
-            let msg = 'Order create failed';
+            let msg = 'Order create failed'
             try {
-                const parsed = JSON.parse(err.message || '{}');
-                msg = parsed.enDesc || msg;
-                const ek = parsed.errorKey;
+                const parsed = JSON.parse(err.message || '{}')
+                msg = parsed.enDesc || msg
+                const ek = parsed.errorKey
+                // 价格或运费变更，走你原有弹窗，不跳转
                 if (ek === 'calFee' || ek === 'priceOrdered' || ek === 'amountOrdered') {
-                    changedesc.value = parsed.enDesc;
-                    isOpen.value = true;
+                    changedesc.value = parsed.enDesc
+                    isOpen.value = true
                 }
             } catch { }
-            message.error(msg);
-            throw new Error('ORDER_CREATE_FAILED');
+            message.error(msg)
+            throw new Error('ORDER_CREATE_FAILED')
         }
     }
 
-    // 3) 创建 PaymentIntent —— 这里传入你指定的 payType
+    // 3) 创建 Airwallex PaymentIntent —— 失败不跳转
     if (!awxClientSecret.value) {
         try {
-            const payParams = { payType, createSource: 'orderPay', bindIdList: [orderId.value] };
-            const payRes = await createPayment(payParams);
-            const { id, clientSecret, amount, currency } = extractAwxFromCreatePayment(payRes);
-            if (!clientSecret) throw new Error('Missing Airwallex client_secret');
+            const payParams = { payType: 'airwallex', createSource: 'orderPay', bindIdList: [orderId.value] }
+            const payRes = await createPayment(payParams)
 
-            awxClientSecret.value = clientSecret;
-            awxIntentId.value = id || '';
+            const { id, clientSecret, actualPayableAmount, currency } = extractAwxFromCreatePayment(payRes)
+            if (!clientSecret) throw new Error('Missing Airwallex client_secret')
 
-            // ✅ 以服务端返回为准的金额 & 币种
-            if (Number.isFinite(amount)) awxAmount.value = Number(amount);
-            if (currency) awxCurrency.value = currency;
+            awxClientSecret.value = clientSecret
+            awxIntentId.value = id || ''
+            awxActualPayableAmount.value = (Number(actualPayableAmount) || 0).toFixed(2) // ★ 用服务端金额
+            awxCurrency.value = currency || 'USD'
         } catch (e: any) {
-            console.error('createPayment error:', e);
-            message.error(e?.message || 'Failed to create payment intent');
-            throw new Error('PAYMENT_INTENT_FAILED');
+            console.error('createPayment error:', e)
+            message.error(e?.message || 'Failed to create Airwallex payment intent')
+            throw new Error('PAYMENT_INTENT_FAILED')
         }
     }
 
-    return awxClientSecret.value;
-}
 
+    return awxClientSecret.value
+}
 async function handleAirwallexPay() {
     awxError.value = ''
     awxPayLoading.value = true
@@ -1935,7 +2069,7 @@ async function handleAirwallexPay() {
         if (!productlists.value?.length) return message.error('No items to pay')
 
         // --- B. 准备 PaymentIntent：失败不跳转 ---
-        const clientSecret = await ensureAwxPaymentIntent('airwallex')
+        const clientSecret = await ensureAwxPaymentIntent()
         if (!clientSecret) {
             // 理论上不会走到这，但为了稳妥：不跳转
             return message.error('Airwallex is not ready yet')
@@ -1991,30 +2125,6 @@ async function handleAirwallexPay() {
                     currency: 'USD',
                     order_id: orderNo.value || orderId.value
                 })
-
-                // ✅ TikTok Pixel - Purchase
-                if (window.ttq) {
-                    try {
-                        const payload = buildFbqPayload();
-                        window.ttq.track('Purchase', {
-                            content_id: payload.content_ids?.[0] || 'unknown',
-                            content_type: 'product',
-                            contents: payload.contents?.map((it: any) => ({
-                                content_id: String(it.id),
-                                quantity: it.quantity,
-                                price: it.item_price
-                            })),
-                            value: Number(totalAmount),
-                            currency: 'USD',
-                            description: 'Credit/Debit Card checkout',
-                            order_id: orderNo.value || orderId.value
-                        });
-                        console.log('🟢 TikTok Purchase sent (Card)');
-                    } catch (e) {
-                        console.warn('TikTok Purchase failed (Card):', e);
-                    }
-                }
-
                 const gaItems = productlists.value.map((it: any) => ({
                     item_id: it.productSku,
                     item_name: it.productName,
@@ -2083,384 +2193,6 @@ async function handleAirwallexPay() {
     } finally {
         awxPayLoading.value = false
     }
-}
-//google apple pay
-const awxAppleMounted = ref(false)
-let awxAppleEl: any = null
-const awxAppleError = ref<string>('')
-const gpayMounted = ref(false)
-const gpayEl = ref<any>(null)
-const gpayError = ref<string>('')
-const Invalidlist = ref([] as any[]);
-// 计算应付总额（与右侧汇总保持一致）
-const totalPayable = computed(() => {
-    // 如果服务端已经返回权威金额，则以它为准
-    if (awxAmount.value != null && Number.isFinite(awxAmount.value)) {
-        return Number(awxAmount.value.toFixed(2));
-    }
-    // 否则退回到本地汇总
-    return Number(((selectedTotal.value || 0) + (shipping.value || 0) - (discount.value || 0)).toFixed(2));
-});
-async function mountApplePay() {
-    await initAirwallex()
-    if (awxAppleMounted.value) return
-    const AWX = await getAWX()
-    // 创建时只放展示金额；真正金额会在校验后用服务端值覆盖
-    let countryCode = (addressinfo.value?.country || form.value.country || 'US')
-        .toString()
-        .toUpperCase()
-    awxAppleEl = await AWX.createElement('applePayButton', {
-        amount: {
-            value: totalPayable.value.toFixed(2)
-            , currency: 'USD'
-        }, // 展示占位
-        countryCode: countryCode,
-        buttonType: 'buy',
-        buttonColor: 'black',
-        merchantCapabilities: ['supports3DS', 'supportsDebit', 'supportsCredit', 'supportsEMV'], // Remove supportsEMV if China UnionPay is not needed
-        supportedNetworks: [
-            'amex',
-            'bancomat',
-            'bancontact',
-            'cartesBancaires',
-            'chinaUnionPay',
-            'dankort',
-            'discover',
-            'eftpos',
-            'electron',
-            'elo',
-            'girocard',
-            'interac',
-            'jcb',
-            'mada',
-            'maestro',
-            'masterCard',
-            'mir',
-            'privateLabel',
-            'visa',
-            'vPay',
-        ],
-        requiredShippingContactFields: ['name', 'email', 'phone']
-    })
-
-    await nextTick()
-    awxAppleEl.mount('awx-apple-pay')
-    awxAppleMounted.value = true
-
-    // 点击/校验：创建 Intent + 注入金额/密钥 + 取 merchantSession
-    const handleValidate = async (evt: any) => {
-        try {
-            // 地址/运费/商品校验（与其它方式一致）
-            if (form.value.address) {
-                const countryName = countryarr.value.find((c: any) => c.countryCode === form.value.country)?.countryName || ''
-                addressinfo.value.countryName = countryName
-                const userTypeCookie = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' })
-                if (userTypeCookie.value == 1 || userTypeCookie.value === '1') {
-                    const ok = await addaddress(); if (!ok) return
-                    await getAddresslist()
-                }
-            }
-            addressinfo.value.firstName = addressinfo.value.firstName || (form.value as any)?.firstName
-            addressinfo.value.lastName = addressinfo.value.lastName || (form.value as any)?.lastName
-            addressinfo.value.address = addressinfo.value.address || (form.value as any)?.address
-            addressinfo.value.country = addressinfo.value.country || (form.value as any)?.country
-            addressinfo.value.province = addressinfo.value.province || (form.value as any)?.province
-            addressinfo.value.city = addressinfo.value.city || (form.value as any)?.city
-            addressinfo.value.postalCode = addressinfo.value.postalCode || (form.value as any)?.postalCode
-            addressinfo.value.numberCode = addressinfo.value.numberCode || (form.value as any)?.numberCode
-            addressinfo.value.number = addressinfo.value.number || (form.value as any)?.number
-
-            if (!addressinfo.value.firstName) return message.error('Please add first name')
-            if (!addressinfo.value.lastName) return message.error('Please add last name')
-            if (!addressinfo.value.address) return message.error('Please add an address')
-            if (!addressinfo.value.country) return message.error('Please add country')
-            if (!addressinfo.value.province) return message.error('Please add province')
-            if (!addressinfo.value.city) return message.error('Please add city')
-            if (!addressinfo.value.postalCode) return message.error('Please add postal code')
-            if (!addressinfo.value.number) return message.error('Please add phone number')
-            if (templateid.value < 0) return message.error('The current country does not support delivery')
-            if (!templateid.value) return message.error('Shipping methods is required')
-            if (!productlists.value?.length) return message.error('No items to pay')
-
-
-            awxClientSecret.value = await ensureAwxPaymentIntent('airwallex_apple_pay')
-            console.log(awxClientSecret.value);
-            console.log(awxIntentId.value);
-            let updatecountryCode = (addressinfo.value?.country || form.value.country || 'US')
-                .toString()
-                .toUpperCase()
-            // 用服务端金额/币种覆盖
-            await awxAppleEl.update?.({
-                countryCode: updatecountryCode,
-                intent_id: awxIntentId.value,
-                client_secret: awxClientSecret.value,
-                amount: { value: totalPayable.value.toFixed(2), currency: awxCurrency.value || 'USD' }
-            })
-
-            // Apple 商户校验（domain 需已在 Apple 侧验证）
-            const validationURL = evt?.detail?.validationURL || evt?.detail?.validationUrl || evt?.validationURL || evt?.validationUrl
-            const session = await startAirwallexPaymentSession({
-                validationUrl: validationURL,
-                initiative: 'web',
-                initiativeContext: window.location.hostname,
-                paymentIntentId: awxIntentId.value
-            })
-            awxAppleEl.completeValidation(session?.result ?? session)
-        } catch (e: any) {
-            awxAppleError.value = e?.message || 'Apple Pay prepare failed'
-            message.error(awxAppleError.value)
-        }
-    }
-
-    // 事件绑定（兼容不同 SDK 命名）
-    awxAppleEl.on?.('validateMerchant' as any, handleValidate)
-    awxAppleEl.on?.('merchant_validation' as any, handleValidate)
-    awxAppleEl.on?.('merchantValidation' as any, handleValidate)
-    awxAppleEl.on?.('authorized', async (e: any) => {
-        try {
-            const result = await awxAppleEl.confirmIntent({ client_secret: awxClientSecret.value })
-            console.log(result);
-            if (result?.status === 'SUCCEEDED') {
-                await airWallexCaptureOrder(result.id)  // 后端捕获
-                // → 执行埋点 + 跳转 paysuccess
-                const totalAmount = totalPayable.value
-                purchase({ ...buildFbqPayload(), value: Number(totalAmount), currency: awxCurrency.value || 'USD', order_id: orderNo.value || orderId.value })
-
-                // ✅ TikTok Pixel - Purchase
-                if (window.ttq) {
-                    try {
-                        const payload = buildFbqPayload();
-                        window.ttq.track('Purchase', {
-                            content_id: payload.content_ids?.[0] || 'unknown',
-                            content_type: 'product',
-                            contents: payload.contents?.map((it: any) => ({
-                                content_id: String(it.id),
-                                quantity: it.quantity,
-                                price: it.item_price
-                            })),
-                            value: Number(totalAmount),
-                            currency: 'USD',
-                            description: 'Credit/Debit Card checkout',
-                            order_id: orderNo.value || orderId.value
-                        });
-                        console.log('🟢 TikTok Purchase sent (Card)');
-                    } catch (e) {
-                        console.warn('TikTok Purchase failed (Card):', e);
-                    }
-                }
-
-                const gaItems = productlists.value.map((it: any) => ({
-                    item_id: it.productSku, item_name: it.productName,
-                    price: Number(it.productPrice) || 0, quantity: Number(it.qtyOrdered) || 1,
-                    currency: awxCurrency.value || 'USD'
-                }))
-                purchaseorder({
-                    transaction_id: orderNo.value || orderId.value,
-                    value: Number(totalAmount),
-                    currency: awxCurrency.value || 'USD',
-                    items: gaItems,
-                    coupon: activeCoupon.value || undefined,
-                    shipping: Number(shipping.value) || 0
-                })
-                const now = new Date().toISOString()
-                router.push({
-                    path: '/paysuccess',
-                    query: {
-                        orderNo: orderNo.value,
-                        createTime: formatUtcToLocal(now),
-                        currency: awxCurrency.value || 'USD',
-                        paymentMethod: 'Apple Pay',
-                        totalAmount: totalPayable.value.toFixed(2)
-                    }
-                })
-            } else {
-                redirectPayFail('Apple Pay', result?.status || 'Payment failed')
-            }
-        } catch (err: any) {
-            const msg = err?.message || 'Apple Pay confirm failed'
-            message.error(msg)
-            redirectPayFail('Apple Pay', msg)
-        }
-    })
-
-    // 成功
-    awxAppleEl.on?.('success', async (e: any) => {
-        try {
-            const intent = e?.detail?.intent
-            if (intent?.id) await airWallexCaptureOrder(intent.id)
-
-            // 埋点（与其它方式一致）
-
-        } catch { }
-
-
-    })
-
-    // 失败/取消
-    awxAppleEl.on?.('error', (e: any) => {
-        const raw = e?.detail ?? e
-        const msg = raw?.error?.message ?? raw?.message ?? raw?.status ?? 'Payment failed'
-        awxAppleError.value = msg
-        message.error(msg)
-        redirectPayFail('Apple Pay', msg)
-    })
-}
-
-// 替换你的 mountGooglePay 函数
-async function mountGooglePay() {
-    await initAirwallex()
-    if (gpayMounted.value) return
-
-    const AWX = await getAWX()
-    const countryCode = (addressinfo.value?.country || form.value.country || 'US').toUpperCase()
-
-    gpayEl.value = await AWX.createElement('googlePayButton', {
-        countryCode,
-        amount: { value: totalPayable.value.toFixed(2), currency: awxCurrency.value || 'USD' },
-        autoCapture: true,
-        buttonType: 'buy',
-        buttonColor: 'black'
-    })
-
-    await nextTick()
-    gpayEl.value.mount('awx-google-pay')
-    gpayMounted.value = true
-
-    // 1. 点击 → 创建 Intent
-    gpayEl.value.on?.('click', async () => {
-        try {
-            awxClientSecret.value = '' // 确保重新创建
-            awxIntentId.value = ''
-
-            if (form.value.address) {
-                const countryName =
-                    countryarr.value.find((c: any) => c.countryCode === form.value.country)?.countryName || ''
-                addressinfo.value.countryName = countryName
-                const userTypeCookie = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' })
-                if (userTypeCookie.value == 1 || userTypeCookie.value === '1') {
-                    const ok = await addaddress()
-                    if (!ok) return
-                    await getAddresslist()
-                }
-            }
-            addressinfo.value.firstName = addressinfo.value.firstName || (form.value as any)?.firstName
-            addressinfo.value.lastName = addressinfo.value.lastName || (form.value as any)?.lastName
-            addressinfo.value.address = addressinfo.value.address || (form.value as any)?.address
-            addressinfo.value.country = addressinfo.value.country || (form.value as any)?.country
-            addressinfo.value.province = addressinfo.value.province || (form.value as any)?.province
-            addressinfo.value.city = addressinfo.value.city || (form.value as any)?.city
-            addressinfo.value.postalCode = addressinfo.value.postalCode || (form.value as any)?.postalCode
-            addressinfo.value.numberCode = addressinfo.value.numberCode || (form.value as any)?.numberCode
-            addressinfo.value.number = addressinfo.value.number || (form.value as any)?.number
-
-            if (!addressinfo.value.firstName) return message.error('Please add first name')
-            if (!addressinfo.value.lastName) return message.error('Please add last name')
-            if (!addressinfo.value.address) return message.error('Please add an address')
-            if (!addressinfo.value.country) return message.error('Please add country')
-            if (!addressinfo.value.province) return message.error('Please add province')
-            if (!addressinfo.value.city) return message.error('Please add city')
-            if (!addressinfo.value.postalCode) return message.error('Please add postal code')
-            if (!addressinfo.value.number) return message.error('Please add phone number')
-            if (templateid.value < 0) return message.error('The current country does not support delivery')
-            if (!templateid.value) return message.error('Shipping methods is required')
-            if (!productlists.value?.length) return message.error('No items to pay')
-
-            const clientSecret = await ensureAwxPaymentIntent('airwallex_google_pay')
-            if (!clientSecret) throw new Error('Failed to create Google Pay intent')
-
-            // 用服务端金额/币种更新按钮
-            const updateCountry = (addressinfo.value?.country || form.value.country || 'US').toUpperCase()
-            await gpayEl.value.update({
-                countryCode: updateCountry,
-                intent_id: awxIntentId.value,
-                client_secret: clientSecret,
-                amount: { value: totalPayable.value.toFixed(2).toString(), currency: awxCurrency.value || 'USD' }
-            })
-        } catch (err: any) {
-            const msg = err?.message || 'Google Pay init failed'
-            gpayError.value = msg
-            message.error(msg)
-        }
-    })
-
-    // 2. 用户完成授权 → confirmIntent
-    gpayEl.value.on?.('authorized', async () => {
-        try {
-            console.log('authorized');
-            const result = await gpayEl.value.confirmIntent({ client_secret: awxClientSecret.value })
-            if (result?.status === 'SUCCEEDED') {
-                await airWallexCaptureOrder(result.id)
-
-                const totalAmount = totalPayable.value
-                purchase({ ...buildFbqPayload(), value: Number(totalAmount), currency: awxCurrency.value || 'USD', order_id: orderNo.value || orderId.value })
-                // ✅ TikTok Pixel - Purchase
-                if (window.ttq) {
-                    try {
-                        const payload = buildFbqPayload();
-                        window.ttq.track('Purchase', {
-                            content_id: payload.content_ids?.[0] || 'unknown',
-                            content_type: 'product',
-                            contents: payload.contents?.map((it: any) => ({
-                                content_id: String(it.id),
-                                quantity: it.quantity,
-                                price: it.item_price
-                            })),
-                            value: Number(totalAmount),
-                            currency: 'USD',
-                            description: 'Credit/Debit Card checkout',
-                            order_id: orderNo.value || orderId.value
-                        });
-                        console.log('🟢 TikTok Purchase sent (Card)');
-                    } catch (e) {
-                        console.warn('TikTok Purchase failed (Card):', e);
-                    }
-                }
-
-                router.push({
-                    path: '/paysuccess',
-                    query: {
-                        orderNo: orderNo.value,
-                        createTime: formatUtcToLocal(new Date().toISOString()),
-                        currency: awxCurrency.value || 'USD',
-                        paymentMethod: 'Google Pay',
-                        totalAmount: totalPayable.value.toFixed(2)
-                    }
-                })
-            } else {
-                console.log('result', result);
-                redirectPayFail('Google Pay', result?.status || 'Payment failed')
-            }
-        } catch (err: any) {
-            console.log('err', err);
-            const msg = err?.message || 'Google Pay confirm failed'
-            gpayError.value = msg
-            message.error(msg)
-            redirectPayFail('Google Pay', msg)
-        }
-    })
-
-    // 3. 成功（可选：有的 SDK 会直接触发）
-    gpayEl.value.on?.('success', (e: any) => {
-        console.log('Google Pay success event:', e)
-    })
-
-    // 4. 错误处理
-    gpayEl.value.on?.('error', (e: any) => {
-        console.log('error', JSON.stringify(e));
-        const msg = e?.detail?.message || 'Google Pay error'
-        gpayError.value = msg
-        message.error(msg)
-        redirectPayFail('Google Pay', msg)
-    })
-
-    gpayEl.value.on?.('onError', (event) => {
-        const err = event?.detail?.error;
-        console.error('[Google Pay Error]',
-            err?.type || '(no type)',
-            err?.error || '(no message)',
-            'Full detail:', event.detail
-        );
-    });
 }
 
 onMounted(async () => {
@@ -2622,7 +2354,7 @@ tbody tr {
 
 /* 选中项的背景色 */
 :deep(.ant-select-item-option-selected) {
-    background-color: #00b2e3 !important;
+    background-color: #1890ff !important;
     /* 改成你要的色 */
     color: #fff !important;
     /* 字体颜色 */

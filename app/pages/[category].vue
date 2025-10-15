@@ -34,8 +34,9 @@ const rawCategory = Array.isArray(route.params.category)
   ? route.params.category[0]
   : (route.params.category as string);
 
-const catename = rawCategory?.split?.('-')?.[0] ?? ''
-const cateid = rawCategory?.split?.('-')?.[1] ?? ''
+const catename = ref('')
+const cateid = rawCategory?.split?.('-')?.pop() ?? ''
+
 
 const sortarray = [
   'Name Alphabetic, a-z',
@@ -78,32 +79,53 @@ const selected = ref('')
 const products = ref<any[]>([])
 const loading = ref(false)
 
+// ✅ 新增分页相关变量
+const pageNum = ref(1)
+const pageSize = 12
+const hasMore = ref(true)
+const isBottomLoading = ref(false)
+
 const { getUserProductRollPage, getProductCatalogById } = ProductAuth()
 const router = useRouter()
 
-const breadcrumbLinks = [
+const breadcrumbLinks = computed(() => [
   { label: 'Home', to: '/', title: 'Home' },
-  { label: catename, to: '/' + catename + '-' + cateid, title: catename },
-]
+  { label: catename.value, to: '/' + catename.value + '-' + cateid, title: catename.value },
+])
 
 // 监听筛选
 const handleChange = (value: string) => {
   selected.value = selected.value === value ? '' : value
-  getlistlist()
+  pageNum.value = 1
+  hasMore.value = true
+  getlistlist(true)
 }
 
 watch(selectedsort, () => {
-  getlistlist()
+  pageNum.value = 1
+  hasMore.value = true
+  getlistlist(true)
 })
 
-// ====== 数据加载 ======
-const getlistlist = async () => {
-  loading.value = true
+// ====== 数据加载（增强：分页 + 懒加载） ======
+const getlistlist = async (isReset = false) => {
+  // 防止重复触发
+  if (loading.value || isBottomLoading.value || (!hasMore.value && !isReset)) return
+
+  if (isReset) {
+    loading.value = true
+    pageNum.value = 1
+    hasMore.value = true
+  } else {
+    isBottomLoading.value = true
+  }
+
   try {
     const parmes: Record<string, any> = {
       catalogIdPath: cateid,
-      pageNum: 1,
-      pageSize: 24,
+      pageNum: pageNum.value,
+      needCount: true,
+      pageSize,
       fields: 'id,erpProduct.productEnglishName,erpProduct.customPrice,erpProduct.mainPic',
     }
     if (selectedsort.value) {
@@ -112,11 +134,24 @@ const getlistlist = async () => {
     }
 
     const res = await getUserProductRollPage(parmes)
-    products.value = res.result.list
+    const list = res.result?.list || []
+
+    if (isReset) {
+      products.value = list
+    } else {
+      products.value.push(...list)
+    }
+
+    if (list.length < pageSize) {
+      hasMore.value = false
+    } else {
+      pageNum.value += 1
+    }
   } catch (error) {
     console.error('Load product list failed:', error)
   } finally {
     loading.value = false
+    isBottomLoading.value = false
   }
 }
 
@@ -129,13 +164,14 @@ const getcateinfo = async () => {
       categorybanner.value = result.rootPictureUrl
       categorytitle.value = result.rootPictureTitle
       categorydesc.value = result.rootPictureContent
+      catename.value = result.catalogEnName || result.catalogName || ''
     }
   } catch (error) {
     console.error('Load catenfo failed:', error)
   }
 }
 
-getlistlist()
+getlistlist(true)
 getcateinfo()
 
 // ✅ 背景图加载完再隐藏骨架
@@ -146,6 +182,28 @@ watch(categorybanner, () => {
     img.onload = () => {
       bannerLoading.value = false
     }
+  }
+})
+
+// ✅ IntersectionObserver 懒加载更多
+const bottomRef = ref<HTMLElement | null>(null)
+const observer = ref<IntersectionObserver | null>(null)
+
+onMounted(() => {
+  observer.value = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && hasMore.value && !loading.value && !isBottomLoading.value) {
+      getlistlist()
+    }
+  })
+  nextTick(() => {
+    if (bottomRef.value) observer.value.observe(bottomRef.value)
+  })
+})
+
+onUnmounted(() => {
+  if (observer.value && bottomRef.value) {
+    observer.value.unobserve(bottomRef.value)
+    observer.value.disconnect()
   }
 })
 
@@ -181,7 +239,6 @@ const toGa4Items = (list: any[]) =>
 const reportListImpression = () => {
   if (process.server) return
   if (!products.value?.length) return
-  console.log(1111123)
   viewItemList(toGa4Items(products.value), listId.value, listName.value)
 }
 
@@ -208,6 +265,7 @@ watch([products, loading, selectedsort, () => selected.value], () => {
   if (!loading.value && products.value?.length) reportListImpression()
 })
 </script>
+
 
 <template>
   <div class="bg-white">
@@ -298,10 +356,12 @@ watch([products, loading, selectedsort, () => selected.value], () => {
               @click="onSelectItem(product, index)" v-for="(product, index) in products" :key="index"
               class="bg-white rounded-lg cursor-pointer group">
               <div class="aspect-square overflow-hidden rounded-t-lg">
-                <img :src="product.erpProduct.mainPic ?? '/images/empty.jpg'"
-                  :alt="product.erpProduct.productEnglishName"
+                <NuxtImg :src="product.erpProduct.mainPic
+                  ? `${product.erpProduct.mainPic}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`
+                  : '/images/empty.jpg'" :alt="product.erpProduct.productEnglishName"
                   class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
-                  style="aspect-ratio: 1 / 1;" />
+                  style="aspect-ratio: 1 / 1;" loading="lazy" />
+
               </div>
               <div>
                 <h3 class="text-sm sm:text-sm text-customblack my-2 lg:my-4 line-clamp-2 cursor-default font-normal"
@@ -330,6 +390,12 @@ watch([products, loading, selectedsort, () => selected.value], () => {
       </div>
     </div>
   </div>
+  <!-- 底部懒加载提示区 -->
+  <div ref="bottomRef" class="flex justify-center items-center h-16">
+    <span v-if="isBottomLoading" class="text-sm text-gray-400">Loading more products...</span>
+    <span v-else-if="!hasMore && products.length > 0" class="text-sm text-gray-300">No more products</span>
+  </div>
+
 </template>
 
 <style scoped></style>

@@ -87,6 +87,21 @@ const searchkeywords = (keyword: string) => {
   searchInput.value = keyword
   isSearchHistoryVisible.value = false
   saveKeywordToLocalHistory(keyword)
+
+  // ✅ TikTok Pixel - Search 事件
+  if (typeof window !== 'undefined' && window.ttq) {
+    try {
+      window.ttq.track('Search', {
+        query: keyword,
+        content_type: 'product',
+        value: 1,
+        currency: 'USD'
+      })
+      console.log('🟢 TikTok Search event sent:', keyword)
+    } catch (e) {
+      console.warn('TikTok Search track failed:', e)
+    }
+  }
   window.location.href = `/search?query=${encodeURIComponent(keyword)}`
 }
 
