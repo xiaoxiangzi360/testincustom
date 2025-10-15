@@ -910,7 +910,7 @@ const sections = computed(() => {
       label: 'Description',
       type: 'html',
       content: descValue,
-      sort: productinfo.value.detailedDescription?.sort ?? 1
+      sort: productinfo.value.detailedDescription?.sort ?? 999
     })
   }
 
@@ -955,7 +955,7 @@ const sections = computed(() => {
       label: 'Specifications',
       type: 'html',
       content: html,
-      sort: productinfo.value.detailedParam?.sort ?? 2
+      sort: productinfo.value.detailedParam?.sort ?? 0
     })
   }
 
@@ -970,7 +970,7 @@ const sections = computed(() => {
       label: 'FAQ',
       type: 'faq',
       content: faqList,
-      sort: productinfo.value.detailedFaq?.sort ?? 3
+      sort: productinfo.value.detailedFaq?.sort ?? 0
     })
   }
 
@@ -984,7 +984,7 @@ const sections = computed(() => {
           label: i.title,
           type: 'html',
           content: i.value,
-          sort: i.sort ?? 100
+          sort: i.sort ?? 0
         })
       })
   }
@@ -995,12 +995,12 @@ const sections = computed(() => {
       key: 'reviews',
       label: 'Reviews',
       type: 'reviews',
-      sort: 999 // 固定放最后
+      sort: -1 // 固定放最后
     })
   }
 
   // ✅ 按 sort 升序排列
-  const sorted = allSections.sort((a, b) => (a.sort ?? 999) - (b.sort ?? 999))
+  const sorted = allSections.sort((a, b) => (b.sort ?? 0) - (a.sort ?? 0))
   return sorted
 })
 
