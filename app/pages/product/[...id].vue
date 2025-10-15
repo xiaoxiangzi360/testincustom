@@ -175,7 +175,7 @@
                       class="mr-3 w-[18px] h-[18px] flex items-center justify-center"
                       :ui="{ color: { black: { solid: 'dark:bg-gray-900 dark:text-white' } } }">{{ index + 1 }}</UBadge>
                     <span class="truncate-1-lines font-medium text-sm md:text-base">{{ property.propertyNameShop
-                      }}</span>
+                    }}</span>
                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" placement="topLeft"
                       v-if="property.desc" :title="property.desc"
                       :overlayStyle="{ maxWidth: '330px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
@@ -454,20 +454,29 @@
         </div>
       </div>
       <!-- ✅ Tabs（滚动到自身位置才固定） -->
-      <div ref="tabsContainer" class="bg-white z-40 transition-all duration-300 ease-in-out mt-4" :class="{
-        'backdrop-blur-sm sticky top-[100px]': isSticky,
-      }">
-        <div class="flex justify-start overflow-x-auto whitespace-nowrap gap-10">
-          <div v-for="(tab, i) in tabs" :key="tab.key"
-            class="inline-block cursor-pointer text-sm sm:text-base transition-colors duration-200 py-3 px-4 text-d3black"
-            :class="{
-              'border-b-[3px] border-arialblack text-arialblack font-semibold font-bold': activeSection === tab.key,
-              'text-gray-500 hover:text-primary': activeSection !== tab.key
-            }" @click="scrollToSection(tab.key)">
-            {{ tab.label }}
-          </div>
-        </div>
+      <!-- ✅ 使用 Splide 取代 flex 滚动 -->
+      <div ref="tabsContainer" class="bg-white z-40 transition-all duration-300 ease-in-out mt-4"
+        :class="{ 'backdrop-blur-sm sticky top-[80px] lg:top-[100px]': isSticky }">
+
+        <ClientOnly>
+          <Splide :options="splideOptions" class="!overflow-visible">
+            <SplideSlide v-for="(tab, i) in tabs" :key="tab.key" class="!w-auto">
+              <div
+                class="cursor-pointer text-sm sm:text-base transition-colors duration-200 py-3 px-4 text-d3black whitespace-nowrap"
+                :class="{
+                  'border-b-[3px] border-arialblack text-arialblack font-semibold font-bold':
+                    activeSection === tab.key,
+                  'text-gray-500 hover:text-primary': activeSection !== tab.key
+                }" @click="scrollToSection(tab.key)">
+                {{ tab.label }}
+              </div>
+            </SplideSlide>
+          </Splide>
+
+
+        </ClientOnly>
       </div>
+
 
 
       <!-- ✅ 实际内容段落（统一排序渲染） -->
@@ -639,7 +648,7 @@
             </div>
             <div class="mt-2">
               <h3 class="text-sm font-normal mb-2 line-clamp-2 dark:text-black">{{ product.erpProduct.productEnglishName
-              }}
+                }}
               </h3>
               <p class="text-sm font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}</p>
             </div>
@@ -746,6 +755,8 @@ import { message, Tooltip, Select, InputNumber, Button } from 'ant-design-vue'
 import { useCartStore } from '@/stores/cart'
 import { useRouter, useRoute } from 'vue-router'
 import { useFbq } from '~/composables/useFbq'
+import { Splide, SplideSlide } from '@splidejs/vue-splide'
+import '@splidejs/vue-splide/css'
 const { addToCartEvent, initiateCheckout } = useFbq({ currency: 'USD' })
 const { viewItem, addToCart: trackAddToCart, beginCheckout } = useTrack()
 const { getProductById, getProductDetailsById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV3, erpTryToCreateSku, getmapProductByProductSkuList } = ProductAuth()
@@ -776,7 +787,18 @@ function resetPropErrors() {
     : 0
   propErrors.value = Array.from({ length: len }, () => '')
 }
-
+const splideOptions = {
+  pagination: false,
+  arrows: false,
+  drag: 'free',
+  autoWidth: true,
+  rewind: false,
+  gap: '40px', // 桌面端默认
+  mediaQuery: 'max', // <= breakpoint 时应用 breakpoints
+  breakpoints: {
+    1024: { gap: '10px' }, // 平板和手机
+  },
+}
 /** ===== 新增：Swiper 主图/缩略图引用 & 控制器 ===== **/
 const swiperRefMain = ref()
 const swiperRefThumb = ref()
@@ -2037,6 +2059,9 @@ onMounted(() => {
     })
     console.log('🟢 TikTok ViewContent sent:', productinfo.value.id)
   }
+  nextTick(() => {
+    window.dispatchEvent(new Event('resize'))
+  })
 })
 
 onUnmounted(() => {
