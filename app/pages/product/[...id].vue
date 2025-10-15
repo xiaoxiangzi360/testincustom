@@ -175,7 +175,7 @@
                       class="mr-3 w-[18px] h-[18px] flex items-center justify-center"
                       :ui="{ color: { black: { solid: 'dark:bg-gray-900 dark:text-white' } } }">{{ index + 1 }}</UBadge>
                     <span class="truncate-1-lines font-medium text-sm md:text-base">{{ property.propertyNameShop
-                    }}</span>
+                      }}</span>
                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" placement="topLeft"
                       v-if="property.desc" :title="property.desc"
                       :overlayStyle="{ maxWidth: '330px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
@@ -639,7 +639,7 @@
             </div>
             <div class="mt-2">
               <h3 class="text-sm font-normal mb-2 line-clamp-2 dark:text-black">{{ product.erpProduct.productEnglishName
-                }}
+              }}
               </h3>
               <p class="text-sm font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}</p>
             </div>
@@ -1664,7 +1664,18 @@ const organizeproduct = () => {
       const hasCustomDetail = prop.detailList?.some(d => d.customDetailList && d.customDetailList.length)
       if (hasCustomDetail) break
 
-      // ② 找出该属性下可选项
+      // ✅ 新增逻辑：
+      // 如果 needinputlist 存在，并且里面有至少一个未禁用项，则设置 chooseindex = 2 并停止后续自动选择
+      if (prop.needinputlist && prop.needinputlist.length > 0) {
+        const availableNeedInput = prop.needinputlist.some(item => !item.disabled)
+        if (availableNeedInput) {
+          prop.chooseindex = 2
+          break
+        }
+        // ⚠️ 否则继续执行下面 noneedinputlist 的逻辑
+      }
+
+      // ② 找出该属性下可选项（优先使用 noneedinputlist）
       const options =
         (prop.noneedinputlist && prop.noneedinputlist.length)
           ? prop.noneedinputlist
