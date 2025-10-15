@@ -460,7 +460,7 @@
         <div class="flex justify-start overflow-x-auto whitespace-nowrap gap-10">
           <div v-for="(tab, i) in tabs" :key="tab.key"
             class="inline-block cursor-pointer text-sm sm:text-base transition-colors duration-200 py-3" :class="{
-              'border-b-2 border-arialblack text-arialblack font-semibold': activeSection === tab.key,
+              'border-b-3 border-arialblack text-arialblack font-semibold font-bold': activeSection === tab.key,
               'text-gray-500 hover:text-primary': activeSection !== tab.key
             }" @click="scrollToSection(tab.key)">
             {{ tab.label }}
