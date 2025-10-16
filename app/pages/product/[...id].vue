@@ -80,62 +80,66 @@
           <div class="md:col-span-5">
             <div class="sticky top-[100px] overflow-hidden">
               <ClientOnly>
-                <!-- 主图 Swiper -->
+                <!-- 主图 Swiper（支持视频自动播放） -->
                 <Swiper :modules="[Navigation, Controller]" ref="swiperRefMain" :space-between="10" :slides-per-view="1"
                   class="w-full aspect-square overflow-hidden mb-4 relative rounded shadow-lg"
                   :navigation="{ nextEl: '.main-button-next', prevEl: '.main-button-prev' }" @swiper="onMainSwiper"
                   @slideChange="onMainSlideChange">
                   <SwiperSlide v-for="(item, idx) in productinfo.erpProduct.photoList" :key="item.url || idx"
-                    class="w-full h-full">
-                    <NuxtImg format="webp" :src="item.url" alt="Shade sail"
-                      class="w-full h-full object-cover transition-all duration-300 cursor-pointer"
-                      @load="onMainImageLoaded" />
-                  </SwiperSlide>
-
-                  <!-- 可选：最后一页放视频 -->
-                  <SwiperSlide v-if="productinfo.erpProduct.productVideoUrl">
-                    <video class="w-full h-full object-contain" controls
-                      :src="productinfo.erpProduct.productVideoUrl" />
+                    class="w-full h-full flex items-center justify-center bg-[#F8F8F8]">
+                    <!-- 根据文件类型切换显示 -->
+                    <template v-if="isVideo(item.url)">
+                      <video ref="videoEls" class="w-full h-full object-contain" :src="item.url" controls playsinline
+                        preload="metadata"></video>
+                    </template>
+                    <template v-else>
+                      <NuxtImg format="webp" :src="item.url" alt="Shade sail"
+                        class="w-full h-full object-cover transition-all duration-300 cursor-pointer"
+                        @load="onMainImageLoaded" />
+                    </template>
                   </SwiperSlide>
 
                   <!-- 主图左右按钮 -->
                   <div class="main-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
-                    :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }" @click="prevMainImage">
+                    :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }">
                     <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
                       <BaseIcon name="i-raphael:arrowleft2" class="text-primary w-6 h-6" />
                     </div>
                   </div>
                   <div class="main-button-next absolute right-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
-                    :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }" @click="nextMainImage">
+                    :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }">
                     <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
                       <BaseIcon name="i-raphael:arrowright2" class="text-primary w-6 h-6" />
                     </div>
                   </div>
                 </Swiper>
 
+
                 <!-- 缩略图 Swiper -->
+                <!-- 缩略图 Swiper（视频带播放图标） -->
                 <Swiper :modules="[Navigation, Controller]" ref="swiperRefThumb" :space-between="10" class="w-full"
                   :breakpoints="{ 0: { slidesPerView: 6, slidesPerGroup: 1 } }"
                   :navigation="{ nextEl: '.custom-button-next', prevEl: '.custom-button-prev' }"
                   @swiper="onThumbSwiper">
                   <SwiperSlide v-for="(item, idx) in productinfo.erpProduct.photoList"
                     :key="'thumb-' + (item.url || idx)" @click="swiperMain?.slideTo(idx)">
-                    <NuxtImg width="80" height="80" loading="eager"
-                      :src="item.url + '?x-oss-process=image/auto-orient,1/resize,w_100,limit_0'" alt="thumbnail"
-                      class="w-full object-cover rounded cursor-pointer hover:opacity-80" />
-                  </SwiperSlide>
-
-                  <!-- 视频缩略（可选） -->
-                  <SwiperSlide v-if="productinfo.erpProduct.productVideoUrl"
-                    @click="swiperMain?.slideTo(productinfo.erpProduct.photoList.length)">
-                    <div class="flex items-center justify-center h-full w-full">
-                      <div
-                        class="w-full h-20 rounded overflow-hidden relative cursor-pointer bg-black/5 flex items-center justify-center">
-                        <BaseIcon name="i-mdi:play-circle" class="w-6 h-6 text-primary" />
-                      </div>
+                    <div class="relative w-full h-20 rounded overflow-hidden cursor-pointer hover:opacity-80">
+                      <template v-if="isVideo(item.url)">
+                        <video muted loop playsinline :src="item.url" class="w-full h-full object-cover"></video>
+                        <div
+                          class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 text-white">
+                          <BaseIcon name="i-mdi:play-circle" class="w-6 h-6 text-white" />
+                        </div>
+                      </template>
+                      <template v-else>
+                        <NuxtImg width="80" height="80" loading="eager"
+                          :src="item.url + '?x-oss-process=image/auto-orient,1/resize,w_100,limit_0'" alt="thumbnail"
+                          class="w-full h-full object-cover" />
+                      </template>
                     </div>
                   </SwiperSlide>
 
+                  <!-- 缩略图左右按钮 -->
                   <div class="custom-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
                     :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }">
                     <div class="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow text-primary">
@@ -149,6 +153,7 @@
                     </div>
                   </div>
                 </Swiper>
+
               </ClientOnly>
             </div>
           </div>
@@ -915,7 +920,8 @@ const isBottomBarVisible = ref(false)
 const detailSectionRef = ref(null)
 const bottomBarRef = ref(null)
 const isshow = ref(true)
-
+const isVideo = (url) => /\.(mp4|m4v|mov|webm)$/i.test(url)
+const videoEls = ref([])
 const onMainImageLoaded = () => {
   nextTick(() => {
     swiperRefThumb.value?.swiper?.update()
@@ -1051,7 +1057,18 @@ const scrollToSection = (key) => {
 const changetab = (index) => { tabindex.value = index }
 const increment = () => { quantity.value++ }
 const decrement = () => { if (quantity.value > 1) quantity.value-- }
-
+const handleVideoPlayback = () => {
+  const s = swiperMain.value
+  if (!s) return
+  nextTick(() => {
+    const allVideos = document.querySelectorAll('.swiper video')
+    allVideos.forEach(v => v.pause())
+    const currentSlide = s.slides[s.activeIndex]
+    if (!currentSlide) return
+    const video = currentSlide.querySelector('video')
+    if (video) video.play().catch(() => { })
+  })
+}
 function getCatalogId(arr) {
   if (!Array.isArray(arr) || arr.length === 0) return ''
   if (arr.length >= 2) return arr[1]
@@ -2039,9 +2056,12 @@ watch(() => route.query, () => { handleGetProudct() }, { deep: true })
 watch(mainImageIndex, (newVal) => {
   const list = productinfo.value.erpProduct.photoList
   if (list && list[newVal]) { mainImage.value = list[newVal].url }
+  handleVideoPlayback()
 })
 watch(sortOption, () => { sortReviews() })
-
+watch(swiperMain, (val) => {
+  if (val) handleVideoPlayback()
+})
 onMounted(() => {
   handleGetrelated()
   fetchComments()
