@@ -123,7 +123,8 @@
                   @swiper="onThumbSwiper">
                   <SwiperSlide v-for="(item, idx) in productinfo.erpProduct.photoList"
                     :key="'thumb-' + (item.url || idx)" @click="swiperMain?.slideTo(idx)">
-                    <div class="relative w-full h-20 rounded overflow-hidden cursor-pointer hover:opacity-80">
+                    <div
+                      class="relative w-full aspect-square rounded overflow-hidden cursor-pointer hover:opacity-80 bg-[#F8F8F8]">
                       <template v-if="isVideo(item.url)">
                         <video muted loop playsinline :src="item.url" class="w-full h-full object-cover"></video>
                         <div
@@ -511,7 +512,7 @@
 
                   <template #item="{ item }">
                     <div class="text-[#4B5563] sm:text-base">
-                      <p class="content" v-html="item.content"></p>
+                      <div class="content" v-shadow-html="item.content"></div>
                     </div>
                   </template>
                 </UAccordion>
@@ -519,7 +520,8 @@
 
               <!-- 普通 HTML（Description / Specs / 自定义详情） -->
               <template v-else-if="item.type === 'html'">
-                <div v-shadow-html="item.content" class="prose max-w-none break-words whitespace-normal leading-relaxed"
+                <div v-shadow-html="item.content"
+                  class="prose max-w-none ck-content break-words whitespace-normal leading-relaxed"
                   style="word-break: break-word; overflow-wrap: anywhere;"></div>
 
               </template>
