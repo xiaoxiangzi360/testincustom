@@ -102,20 +102,20 @@
                   <!-- 主图左右按钮 -->
                   <div class="main-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
                     :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }">
-                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
+                    <div
+                      class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
                       <BaseIcon name="i-raphael:arrowleft2" class="text-primary w-6 h-6" />
                     </div>
                   </div>
                   <div class="main-button-next absolute right-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
                     :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }">
-                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-primary">
+                    <div
+                      class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
                       <BaseIcon name="i-raphael:arrowright2" class="text-primary w-6 h-6" />
                     </div>
                   </div>
                 </Swiper>
 
-
-                <!-- 缩略图 Swiper -->
                 <!-- 缩略图 Swiper（视频带播放图标） -->
                 <Swiper :modules="[Navigation, Controller]" ref="swiperRefThumb" :space-between="10" class="w-full"
                   :breakpoints="{ 0: { slidesPerView: 6, slidesPerGroup: 1 } }"
@@ -181,12 +181,13 @@
                       class="mr-3 w-[18px] h-[18px] flex items-center justify-center"
                       :ui="{ color: { black: { solid: 'dark:bg-gray-900 dark:text-white' } } }">{{ index + 1 }}</UBadge>
                     <span class="truncate-1-lines font-medium text-sm md:text-base">{{ property.propertyNameShop
-                      }}</span>
-                    <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" placement="topLeft"
-                      v-if="property.desc" :title="property.desc"
+                    }}</span>
+                    <Tooltip color="#000" :overlayInnerStyle="{ color: '#fff' }" placement="top" v-if="property.desc"
+                      :title="property.desc"
                       :overlayStyle="{ maxWidth: '330px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
-                      <img src="/question.png" class="w-4 h-4 ml-2">
+                      <img src="/question.png" class="w-4 h-4 ml-2" />
                     </Tooltip>
+
                   </h2>
                   <div class="flex items-center">
                     <span class="mr-4 truncate-1-lines text-sm text-gray-500" v-if="property.selectedproperty">
@@ -423,7 +424,7 @@
                       </button>
 
                       <input @input="onQuantityInput" v-model="quantity"
-                        class="focus:outline-none focus:ring-0 focus:border-transparent w-12 h-[26px] text-center outline-none border-0 py-1 bg-[#F8F8F8] mx-1" />
+                        class="focus:outline-none focus:ring-0 focus:border-transparent w-12 h-[26px] text-center outline-none border-0 py-1 bg-[#F8F8F8] mx-0.5" />
                       <button
                         class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center"
                         @click="increment">
@@ -442,18 +443,22 @@
                   </div>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-4 mt-4">
-                  <UButton class="w-full sm:flex-1 flex items-center justify-center rounded-md text-white font-normal"
-                    color="primary" variant="solid" size="xl" :loading="orderloding" @click="createorder">
-                    Order Now
-                  </UButton>
-                  <UButton class="w-full sm:flex-1 flex items-center justify-center 
-         bg-primary-100 text-primary font-normal rounded-md hover:text-white
-         disabled:bg-primary-100 disabled:text-primary" :loading="cartloding" @click="addtocart" color="primary"
-                    variant="solid" size="xl">
+                  <!-- Add to Cart -->
+                  <UButton class="w-full sm:flex-1 flex items-center justify-center rounded-md 
+           border border-[#00B4F0] text-[#00B4F0] bg-white 
+           hover:bg-[#00B4F0] hover:text-white transition-colors disabled:bg-primary-100 disabled:text-primary"
+                    :loading="cartloding" @click="addtocart" color="primary" variant="solid" size="xl">
                     Add to Cart
                   </UButton>
 
+                  <!-- Order Now -->
+                  <UButton class="w-full sm:flex-1 flex items-center justify-center rounded-md 
+           bg-[#00B4F0] text-white hover:bg-[#0099D6] transition-colors" :loading="orderloding" @click="createorder"
+                    color="primary" variant="solid" size="xl">
+                    Order Now
+                  </UButton>
                 </div>
+
               </div>
             </div>
           </div>
@@ -470,9 +475,9 @@
               <div
                 class="cursor-pointer text-sm sm:text-base transition-colors duration-200 py-3 px-4 text-d3black whitespace-nowrap"
                 :class="{
-                  'border-b-[3px] border-arialblack text-arialblack font-semibold font-bold':
+                  'border-b-[3px] border-primary text-primary font-semibold font-bold':
                     activeSection === tab.key,
-                  'text-gray-500': activeSection !== tab.key
+                  'text-gray-500 hover:text-primary hover:font-semibold': activeSection !== tab.key
                 }" @click="scrollToSection(tab.key)">
                 {{ tab.label }}
               </div>
@@ -488,15 +493,16 @@
       <!-- ✅ 实际内容段落（统一排序渲染） -->
       <ClientOnly>
         <div class="bg-[#F8F8F8]" v-if="sections && sections.length">
-          <div class="mx-auto mt-4 bg-white py-6 space-y-10">
+          <div class="mx-auto mt-4 bg-white pt-6">
 
-            <section v-for="item in sections" :key="item.key" :id="'section-' + item.key">
+            <section v-for="item in sections" :key="item.key" :id="'section-' + item.key"
+              class="border-b border-gray-100 mb-4">
               <h2 class="text-lg font-semibold mb-6">{{ item.label }}</h2>
 
               <!-- FAQ -->
               <template v-if="item.type === 'faq'">
                 <UAccordion variant="solid" size="xl" :items="item.content"
-                  :ui="{ container: 'border-b border-[#00000014]' }" class="text-title">
+                  :ui="{ container: 'border-b border-[#00000014]', item: { padding: 'pt-4 pb-4' } }" class="text-title">
                   <template #default="{ item, open }">
                     <UButton color="gray" variant="ghost"
                       class="text-arialblack w-full flex justify-between items-center gap-3 text-base sm:text-lg font-normal hover:bg-transparent dark:hover:bg-transparent dark:text-arialblack hover:text-primary dark:hover:text-primary"
@@ -645,19 +651,19 @@
 
 
       <!-- 推荐产品部分（原样） -->
-      <div class="mt-[30px] md:mt-12 pb-4" v-if="products.length > 0">
-        <h1 class="text-lg font-semibold mb-3 md:mb-8 dark:text-black">Recommended products</h1>
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div class="mt-6 pb-4" v-if="products.length > 0">
+        <h1 class="text-lg font-semibold mb-3 md:mb-4 dark:text-black">Similar item you might like</h1>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
           <NuxtLink :to="`/product/${product.id}/${slugify(product.erpProduct.productEnglishName)}`"
             v-for="(product, index) in products" :key="index"
-            class="product-card rounded-lg transition-transform duration-300 shadow-[0_4px_10px_0_rgba(167,167,167,0.2)] hover:scale-[1.02] md:hover:-translate-y-0.5 cursor-pointer px-[14px]">
+            class="product-card rounded-lg transition-transform duration-300  hover:scale-[1.02] md:hover:-translate-y-0.5 cursor-pointer">
             <div class="relative overflow-hidden">
               <img :src="product.erpProduct.mainPic ?? '/images/empty.jpg'" :alt="product.erpProduct.productEnglishName"
-                class="w-full h-full object-cover object-top">
+                class="w-full h-full object-cover object-top rounded">
             </div>
             <div class="mt-2">
               <h3 class="text-sm font-normal mb-2 line-clamp-2 dark:text-black">{{ product.erpProduct.productEnglishName
-              }}
+                }}
               </h3>
               <p class="text-sm font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}</p>
             </div>
@@ -705,7 +711,7 @@
       <div>
         <h2 class="font-semibold text-base sm:text-lg text-gray-900">{{ productinfo.erpProduct.productEnglishName }}
         </h2>
-        <p class="text-sm text-gray-500">Ordinary type sail / Rectangle</p>
+        <div class="text-sm text-gray-500">Ordinary type sail / Rectangle</div>
       </div>
       <div class="flex flex-wrap items-center gap-3 sm:gap-4">
         <div class="flex items-center rounded">
@@ -715,7 +721,7 @@
           </button>
 
           <input @input="onQuantityInput" v-model="quantity"
-            class="focus:outline-none focus:ring-0 focus:border-transparent w-12 h-[26px] text-center outline-none border-0 py-1 bg-[#F8F8F8] mx-1" />
+            class="focus:outline-none focus:ring-0 focus:border-transparent w-12 h-[26px] text-center outline-none border-0 py-1 bg-[#F8F8F8] mx-0.5" />
           <button @click="increment"
             class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center">
             <BaseIcon name="i-heroicons-plus-20-solid" />

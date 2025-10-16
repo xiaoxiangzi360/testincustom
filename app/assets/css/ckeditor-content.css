@@ -7,3 +7,9 @@
 img {
     max-width: 100%;
 }
+.ck-content .image {
+    margin: 0 auto;
+}
+p {
+  margin: 0;
+}
