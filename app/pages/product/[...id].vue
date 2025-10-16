@@ -181,7 +181,7 @@
                       class="mr-3 w-[18px] h-[18px] flex items-center justify-center"
                       :ui="{ color: { black: { solid: 'dark:bg-gray-900 dark:text-white' } } }">{{ index + 1 }}</UBadge>
                     <span class="truncate-1-lines font-medium text-sm md:text-base">{{ property.propertyNameShop
-                    }}</span>
+                      }}</span>
                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" placement="topLeft"
                       v-if="property.desc" :title="property.desc"
                       :overlayStyle="{ maxWidth: '330px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
@@ -512,7 +512,7 @@
 
                   <template #item="{ item }">
                     <div class="text-[#4B5563] sm:text-base">
-                      <div class="content" v-shadow-html="item.content"></div>
+                      <div class="content" v-oembed-to-iframe v-shadow-html="item.content"></div>
                     </div>
                   </template>
                 </UAccordion>
@@ -520,7 +520,7 @@
 
               <!-- 普通 HTML（Description / Specs / 自定义详情） -->
               <template v-else-if="item.type === 'html'">
-                <div v-shadow-html="item.content"
+                <div v-oembed-to-iframe v-shadow-html="item.content"
                   class="prose max-w-none ck-content break-words whitespace-normal leading-relaxed"
                   style="word-break: break-word; overflow-wrap: anywhere;"></div>
 
@@ -657,7 +657,7 @@
             </div>
             <div class="mt-2">
               <h3 class="text-sm font-normal mb-2 line-clamp-2 dark:text-black">{{ product.erpProduct.productEnglishName
-                }}
+              }}
               </h3>
               <p class="text-sm font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}</p>
             </div>
