@@ -4,9 +4,10 @@
 
 
             <!-- Main Content -->
-            <div class="container mx-auto px-6 mt-6">
+            <div class="container mx-auto px-6">
                 <!-- Filters -->
-                <div class="sticky [top:96px] bg-white z-10 flex justify-between items-center mb-8 py-4">
+                <div class="sticky [top:96px] bg-white z-10 flex justify-between items-center mb-8 py-4"
+                    v-show="products.length != 0">
                     <div class="flex gap-6">
 
                     </div>
@@ -30,13 +31,21 @@
                     </div>
 
                     <!-- Skeleton 卡片 -->
-                    <div v-if="loading" class="grid grid-cols-4 gap-6 mb-12">
-                        <div v-for="n in 4" :key="n" class="bg-white rounded-lg shadow p-4">
-                            <div class="h-48 bg-gray-200 rounded w-full mb-4 animate-pulse"></div>
+                    <div v-if="loading"
+                        class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-12 px-1 sm:px-0">
+                        <div v-for="n in (products.length > 0 ? products.length : 8)" :key="n"
+                            class="bg-white rounded-lg shadow p-3 sm:p-4">
+                            <!-- 图片骨架 -->
+                            <div class="aspect-square bg-gray-200 rounded w-full mb-3 sm:mb-4 animate-pulse"></div>
+
+                            <!-- 标题骨架 -->
                             <div class="h-4 bg-gray-200 rounded w-3/4 mb-2 animate-pulse"></div>
+
+                            <!-- 副标题骨架 -->
                             <div class="h-3 bg-gray-200 rounded w-1/2 animate-pulse"></div>
                         </div>
                     </div>
+
 
                     <!-- Product List -->
                     <div v-show="products.length > 0 && !loading"
@@ -84,40 +93,42 @@
                         </button>
                     </div>
                     <!-- 推荐产品 Skeleton -->
-                    <div class="grid grid-cols-5 gap-4 mb-12 mt-4" v-if="recommendLoading">
-                        <div v-for="n in 5" :key="n" class="bg-white rounded-lg shadow">
-                            <div class="aspect-square bg-gray-200 rounded w-full mb-4 animate-pulse h-44"></div>
-                            <div class="h-8 bg-gray-200 rounded w-full mb-2 animate-pulse"></div>
-                            <div class="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-12 mt-4 px-1 sm:px-0"
+                        v-if="recommendLoading">
+                        <div v-for="n in 5" :key="n" class="bg-white rounded-lg shadow-sm p-2 sm:p-3">
+                            <div class="aspect-square bg-gray-200 rounded w-full mb-3 animate-pulse"></div>
+                            <div class="h-4 bg-gray-200 rounded w-3/4 mb-2 animate-pulse"></div>
+                            <div class="h-3 bg-gray-200 rounded w-1/2 animate-pulse"></div>
                         </div>
                     </div>
 
+
                     <div v-show="recommendproducts.length > 0 && !recommendLoading"
-                        class="grid grid-cols-5 gap-4 mb-12 mt-4">
+                        class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-12 mt-4 px-1 sm:px-0">
                         <div @click="checkdetail(product.id, product.productEnglishName)"
                             v-for="(product, index) in recommendproducts" :key="index"
-                            class="bg-white rounded-lg cursor-pointer group">
+                            class="bg-white rounded-lg cursor-pointer group shadow-sm">
                             <div class="aspect-square overflow-hidden rounded-t-lg">
                                 <img :src="product.productMainPic ?? '/images/empty.jpg'"
                                     :alt="product.productEnglishName"
                                     class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                                     style="aspect-ratio: 1 / 1;" />
                             </div>
-                            <div>
-                                <h3 class="text-sm mb-2 font-normal text-customblack mt-3 line-clamp-2 cursor-default"
+                            <div class="p-2 sm:p-3">
+                                <h3 class="text-xs sm:text-sm mb-1 sm:mb-2 font-normal text-customblack mt-2 sm:mt-3 line-clamp-2 cursor-default"
                                     :title="product.productEnglishName">
                                     {{ product.productEnglishName }}
                                 </h3>
-
-                                <p class="text-[#AEAEAE] mb-2 text-sm">{{ product.size }}</p>
+                                <p class="text-[#AEAEAE] mb-1 sm:mb-2 text-xs sm:text-sm">{{ product.size }}</p>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-base font-semibold text-primary">
+                                    <span class="text-sm sm:text-base font-semibold text-primary">
                                         ${{ product.customPriceStr }}
                                     </span>
                                 </div>
                             </div>
                         </div>
                     </div>
+
 
                 </div>
             </div>
