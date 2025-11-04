@@ -3,7 +3,6 @@
 import { ref, computed } from 'vue'
 import { Splide, SplideSlide } from '@splidejs/vue-splide'
 import '@splidejs/splide/dist/css/splide.min.css'
-// ✅ 已移除：useOptimizedImages
 
 type Product = {
     id: string
@@ -69,16 +68,17 @@ const onTap = (idx: number) => {
     else playAt(idx)
 }
 
-/** 轮播设置（保持不变） */
+/** 轮播设置（禁用自带箭头） */
+const splideRef = ref()
 const options = {
     type: 'slide',
     perPage: 4,
     gap: '16px',
     pagination: false,
-    arrows: true,
+    arrows: false, // 禁用自带箭头
     trimSpace: false,
     breakpoints: {
-        1024: { perPage: 3, pagination: true },
+        1024: { perPage: 3, pagination: true, arrows: false },
         768: {
             perPage: 1,
             type: 'loop',
@@ -98,6 +98,15 @@ const options = {
             pagination: false,
         },
     },
+}
+
+// 轮播控制方法
+const goPrev = () => {
+    (splideRef.value as any)?.splide?.go('<')
+}
+
+const goNext = () => {
+    (splideRef.value as any)?.splide?.go('>')
 }
 
 const slugify = (str: string) => {
@@ -125,8 +134,8 @@ const subtitle = computed(() => props.item?.desc?.trim() || '')
             <div class="text-[#5A5B5B] text-base text-center">
                 {{ subtitle }}
             </div>
-            <div class="max-row mx-auto mt-10">
-                <Splide :options="options" class="select-none video-splide bg-white pb-1" style="--vg-arrow-size: 44px">
+            <div class="max-row mx-auto mt-10 relative">
+                <Splide ref="splideRef" :options="options" class="select-none video-splide bg-white pb-1">
                     <SplideSlide v-for="(p, idx) in items" :key="p.id">
                         <div class="overflow-hidden">
                             <!-- 视频封面（直接使用 p.img，带兜底） -->
@@ -178,6 +187,22 @@ const subtitle = computed(() => props.item?.desc?.trim() || '')
                         </div>
                     </SplideSlide>
                 </Splide>
+
+                <!-- 自定义左右箭头按钮 -->
+                <div v-if="items.length > 4" class="video-button-prev absolute left-3 top-1/2 -translate-y-1/2 z-30 cursor-pointer
+                  sm:left-[calc(1rem+12px)] lg:left-[calc(1.5rem+12px)] xl:left-[calc(4rem+12px)]" @click="goPrev">
+                    <div
+                        class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
+                        <span class="text-primary text-lg font-bold select-none">‹</span>
+                    </div>
+                </div>
+                <div v-if="items.length > 4" class="video-button-next absolute right-3 top-1/2 -translate-y-1/2 z-30 cursor-pointer
+                  sm:right-[calc(1rem+12px)] lg:right-[calc(1.5rem+12px)] xl:right-[calc(4rem+12px)]" @click="goNext">
+                    <div
+                        class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
+                        <span class="text-primary text-lg font-bold select-none">›</span>
+                    </div>
+                </div>
             </div>
         </section>
     </ClientOnly>

@@ -18,7 +18,7 @@
     </div>
 
     <!-- ✅ 轮播（可见时再挂载） -->
-    <Splide v-if="isReady" ref="carouselRef" :options="computedSplideOptions" class="overflow-hidden"
+    <Splide v-if="isReady" ref="carouselRef" :options="computedSplideOptions" class="overflow-hidden relative"
       @splide:mounted="onMountedSplide" @splide:move="onMove">
       <SplideSlide v-for="(s, i) in slides" :key="i">
         <!-- 固定纵横比，避免 CLS -->
@@ -101,6 +101,22 @@
       </SplideSlide>
     </Splide>
 
+    <!-- 左右箭头按钮 - 使用文字箭头 -->
+    <div v-if="isReady" class="home-button-prev absolute top-1/2 -translate-y-1/2 z-30 cursor-pointer
+      left-[calc(0.75rem+12px)] sm:left-[calc(1rem+12px)] lg:left-[calc(1.5rem+12px)] xl:left-[calc(4rem+12px)]"
+      @click="goPrev">
+      <div class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
+        <span class="text-primary text-xl font-bold select-none">‹</span>
+      </div>
+    </div>
+    <div v-if="isReady" class="home-button-next absolute top-1/2 -translate-y-1/2 z-30 cursor-pointer
+      right-[calc(0.75rem+12px)] sm:right-[calc(1rem+12px)] lg:right-[calc(1.5rem+12px)] xl:right-[calc(4rem+12px)]"
+      @click="goNext">
+      <div class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
+        <span class="text-primary text-xl font-bold select-none">›</span>
+      </div>
+    </div>
+
     <!-- 自定义分页指示器 -->
     <div v-if="isReady"
       class="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-4 z-30 flex items-center gap-2">
@@ -142,11 +158,12 @@ type Slide = VariantA | VariantB
 
 /** 原始图片（保持干净，无查询参数） */
 const baseImages = [
-  'https://cdn.incustom.com/upload/web/homebanner1-1.webp',
-  'https://cdn.incustom.com/upload/web/homebanner2.webp',
-  'https://cdn.incustom.com/upload/web/homebanner3.webp',
-  'https://cdn.incustom.com/upload/web/homebanner4.webp',
-  'https://cdn.incustom.com/upload/web/homebanner5.webp',
+  'https://cdn.incustom.com/upload/web/banner1031-1.webp',
+  'https://cdn.incustom.com/upload/web/banner1031-2.webp',
+  'https://cdn.incustom.com/upload/web/banner1031-3.webp',
+  'https://cdn.incustom.com/upload/web/homebanner2-1.webp',
+  'https://cdn.incustom.com/upload/web/banner1031-5.webp',
+  'https://cdn.incustom.com/upload/web/banner1031-6.webp',
 ]
 
 /** slides 配置 */
@@ -154,9 +171,24 @@ const slides = ref<Slide[]>([
   {
     variant: 'A',
     align: 'left',
+    title: 'Indoor Roller Shade',
+    subtitle: 'From harsh sun to nosy neighbors—your all-in-one window solution.',
+    onClick: () => { router.push('/Indoor-Shades-864') },
+  },
+  {
+    variant: 'A',
+    align: 'left',
+    title: 'Adjustable Zebra Shades',
+    subtitle:
+      'Effortlessly transition between light filtering \nand privacy with our modern,  streamlined, \nand custom-fit shades.',
+    onClick: () => { router.push('/Zebra-868') },
+  },
+  {
+    variant: 'A',
+    align: 'left',
     title: 'Pergola Shade Cloth',
     subtitle: 'All-day UV protection with cool, breathable, and durable shade.',
-    onClick: () => { router.push('/Sun%20Shade%20Cloth-883') },
+    onClick: () => { router.push('/Sun-Shade-Cloth-883') },
   },
   {
     variant: 'B',
@@ -171,7 +203,7 @@ const slides = ref<Slide[]>([
     align: 'center',
     title: 'Outdoor Roller Shade',
     subtitle: 'Protect your outdoors from harsh sun Enjoy breezy comfort',
-    onClick: () => { router.push('/Outdoor%20Roller%20Shade-886') },
+    onClick: () => { router.push('/Outdoor-Roller-Shade-886') },
   },
   {
     variant: 'A',
@@ -179,15 +211,10 @@ const slides = ref<Slide[]>([
     title: 'Shade Sail',
     subtitle:
       'Block harsh sun, enjoy cool comfort, \n and upgrade your outdoor space with a \ndurable shade sail.',
-    onClick: () => { router.push('/Sun%20Shade%20Sail-879') },
+    onClick: () => { router.push('/Sun-Shade-Sail-879') },
   },
-  {
-    variant: 'A',
-    align: 'left',
-    title: 'Indoor Roller Shade',
-    subtitle: 'From harsh sun to nosy neighbors—your all-in-one window solution.',
-    onClick: () => { router.push('/Indoor%20Shades-864') },
-  },
+
+
 ])
 
 /** ✅ 图片 URL 生成器：统一加 webp + q_82 + 需要的尺寸 */
@@ -308,6 +335,14 @@ const onMove = (_splide: any, newIndex: number) => {
 
 const goTo = (i: number) => {
   (carouselRef.value as any)?.splide?.go(i)
+}
+
+const goPrev = () => {
+  (carouselRef.value as any)?.splide?.go('<')
+}
+
+const goNext = () => {
+  (carouselRef.value as any)?.splide?.go('>')
 }
 </script>
 

@@ -27,7 +27,8 @@
                 </div>
 
                 <!-- Splide 轮播（不足一屏时不会重复/克隆） -->
-                <Splide v-else class="product-splide" :options="computedSplideOptions" aria-label="Popular Products">
+                <Splide v-else ref="splideRef" class="product-splide" :options="computedSplideOptions"
+                    aria-label="Popular Products">
                     <SplideSlide v-for="product in products" :key="product.id || product.erpProduct?.productEnglishName"
                         class="px-[14px] pt-3 rounded-[8px] bg-white transition-transform transition-shadow duration-300 shadow-[0_4px_10px_0_rgba(167,167,167,0.2)] hover:scale-[1.02] md:hover:-translate-y-0.5">
                         <ULink :to="`/product/${product.id}/${slugify(product.erpProduct.productEnglishName)}`"
@@ -57,6 +58,24 @@
                         </ULink>
                     </SplideSlide>
                 </Splide>
+
+                <!-- 左右箭头按钮 - 只在有足够产品时显示 -->
+                <div v-if="!isLoading && !notFull"
+                    class="product-button-prev absolute left-3 top-1/2 -translate-y-1/2 z-30 cursor-pointer"
+                    @click="goPrev">
+                    <div
+                        class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
+                        <span class="text-primary text-lg font-bold select-none">‹</span>
+                    </div>
+                </div>
+                <div v-if="!isLoading && !notFull"
+                    class="product-button-next absolute right-3 top-1/2 -translate-y-1/2 z-30 cursor-pointer"
+                    @click="goNext">
+                    <div
+                        class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
+                        <span class="text-primary text-lg font-bold select-none">›</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -79,6 +98,7 @@ const props = defineProps<{
 
 const products = ref<any[]>([]);
 const isLoading = ref(true);
+const splideRef = ref();
 
 /** ------- 保持与你原来一致的基础配置（只用于计算，不直接传给 Splide） ------- */
 const baseOptions = {
@@ -205,6 +225,15 @@ const slugify = (str: string) => {
             .replace(/-+/g, "-")
             .toLowerCase()
     );
+};
+
+// 轮播控制方法
+const goPrev = () => {
+    (splideRef.value as any)?.splide?.go('<');
+};
+
+const goNext = () => {
+    (splideRef.value as any)?.splide?.go('>');
 };
 
 getpopularlist();

@@ -89,7 +89,7 @@
 
       <!-- 底部信息栏 -->
       <div
-        class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6 py-4 md:py-6 text-sm text-white/70">
+        class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-2 py-4 md:py-6 text-sm text-white/70">
         <!-- 左侧：隐私条款 -->
         <div class="flex flex-wrap items-center gap-2">
           <NuxtLink to="/article/privacy-policy" class="hover:text-primary">Privacy</NuxtLink><span>|</span>
@@ -100,11 +100,7 @@
 
         <!-- 中间：语言 & 支付 -->
         <div class="flex flex-wrap items-center gap-2">
-          <span>EN / USD</span><span>|</span>
-          <span>Visa</span><span>|</span>
-          <span>PayPal</span><span>|</span>
-          <span>ApplePay</span><span>|</span>
-          <span>Klarna</span>
+          <NuxtImg format="webp" v-for="(item, idx) in payicons" :key="'pay-' + idx" :src="item" class="h-[30px]" />
         </div>
 
         <!-- 右侧：保障 + 社媒 -->
@@ -144,6 +140,15 @@ const medialist = [
   { id: 5, img: '/images/media5', url: 'https://www.tiktok.com/@incustom8' },
   { id: 6, img: '/images/media6', url: 'https://www.pinterest.com/incustomstore/' },
   { id: 7, img: '/images/media7', url: 'https://www.youtube.com/channel/UCxL5KwbHQFg86qC_XwbNRtg' },
+]
+const payicons = [
+  '/images/payicon1.png',
+  '/images/payicon2.png',
+  '/images/payicon3.png',
+  '/images/payicon4.png',
+  '/images/payicon5.png',
+  '/images/payicon6.png',
+  '/images/payicon7.png',
 ]
 const hovered = ref(null)
 
