@@ -106,14 +106,16 @@
       left-[calc(0.75rem+12px)] sm:left-[calc(1rem+12px)] lg:left-[calc(1.5rem+12px)] xl:left-[calc(4rem+12px)]"
       @click="goPrev">
       <div class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
-        <span class="text-primary text-xl font-bold select-none">‹</span>
+        <span
+          class="text-primary text-lg font-bold select-none leading-none flex items-center justify-center h-full">‹</span>
       </div>
     </div>
     <div v-if="isReady" class="home-button-next absolute top-1/2 -translate-y-1/2 z-30 cursor-pointer
       right-[calc(0.75rem+12px)] sm:right-[calc(1rem+12px)] lg:right-[calc(1.5rem+12px)] xl:right-[calc(4rem+12px)]"
       @click="goNext">
       <div class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
-        <span class="text-primary text-xl font-bold select-none">›</span>
+        <span
+          class="text-primary text-lg font-bold select-none leading-none flex items-center justify-center h-full">›</span>
       </div>
     </div>
 
