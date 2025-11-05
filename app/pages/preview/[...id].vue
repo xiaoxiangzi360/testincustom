@@ -774,7 +774,7 @@ import { Splide, SplideSlide } from '@splidejs/vue-splide'
 import '@splidejs/vue-splide/css'
 const { addToCartEvent, initiateCheckout } = useFbq({ currency: 'USD' })
 const { viewItem, addToCart: trackAddToCart, beginCheckout } = useTrack()
-const { getProductById, getProductDetailsById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV4, erpTryToCreateSkuV2, getmapProductByProductSkuList } = ProductAuth()
+const { getProductById, getProductDetailsById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV4, erpTryToCreateSkuV2, getmapProductSpuV2ByProductSkuV2IdList } = ProductAuth()
 const { createCart } = cartAuth()
 const { getspuCommentProductRollPage, getgroupComment } = CommentAuth()
 const { getUserInfo } = useAuth()
@@ -1305,7 +1305,7 @@ const selectproperty = (index, type) => {
 const getskuprice = async (sku) => {
   try {
     let params = { skuList: [sku] }
-    let res = await getmapProductByProductSkuList(params)
+    let res = await getmapProductSpuV2ByProductSkuV2IdList(params)
     let lists = res.result
     let skuinfo = lists[sku]
     skuprice.value = skuinfo.skuSpec.customPrice

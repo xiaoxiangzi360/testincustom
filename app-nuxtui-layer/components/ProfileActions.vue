@@ -182,10 +182,10 @@ const synclocation = async (locationdata: LocationInfo) => {
 const cart = useCartStore()
 const handleGetCart = async () => {
   try {
-    let res = await getCart();
-    let result = res.result
-    cart.updateCart(result)
-  } catch (error) { }
+    await cart.refreshCart()
+  } catch (error) {
+    console.error('Failed to refresh cart:', error)
+  }
 };
 if (isTokenValid.value) { handleGetCart() }
 const shipping = ref(0);
@@ -204,7 +204,7 @@ const removeItem = async (index: number) => {
 
 }
 
-const subtotal = computed(() => cart.itemList.reduce((sum, item) => sum + item.product.skuSpec.customPrice * item.productQuantity, 0));
+const subtotal = computed(() => cart.itemList.reduce((sum, item) => sum + item.productPrice * item.productQuantity, 0));
 const total = computed(() => subtotal.value + shipping.value);
 const showDetails = ref(false);
 const min = 1
@@ -222,6 +222,24 @@ const sanitizeInput = (index: number) => {
 function goToCart() { router.push('/cart'); menuOpen.value = false }
 function goShopping() { router.push('/'); menuOpen.value = false }
 const checkdetai = (id: any, sku: any, name: string) => { router.push('/product/' + id + '/' + slugify(name) + '?sku=' + sku) }
+
+// 从 propList 构建规格属性字符串
+const getSpecAttrFromPropList = (propList: any[]) => {
+  if (!propList || !Array.isArray(propList)) return ''
+
+  const specParts = propList.map(prop => {
+    if (prop.inputList && prop.inputList.length > 0) {
+      // 自定义输入属性
+      const inputValues = prop.inputList.map((input: any) => `${input.inputName}: ${input.inputValue}`).join(', ')
+      return `${prop.propEnName}: ${inputValues}`
+    } else {
+      // 标准属性
+      return `${prop.propEnName}: ${prop.propValueEnName}`
+    }
+  })
+
+  return specParts.join(' | ')
+}
 
 // ========= 位置：请求函数 =========
 const getCountrylist = async () => {
@@ -438,24 +456,24 @@ if (process.client) {
                   index !== cart.itemList.length - 1 ? 'border-b' : ''
                 ]">
                   <div class="w-20 rounded-lg overflow-hidden">
-                    <img :src="item.product.erpProduct.mainPic" :alt="item.product.erpProduct.productEnglishName"
+                    <img :src="item.productImage || item.product?.mainPic" :alt="item.productName"
                       class="w-full h-full object-cover object-top cursor-pointer"
-                      @click="checkdetai(item.product.id, item.productSku, item.product.erpProduct.productEnglishName)" />
+                      @click="checkdetai(item.product?.id, item.productSku, item.productName)" />
                   </div>
 
                   <div class="ml-6 ">
-                    <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
-                      :title="item.product.erpProduct.productEnglishName"
+                    <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" :title="item.productName"
                       :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
                       <div class="text-sm text-blackcolor truncate-1-lines w-52">
-                        {{ item.product.erpProduct.productEnglishName }}
+                        {{ item.productName }}
                       </div>
                     </Tooltip>
 
-                    <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" :title="item.product.skuSpec.specAttr"
+                    <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
+                      :title="getSpecAttrFromPropList(item.skuData?.propList)"
                       :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'word-break' }">
                       <div class="text-sm text-[#8E8E8E]  truncate-1-lines w-52 mt-1">
-                        {{ item.product.skuSpec.specAttr }}
+                        {{ getSpecAttrFromPropList(item.skuData?.propList) }}
                       </div>
                     </Tooltip>
 
@@ -476,7 +494,7 @@ if (process.client) {
                         </div>
                       </div>
                       <div class="flex items-center text-black">
-                        {{ item.product.skuSpec.customPrice.toFixed(2) }}
+                        {{ item.productPrice.toFixed(2) }}
                       </div>
                     </div>
                   </div>

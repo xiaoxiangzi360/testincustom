@@ -193,14 +193,15 @@ const subtitle = computed(() => props.item?.desc?.trim() || '')
                   sm:left-[calc(1rem+12px)] lg:left-[calc(1.5rem+12px)] xl:left-[calc(4rem+12px)]" @click="goPrev">
                     <div
                         class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
-                        <span class="text-primary text-lg font-bold select-none">‹</span>
+                        <BaseIcon name="i-raphael:arrowleft2" class="text-primary w-4 h-4" />
+
                     </div>
                 </div>
                 <div v-if="items.length > 4" class="video-button-next absolute right-3 top-1/2 -translate-y-1/2 z-30 cursor-pointer
                   sm:right-[calc(1rem+12px)] lg:right-[calc(1.5rem+12px)] xl:right-[calc(4rem+12px)]" @click="goNext">
                     <div
                         class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
-                        <span class="text-primary text-lg font-bold select-none">›</span>
+                        <BaseIcon name="i-raphael:arrowright2" class="text-primary w-4 h-4" />
                     </div>
                 </div>
             </div>

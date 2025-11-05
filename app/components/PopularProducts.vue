@@ -29,15 +29,16 @@
                 <!-- Splide 轮播（不足一屏时不会重复/克隆） -->
                 <Splide v-else ref="splideRef" class="product-splide" :options="computedSplideOptions"
                     aria-label="Popular Products">
-                    <SplideSlide v-for="product in products" :key="product.id || product.erpProduct?.productEnglishName"
+                    <SplideSlide v-for="product in products"
+                        :key="product.id || product.productEnglishName || Math.random()"
                         class="px-[14px] pt-3 rounded-[8px] bg-white transition-transform transition-shadow duration-300 shadow-[0_4px_10px_0_rgba(167,167,167,0.2)] hover:scale-[1.02] md:hover:-translate-y-0.5">
-                        <ULink :to="`/product/${product.id}/${slugify(product.erpProduct.productEnglishName)}`"
+                        <ULink :to="`/product/${product.id}/${slugify(product.productEnglishName)}`"
                             class="block rounded-[8px] cursor-pointer focus:outline-none">
                             <!-- 产品图片 -->
                             <div class="relative w-full aspect-square overflow-hidden rounded-[8px]">
                                 <NuxtImg format="webp"
-                                    :src="`${product.erpProduct.mainPic || '/images/empty.jpg'}?x-oss-process=image/auto-orient,1/resize,w_360,limit_0`"
-                                    :alt="product.erpProduct.productEnglishName" loading="lazy" :width="360"
+                                    :src="`${product.mainPic || '/images/empty.jpg'}?x-oss-process=image/auto-orient,1/resize,w_360,limit_0`"
+                                    :alt="product.productEnglishName || 'Product'" loading="lazy" :width="360"
                                     :height="360" quality="70"
                                     class="w-full h-full object-cover object-top transition-all duration-300" />
 
@@ -46,12 +47,12 @@
                             <!-- 产品详情 -->
                             <div class="pt-[14px] pb-[10px]">
                                 <h3 class="text-sm font-normal mb-2 truncate dark:text-neutral-900">
-                                    {{ product.erpProduct.productEnglishName }}
+                                    {{ product.productEnglishName || 'Product Name' }}
                                 </h3>
 
                                 <div class="flex items-center justify-between">
                                     <span class="text-primary font-medium text-sm sm:text-lg dark:text-primary">
-                                        $ {{ product.erpProduct.customPrice }}
+                                        $ {{ product.basePrice || product.originPrice || '0.00' }}
                                     </span>
                                 </div>
                             </div>
@@ -65,7 +66,7 @@
                     @click="goPrev">
                     <div
                         class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
-                        <span class="text-primary text-lg font-bold select-none">‹</span>
+                        <BaseIcon name="i-raphael:arrowleft2" class="text-primary w-4 h-4" />
                     </div>
                 </div>
                 <div v-if="!isLoading && !notFull"
@@ -73,7 +74,7 @@
                     @click="goNext">
                     <div
                         class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
-                        <span class="text-primary text-lg font-bold select-none">›</span>
+                        <BaseIcon name="i-raphael:arrowright2" class="text-primary w-4 h-4" />
                     </div>
                 </div>
             </div>
@@ -203,8 +204,7 @@ const getpopularlist = async () => {
         const params = {
             sortOrder: "desc",
             tag: props.tag,
-            fields:
-                "id,productState,erpProduct.productEnglishName,erpProduct.customPrice,erpProduct.mainPic,thirtyDaysSales",
+            fields: "id,productState,productEnglishName,basePrice,originPrice,mainPic,thirtyDaysSales",
         };
         const res = await getUserProductRollPage(params);
         products.value = res.result.list || [];
@@ -216,8 +216,11 @@ const getpopularlist = async () => {
 };
 
 const slugify = (str: string) => {
+    if (!str || str === null || str === undefined) {
+        return 'product'; // 提供一个默认值
+    }
     return encodeURIComponent(
-        str
+        String(str)
             .normalize("NFKD")
             .replace(/[^\w\s-]/g, "")
             .trim()

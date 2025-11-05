@@ -127,8 +127,7 @@
                                             <div>
                                                 <h3 class="font-medium text-sm">{{ product.productName }}</h3>
                                                 <p class="text-sm text-gray-200">
-                                                    <span v-for="spec in product.skuPropList" :key="spec.value"
-                                                        class="mr-2">{{ spec.value }}</span>
+                                                    {{ getSpecAttrFromPropList(product.skuPropList) }}
                                                 </p>
                                                 <button class="text-primary-500 text-sm mt-1">View details</button>
                                             </div>
@@ -426,6 +425,26 @@ const copyToClipboard = async (text) => {
 
 const gotopay = (orderNo) => {
     router.push('/checkout?from=order&orderNo=' + orderNo)
+}
+
+// 处理规格属性显示，包含 inputList
+const getSpecAttrFromPropList = (skuPropList) => {
+    if (!Array.isArray(skuPropList) || skuPropList.length === 0) {
+        return ''
+    }
+
+    const specParts = skuPropList.map(prop => {
+        if (prop.inputList && Array.isArray(prop.inputList) && prop.inputList.length > 0) {
+            // 处理自定义输入属性
+            const inputValues = prop.inputList.map(input => `${input.inputName}: ${input.inputValue}`).join(', ')
+            return `${prop.key}: ${inputValues}`
+        } else {
+            // 处理标准属性
+            return `${prop.key}: ${prop.value}`
+        }
+    })
+
+    return specParts.join(' | ')
 }
 
 const setCancleOrder = async (id) => {

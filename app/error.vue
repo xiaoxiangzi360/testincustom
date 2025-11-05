@@ -28,42 +28,20 @@ function handleError() {
 <template>
   <NuxtLoadingIndicator />
   <NuxtLayout>
-    <div style="
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        align-items: center;
-        justify-content: center;
-        margin-top: 3rem;
-        margin-bottom: 3rem;
-        text-align: center;
-      ">
-      <div style="font-size: 1.875rem; line-height: 2.25rem">
-        {{ is404 ? 'This page could not be found' : 'An error occurred' }}
-      </div>
-      <div style="font-size: 1.25rem; line-height: 1.75rem ;opacity: 0.5;">
-        Looks like you've followed a broken link or entered a URL that doesn't
-        exist on this site.
-      </div>
-      <pre v-if="isDev" style="width: 100%; white-space: normal">{{
-        error
-      }}</pre>
-      <button style="
-          background-color: gray;
-          padding-left: 12px;
-          padding-right: 12px;
-          padding-top: 6px;
-          padding-bottom: 6px;
-          font-size: 0.875rem !important;
-          line-height: 1.25rem !important;
-          font-weight: 500 !important;
-          line-height: 1.25rem;
-          letter-spacing: 0.0178571429em !important;
-          text-transform: none !important;
-          border-radius: 0.5rem !important;
-        " @click="handleError">
-        &lt; Go Back
-      </button>
+    <div class="lg:min-h-[500px] flex flex-col bg-white">
+      <!-- 主体 -->
+      <main class="flex flex-col flex-1 items-center justify-center text-center p-6">
+        <!-- <h1 class="text-[60px] font-extrabold text-primary mb-2">404</h1>
+        <p class="text-xl font-medium text-gray-800 mb-3">Page Not Found</p> -->
+        <p class="text-gray-500 mb-8 max-w-md">
+          The product you want to access has been removed from the shelves. We recommend you to view similar products.
+        </p>
+
+        <UButton color="primary" size="lg" class="px-8 py-3 rounded-md" @click="handleError">
+          Back to Home
+        </UButton>
+      </main>
+
     </div>
   </NuxtLayout>
 </template>
