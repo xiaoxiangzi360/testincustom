@@ -6,10 +6,10 @@ export default {
   title: 'Unique but Affordable Custom Products | Design Your Own Online | inCustom',
   description:
     'inCustom proves that personalization doesn\'t have to be expensive. Create Unique but Affordable custom products and personalized gifts with our easy online tool. Design yours today!',
-  logo: '/incustomlogo.png',
+  logo: 'incustomlogo.png',
   author: 'Pinegrow',
   url: 'https://www.incustom.com',
-  ogImageUrl: '/og-image.png', // absolute url (or) from public folder
+  ogImageUrl: 'og-image.png', // absolute url (or) from public folder
   generator: 'https://www.incustom.com',
   defaultLocale: 'en', // default
   identity: {
