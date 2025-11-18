@@ -194,7 +194,6 @@ const subtitle = computed(() => props.item?.desc?.trim() || '')
                     <div
                         class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
                         <BaseIcon name="i-raphael:arrowleft2" class="text-primary w-4 h-4" />
-
                     </div>
                 </div>
                 <div v-if="items.length > 4" class="video-button-next absolute right-3 top-1/2 -translate-y-1/2 z-30 cursor-pointer

@@ -834,7 +834,7 @@ let awxCvcEl: any = null;
 async function initAirwallex(): Promise<void> {
     if (awxInited.value) return;
     const AWX = await getAWX();
-    const env = (useRuntimeConfig().public as any)?.airwallexEnv || 'demo'; // 'demo' or 'prod'
+    const env = 'demo'; // 'demo' or 'prod'
     await AWX.init({
         env,
         langKey: 'en',
@@ -974,17 +974,13 @@ async function onApplePayRealClick() {
         awxAppleEl.update?.({
             intent_id: awxIntentId.value,
             client_secret: clientSecret,
-            amount: { value: valueStr, currency: 'USD' }, // ✅ 用 amount.currency，别传 currencyCode
+            amount: { value: valueStr, currency: 'USD' },
             countryCode: 'US',
             totalPriceLabel: 'INCUSTOM',
-            // 可选：显式声明能力
-            merchantCapabilities: ['supports3DS']         // 文档要求至少有 supports3DS
+            merchantCapabilities: ['supports3DS']
         });
-
         // ✅ 这里用 confirmIntent（不是 confirm）
         const result = await awxAppleEl.confirmIntent({ client_secret: clientSecret });
-
-
         if (result?.status === 'SUCCEEDED') {
             // 埋点
             try {

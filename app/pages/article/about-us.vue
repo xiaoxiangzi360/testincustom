@@ -67,9 +67,10 @@
 </template>
 
 <script setup>
-// No script logic needed for this static About Us page
+useHead({
+    title: 'We Are inCustom: The Architects of Your Uniqueness.',
+    meta: [
+        { name: 'description', content: 'We Are inCustom: The Architects of Your Uniqueness.' }
+    ]
+})
 </script>
-
-<style scoped>
-/* Optional custom styling can go here */
-</style>

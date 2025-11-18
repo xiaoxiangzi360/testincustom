@@ -15,6 +15,12 @@
 </template>
 
 <script setup lang="ts">
+useHead({
+    title: 'FAQs & Help Center - Your Questions Answered',
+    meta: [
+        { name: 'description', content: 'Find quick answers to common questions about designing, ordering, and shipping your custom products. Our comprehensive FAQ is here to help.' }
+    ]
+})
 const faqSections = [
     {
         title: '1. Orders & Logistics',

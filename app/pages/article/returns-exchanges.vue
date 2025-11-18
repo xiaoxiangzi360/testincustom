@@ -27,7 +27,12 @@
 </template>
 
 <script setup lang="ts">
-// No dynamic script needed for static Returns & Exchanges content
+useHead({
+    title: 'Return & Exchange Policy',
+    meta: [
+        { name: 'description', content: 'Learn about inCustom\'s return and exchange policy for custom-made products. Understand the conditions for returns and how to initiate a request.' }
+    ]
+})
 </script>
 
 <style scoped>

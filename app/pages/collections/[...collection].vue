@@ -69,32 +69,28 @@
                     </div>
 
                     <!-- Product List -->
-                    <div v-show="products.length > 0 && !loading"
-                        class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
-                        <NuxtLink :to="`/product/${product.id}/${slugify(product.productEnglishName)}`"
+                    <div v-show="products.length > 0"
+                        class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
+                        <NuxtLink :to="`/product/${product.id}/${slugify(product.erpProduct.productEnglishName)}`"
                             v-for="(product, index) in products" :key="index"
                             class="bg-white rounded-lg cursor-pointer group">
                             <div class="aspect-square overflow-hidden rounded-t-lg">
-                                <NuxtImg :src="product.mainPic
-                                    ? `${product.mainPic}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`
-                                    : '/images/empty.jpg'" :alt="product.productEnglishName"
+                                <img :src="product.erpProduct.mainPic ?? '/images/empty.jpg'"
+                                    :alt="product.erpProduct.productEnglishName"
                                     class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
-                                    style="aspect-ratio: 1 / 1;" loading="lazy" />
+                                    style="aspect-ratio: 1 / 1;" />
                             </div>
-                            <div>
-                                <h3 class="text-sm sm:text-sm text-customblack my-2 lg:my-4 cursor-default font-normal mb-4 title"
-                                    :title="product.productEnglishName">
-                                    {{ product.productEnglishName }}
+                            <div class="py-2">
+                                <h3 class="text-sm sm:text-sm mb-1 sm:mb-2 text-customblack mt-2 sm:mt-3 line-clamp-2 cursor-default font-normal"
+                                    :title="product.erpProduct.productEnglishName">
+                                    {{ product.erpProduct.productEnglishName }}
                                 </h3>
-                                <div class="flex items-center">
-
-                                    <!-- Regular price -->
+                                <p class="text-sm sm:text-sm text-[#AEAEAE] mb-1 sm:mb-2">
+                                    {{ product.size }}
+                                </p>
+                                <div class="flex justify-between items-center">
                                     <span class="text-sm sm:text-base font-medium text-primary">
-                                        ${{ product.basePrice }}
-                                    </span>
-                                    <!-- Crossed-out price -->
-                                    <span v-if="product.originPrice" class="text-sm text-gray-400 line-through ml-3">
-                                        ${{ product.originPrice }}
+                                        ${{ product.erpProduct.customPrice }}
                                     </span>
                                 </div>
                             </div>
@@ -130,10 +126,10 @@ const sortarray = [
 ]
 
 const sortarraymapping = {
-    'Name Alphabetic, a-z': { value: 'ProductEnglishName', sort: 'asc' },
-    'Name Alphabetic, z-a': { value: 'ProductEnglishName', sort: 'desc' },
-    'Price Low to High': { value: 'basePrice', sort: 'asc' },
-    'Price High to Low': { value: 'basePrice', sort: 'desc' },
+    'Name Alphabetic, a-z': { value: 'erpProduct.ProductEnglishName', sort: 'asc' },
+    'Name Alphabetic, z-a': { value: 'erpProduct.ProductEnglishName', sort: 'desc' },
+    'Price Low to High': { value: 'erpProduct.customPrice', sort: 'asc' },
+    'Price High to Low': { value: 'erpProduct.customPrice', sort: 'desc' },
     'Date, Old to New': { value: 'createDate', sort: 'asc' },
     'Date, New to Old': { value: 'createDate', sort: 'desc' },
 }
@@ -180,7 +176,7 @@ const getlistlist = async (isReset = false) => {
             pageNum: pageNum.value,
             pageSize,
             needCount: true,
-            // fields: 'id,productEnglishName,basePrice,mainPic',
+            fields: 'id,erpProduct.productEnglishName,erpProduct.customPrice,erpProduct.mainPic',
         }
         if (selectedsort.value) {
             parmes.sortKey = sortarraymapping[selectedsort.value].value
@@ -245,17 +241,5 @@ const slugify = (str: string) =>
 <style scoped>
 .container {
     max-width: 1440px;
-}
-
-.title {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    /* Ensure two lines max */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    height: 2.4rem;
-    /* Adjust this value to fit two lines */
-    line-height: 1.2rem;
-    /* This should match the height of one line */
 }
 </style>

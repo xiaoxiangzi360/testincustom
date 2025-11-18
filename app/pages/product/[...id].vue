@@ -78,86 +78,51 @@
 
           <!-- Left section with image thumbnails (已改：主图手势滑动 + 缩略图联动) -->
           <div class="md:col-span-5">
-            <div class="sticky top-[100px] z-[49]">
+            <div class="sticky top-[100px] overflow-hidden">
               <ClientOnly>
                 <!-- 主图 Swiper（支持视频自动播放） -->
-                <div class="relative">
-                  <Swiper :modules="[Navigation, Controller]" ref="swiperRefMain" :space-between="10"
-                    :slides-per-view="1" class="w-full aspect-square overflow-hidden mb-4 relative rounded shadow-lg"
-                    :navigation="{ nextEl: '.main-button-next', prevEl: '.main-button-prev' }" @swiper="onMainSwiper"
-                    @slideChange="onMainSlideChange">
+                <Swiper :modules="[Navigation, Controller]" ref="swiperRefMain" :space-between="10" :slides-per-view="1"
+                  class="w-full aspect-square overflow-hidden mb-4 relative rounded shadow-lg"
+                  :navigation="{ nextEl: '.main-button-next', prevEl: '.main-button-prev' }" @swiper="onMainSwiper"
+                  @slideChange="onMainSlideChange">
+                  <SwiperSlide v-for="(item, idx) in productinfo.erpProduct.photoList" :key="item.url || idx"
+                    class="w-full h-full flex items-center justify-center bg-[#F8F8F8]">
+                    <!-- 根据文件类型切换显示 -->
+                    <template v-if="isVideo(item.url)">
+                      <video ref="videoEls" class="w-full h-full object-contain" :src="item.url" controls playsinline
+                        preload="metadata"></video>
+                    </template>
+                    <template v-else>
+                      <NuxtImg format="webp" :src="item.url" alt="Shade sail"
+                        class="w-full h-full object-cover transition-all duration-300 cursor-pointer"
+                        @load="onMainImageLoaded" />
+                    </template>
+                  </SwiperSlide>
 
-                    <!-- SKU 图片作为第一张主图 -->
-                    <SwiperSlide v-if="currentSkuImage" :key="'sku-' + currentSkuImage.url"
-                      class="swiper-slide w-full h-full flex items-center justify-center bg-[#F8F8F8] relative">
-                      <template v-if="isVideo(currentSkuImage.url)">
-                        <video ref="videoEls" class="w-full h-full object-contain" :src="currentSkuImage.url" controls
-                          playsinline preload="metadata"></video>
-                      </template>
-                      <template v-else>
-                        <NuxtImg format="webp" :src="currentSkuImage.url" alt="SKU image"
-                          class="main-image w-full h-full object-cover transition-all duration-300 cursor-pointer"
-                          @load="onMainImageLoaded" @mousemove="onMouseMove" @mouseleave="onMouseLeave"
-                          @mouseenter="onMouseEnter" />
-                      </template>
-                      <div v-if="showZoomBox" class="zoom-box" :style="zoomBoxStyle"></div>
-                    </SwiperSlide>
-
-                    <!-- 原始产品图片 -->
-                    <SwiperSlide v-for="(item, idx) in productinfo.photoList" :key="item.url || idx"
-                      class="swiper-slide w-full h-full flex items-center justify-center bg-[#F8F8F8] relative">
-                      <template v-if="isVideo(item.url)">
-                        <video ref="videoEls" class="w-full h-full object-contain" :src="item.url" controls playsinline
-                          preload="metadata"></video>
-                      </template>
-                      <template v-else>
-                        <NuxtImg format="webp" :src="item.url" alt="Shade sail"
-                          class="main-image w-full h-full object-cover transition-all duration-300 cursor-pointer"
-                          @load="onMainImageLoaded" @mousemove="onMouseMove" @mouseleave="onMouseLeave"
-                          @mouseenter="onMouseEnter" />
-                      </template>
-
-                      <!-- 放大方块 -->
-                      <div v-if="showZoomBox" class="zoom-box" :style="zoomBoxStyle"></div>
-
-                      <!-- 右侧悬浮框 -->
-
-                    </SwiperSlide>
-
-
-
-                    <!-- 主图左右按钮 -->
-                    <div class="main-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
-                      :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }">
-                      <div
-                        class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
-                        <span class="text-primary text-xl font-bold select-none">‹</span>
-
-                      </div>
+                  <!-- 主图左右按钮 -->
+                  <div class="main-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
+                    :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }">
+                    <div
+                      class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
+                      <BaseIcon name="i-raphael:arrowleft2" class="text-primary w-6 h-6" />
                     </div>
-                    <div class="main-button-next absolute right-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
-                      :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }">
-                      <div
-                        class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
-                        <span class="text-primary text-xl font-bold select-none">›</span>
-
-
-                      </div>
-                    </div>
-                  </Swiper>
-                  <div class="zoom-preview-box rounded" v-if="showZoomBox" :style="zoomPreviewBoxStyle">
-                    <div class="zoomed-image" :style="zoomedImageStyle"></div>
                   </div>
-                </div>
-
+                  <div class="main-button-next absolute right-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
+                    :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }">
+                    <div
+                      class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
+                      <BaseIcon name="i-raphael:arrowright2" class="text-primary w-6 h-6" />
+                    </div>
+                  </div>
+                </Swiper>
 
                 <!-- 缩略图 Swiper（视频带播放图标） -->
                 <Swiper :modules="[Navigation, Controller]" ref="swiperRefThumb" :space-between="10" class="w-full"
                   :breakpoints="{ 0: { slidesPerView: 6, slidesPerGroup: 1 } }"
                   :navigation="{ nextEl: '.custom-button-next', prevEl: '.custom-button-prev' }"
                   @swiper="onThumbSwiper">
-                  <SwiperSlide v-for="(item, idx) in productinfo.photoList" :key="'thumb-' + (item.url || idx)"
-                    @click="() => { const offset = currentSkuImage ? 1 : 0; swiperMain?.slideTo(idx + offset) }">
+                  <SwiperSlide v-for="(item, idx) in productinfo.erpProduct.photoList"
+                    :key="'thumb-' + (item.url || idx)" @click="swiperMain?.slideTo(idx)">
                     <div
                       class="relative w-full aspect-square rounded overflow-hidden cursor-pointer hover:opacity-80 bg-[#F8F8F8]">
                       <template v-if="isVideo(item.url)">
@@ -179,15 +144,13 @@
                   <div class="custom-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
                     :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }">
                     <div class="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow text-primary">
-                      <span class="text-primary text-lg font-bold select-none">‹</span>
-
+                      <BaseIcon name="i-raphael:arrowleft2" class="text-primary w-4 h-4" />
                     </div>
                   </div>
                   <div class="custom-button-next absolute right-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
                     :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }">
                     <div class="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow text-primary">
-                      <span class="text-primary text-lg font-bold select-none">›</span>
-
+                      <BaseIcon name="i-raphael:arrowright2" class="text-primary w-4 h-4" />
                     </div>
                   </div>
                 </Swiper>
@@ -200,23 +163,8 @@
           <div class="md:col-span-7">
             <div class="flex items-center justify-between">
               <h1 class="text-base font-normal md:text-lg lg:text-2xl mb-0">
-                {{ productinfo.productEnglishName }}
+                {{ productinfo.erpProduct.productEnglishName }}
               </h1>
-            </div>
-            <!-- 新增：评分类展示 -->
-            <div v-if="reviews.length > 0" class="flex items-center gap-2 text-sm sm:text-base mb-2 sm:mb-0 mt-4">
-              <div class="flex items-center gap-1">
-                <span v-for="star in 5" :key="star" class="text-[#FFD359]">
-                  <BaseIcon v-if="getStarStatus(star) === 'full'" name="i-mdi:star" class="text-[#FFD359]" />
-                  <BaseIcon v-else-if="getStarStatus(star) === 'half'" name="i-mdi:star-half-full"
-                    class="text-[#FFD359]" />
-                  <BaseIcon v-else name="i-mdi:star-outline" class="text-gray-300" />
-                </span>
-              </div>
-              <span class="text-gray-900 font-semibold">{{ averageRating.toFixed(1) }}</span>
-              <span class="text-primary cursor-pointer underline" @click="scrollToSection('reviews')">
-                {{ totalReviews.toLocaleString() }} reviews
-              </span>
             </div>
             <div
               class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0  pb-4 pt-4 border-b border-b-[#D1D1D1]">
@@ -234,25 +182,16 @@
                       :ui="{ color: { black: { solid: 'dark:bg-gray-900 dark:text-white' } } }">{{ index + 1 }}</UBadge>
                     <span class="truncate-1-lines font-medium text-sm md:text-base">{{ property.propertyNameShop
                     }}</span>
-                    <!-- Proposed tip: Tooltip type (proposedViewType=10) -->
-                    <Tooltip color="#000" :overlayInnerStyle="{ color: '#fff' }" placement="top"
-                      v-if="property.proposedView && property.proposedViewType === 10 && property.proposedDesc"
-                      :title="property.proposedDesc"
+                    <Tooltip color="#000" :overlayInnerStyle="{ color: '#fff' }" placement="top" v-if="property.desc"
+                      :title="property.desc"
                       :overlayStyle="{ maxWidth: '330px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
                       <img src="/question.png" class="w-4 h-4 ml-2" />
                     </Tooltip>
-                    <!-- Proposed tip: Drawer type (proposedViewType=20) -->
-                    <button v-if="property.proposedView && property.proposedViewType === 20 && property.proposedDesc"
-                      @click.stop="openProposedDrawer(property)"
-                      class="ml-2 text-xs text-primary hover:text-primary-600 underline font-medium">
-                      View Tips
-                    </button>
 
                   </h2>
                   <div class="flex items-center">
                     <span class="mr-4 truncate-1-lines text-sm text-gray-500" v-if="property.selectedproperty">
-                      {{ property.isneedinput && Number(property.chooseindex) >= 2 ? getFormattedInputDisplay(property)
-                        :
+                      {{ property.isneedinput && property.chooseindex == 2 ? property.selectedproperty.inputvalue :
                         property.selectedproperty.detailName }}
                     </span>
                     <BaseIcon :name="property.showType ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
@@ -260,23 +199,9 @@
                   </div>
                 </div>
 
-                <!-- Measurement tip (specialRestrictionList: type=20,use=true) -->
-                <div v-if="hasMeasurementTool(property)" class="mt-2 text-xs sm:text-sm text-gray-700 leading-6">
-                  <div class="flex items-start gap-2">
-                    <div>
-                      The factory only accepts the dimensions of the sail, if you provide the distance between the
-                      fixing points.
-                      <button class="ml-1 text-primary underline font-medium"
-                        @click.stop="openMeasurementDrawer(property, index)">
-                        Click Here
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
                 <div :class="[
-                  'transition-all duration-300 ease-in-out grid gap-1 grid-container',
-                  property.showType ? 'max-h-[500px] mt-4 overflow-y-auto ' : 'overflow-hidden max-h-0',
+                  'transition-all duration-300 ease-in-out grid gap-1',
+                  property.showType ? 'max-h-[500px] mt-4 overflow-y-auto' : 'overflow-hidden max-h-0',
                   !property.isneedinput && property.productPropertyDetailType != 'text' ? 'grid-cols-8 md:grid-cols-10 lg:grid-cols-12' : ''
                 ]">
                   <div v-if="!property.isneedinput && property.productPropertyDetailType != 'text'"
@@ -295,6 +220,7 @@
                       ]" v-if="type.imageLink">
                         <NuxtImg :src="type.imageLink + '?x-oss-process=image/auto-orient,1/resize,w_100,limit_0'"
                           class="w-full h-full object-contain rounded" format="webp" :quality="80" />
+
                         <div
                           v-if="property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId"
                           class="absolute bottom-0 right-0 w-5 h-5">
@@ -363,7 +289,7 @@
                     v-if="property.isneedinput">
                     <div class="flex-1 space-y-4">
                       <div class="text-base text-gray-800">
-                        <div class="cursor-pointer block mb-4"
+                        <div class="cursor-pointer block"
                           v-for="(needinput, needindex) in property.needinputlist.filter(item => !item.disabled)">
                           <div class="flex items-center">
                             <label class="flex items-center space-x-2 cursor-pointer">
@@ -372,28 +298,52 @@
                               <span class="font-semibold text-sm">{{ needinput.detailName }}</span>
                             </label>
                           </div>
-                          <!-- Inputs: horizontal with wrap; group headers take full width -->
-                          <div class="mt-2 flex flex-wrap gap-x-3 gap-y-1">
-                            <template v-for="(inputitem, pindex) in needinput.inputList" :key="pindex">
-                              <!-- Group header: show only group name without range -->
-                              <div v-if="needinput.groupsMeta && needinput.groupsMeta.some(g => g.start === pindex)"
-                                class="w-full text-sm font-medium text-gray-800">
-                                {{ getGroupName(needinput, pindex) }}
-                              </div>
-                              <div class="flex items-center">
-                                <ClientOnly>
-                                  <InputNumber v-model:value="needinput.inputvalue[pindex]"
-                                    @blur="changeinputvalue(property, needindex + 2, index)"
-                                    class="custom-input rounded text-sm w-28 px-2 focus:outline-none focus:ring-0"
-                                    style="height: 28px" :min="getInputRange(needinput, pindex).min"
-                                    :max="getInputRange(needinput, pindex).max" :step="1" :placeholder="inputitem" />
-                                </ClientOnly>
-                              </div>
-                            </template>
+                          <div class="mt-4" v-for="(inputitem, pindex) in needinput.inputList" :key="pindex">
+                            <div class="flex items-center space-x-4 mt-2">
+                              <label class="text-sm min-w-[52px]">{{ inputitem }}</label>
+                              <template v-if="needinput.customDetailList && needinput.customDetailList[pindex]">
+                                <template v-if="needinput.customDetailList[pindex].viewType === 10">
+                                  <ClientOnly>
+                                    <InputNumber v-model:value="needinput.inputvalue[pindex]"
+                                      @blur="changeinputvalue(property, needindex + 2, index)"
+                                      class="custom-input rounded text-sm w-28 px-2 focus:outline-none focus:ring-0"
+                                      style="height: 28px" :min="needinput.customDetailList[pindex].inputStart || 0"
+                                      :max="needinput.customDetailList[pindex].inputEnd || 999" step="1" />
+
+                                    <span v-if="hasRange(needinput.customDetailList[pindex])"
+                                      class="text-xs text-gray-500 ml-1">
+                                      ({{ needinput.customDetailList[pindex].inputStart }} - {{
+                                        needinput.customDetailList[pindex].inputEnd }}) {{
+                                        needinput.customDetailList[pindex].unit || '' }}
+                                    </span>
+                                  </ClientOnly>
+
+                                </template>
+                                <template v-else-if="needinput.customDetailList[pindex].viewType === 50">
+                                  <ClientOnly>
+                                    <Select v-model:value="needinput.inputvalue[pindex]"
+                                      :options="needinput.customDetailList[pindex].ruleList.map(rule => ({ label: rule.start, value: rule.start }))"
+                                      size="middle" style="width: 112px; height: 28px; line-height: 28px"
+                                      :dropdownStyle="{ lineHeight: '28px' }" class="custom-select" placeholder="Select"
+                                      @change="() => changeinputvalue(property, needindex + 2, index)" />
+                                    <span v-if="needinput.customDetailList[pindex].unit"
+                                      class="text-xs text-gray-500 ml-1">
+                                      {{ needinput.customDetailList[pindex].unit }}
+                                    </span>
+                                  </ClientOnly>
+
+
+                                </template>
+                              </template>
+                              <template v-else>
+                                <input type="number" v-model="needinput.inputvalue[pindex]"
+                                  @change="changeinputvalue(property, needindex + 2, index)"
+                                  class="rounded p-1 text-sm w-28 border-gray-300 focus:border-[#00B2E3] focus:ring-1 focus:ring-[#00B2E3]"
+                                  :min="0" :max="100" step="1" />
+                              </template>
+                            </div>
                           </div>
-                          <div
-                            v-if="errorsize && lastTrialPropIndex === index && Number(property.chooseindex) === (needindex + 2)"
-                            class="text-red-500 text-sm mt-2">{{ errorsize }}</div>
+                          <div class="text-red-500 text-sm mt-2">{{ errorsize }}</div>
                         </div>
                         <div v-if="property.noneedinputlist.length > 0"
                           class="flex items-center space-x-2 cursor-pointer mt-4">
@@ -584,52 +534,46 @@
 
               <!-- Reviews -->
               <template v-else-if="item.type === 'reviews'">
-                <div class="flex flex-col lg:flex-row gap-8">
-                  <!-- 左侧：评分汇总（与示例图一致，固定宽度） -->
-                  <aside class="w-full lg:w-[320px] xl:w-[360px] shrink-0">
-                    <div class="bg-white rounded-lg">
-                      <!-- 顶部标题与副标题（严格按图） -->
-                      <div class="mb-[10px] text-black font-bold text-lg ">
-                        <div class="mb-4">Reviews</div>
-                        <div>Customer reviews</div>
+                <div>
+                  <div class="flex flex-col lg:flex-row gap-6 mb-8 border-b pb-6 border-gray-300">
+                    <div class="w-full lg:w-1/2">
+                      <div class="space-y-3">
+                        <div v-for="stars in 5" :key="stars" class="flex items-center gap-4">
+                          <span class="w-12 text-sm text-[#FFD359]">{{ 6 - stars }} star</span>
+                          <div class="flex-1 bg-primary-100 h-5 rounded overflow-hidden">
+                            <div :style="{ width: `${starPercentages[6 - stars]}%` }"
+                              class="h-full bg-[#FFD359] transition-all duration-300"></div>
+                          </div>
+                          <span class="w-12 text-sm text-right text-[#FFD359]">
+                            {{ starPercentages[6 - stars] }}%
+                          </span>
+                        </div>
                       </div>
-
-                      <!-- 星星 + 平均分 + 分隔符 + Ratings（严格按文案） -->
-                      <div class="flex items-center gap-3 mb-4">
-                        <div class="flex items-center gap-1 text-[#FFD359] text-xl">
-                          <span v-for="star in 5" :key="star">
+                    </div>
+                    <div
+                      class="w-full lg:w-1/2 flex items-center justify-end bg-gray-100 p-4 bg-primary-100 rounded-lg">
+                      <div class="text-center w-full">
+                        <p class="text-3xl font-bold text-gray-900">
+                          <span>{{ averageRating.toFixed(1) }}</span>
+                        </p>
+                        <div class="my-2 flex justify-center">
+                          <span v-for="star in 5" :key="star" class="text-2xl text-[#FFD359]">
                             <BaseIcon v-if="getStarStatus(star) === 'full'" name="i-mdi:star" class="text-[#FFD359]" />
                             <BaseIcon v-else-if="getStarStatus(star) === 'half'" name="i-mdi:star-half-full"
                               class="text-[#FFD359]" />
                             <BaseIcon v-else name="i-mdi:star-outline" class="text-gray-300" />
                           </span>
                         </div>
-                        <span class="text-black text-primary">{{ averageRating.toFixed(1) }}</span>
-                        <span class="h-4 w-px bg-primary inline-block text-primary"></span>
-                        <button type="button" class="text-primary">
-                          {{ totalReviews.toLocaleString() }} Ratings
-                        </button>
-                      </div>
-
-                      <!-- 星级分布条 -->
-                      <div class="space-y-3">
-                        <div v-for="stars in 5" :key="stars" class="flex items-center gap-3">
-                          <span class="w-12 text-xs text-gray-700">{{ 6 - stars }} star</span>
-                          <div class="flex-1 bg-gray-100 h-3 rounded overflow-hidden">
-                            <div :style="{ width: `${starPercentages[6 - stars]}%` }"
-                              class="h-full bg-[#FFD359] transition-all duration-300"></div>
-                          </div>
-                          <span class="w-10 text-xs text-right text-gray-700">{{ starPercentages[6 - stars] }}%</span>
-                        </div>
+                        <p class="text-lg text-gray-300">{{ totalReviews }} global ratings</p>
                       </div>
                     </div>
-                  </aside>
+                  </div>
 
-                  <!-- 右侧：评论列表 -->
-                  <section class="w-full lg:flex-1">
+                  <div>
                     <div v-if="reviews.length === 0" class="text-center text-gray-500 py-4">No reviews yet.</div>
 
-                    <div v-for="review in reviews" :key="review.date" class="bg-white p-4 border-b border-[#D1D1D1]">
+                    <div v-for="review in reviews" :key="review.date"
+                      class="bg-white p-4 border-b border-[#D1D1D1] mt-4">
                       <div class="flex items-center">
                         <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3">
                           <NuxtImg src="/reviewer.png" class="w-11 h-11" />
@@ -690,12 +634,12 @@
                         </div>
                       </div>
                     </div>
+                  </div>
+                  <div class="flex justify-between mt-3 md:mt-6 items-center">
+                    <Button :disabled="currentPage === 1" @click="prevPage" class="custom-btn">Previous</Button>
+                    <Button :disabled="currentPage === totalPages" @click="nextPage" class="custom-btn">Next</Button>
+                  </div>
 
-                    <div class="flex justify-between mt-3 md:mt-6 items-center">
-                      <Button :disabled="currentPage === 1" @click="prevPage" class="custom-btn">Previous</Button>
-                      <Button :disabled="currentPage === totalPages" @click="nextPage" class="custom-btn">Next</Button>
-                    </div>
-                  </section>
                 </div>
               </template>
             </section>
@@ -710,18 +654,18 @@
       <div class="mt-6 pb-4" v-if="products.length > 0">
         <h1 class="text-lg font-semibold mb-3 md:mb-4 dark:text-black">Similar item you might like</h1>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <NuxtLink :to="`/product/${product.id}/${slugify(product.productEnglishName)}`"
+          <NuxtLink :to="`/product/${product.id}/${slugify(product.erpProduct.productEnglishName)}`"
             v-for="(product, index) in products" :key="index"
             class="product-card rounded-lg transition-transform duration-300  hover:scale-[1.02] md:hover:-translate-y-0.5 cursor-pointer">
             <div class="relative overflow-hidden">
-              <img :src="product.mainPic ?? '/images/empty.jpg'" :alt="product.productEnglishName"
+              <img :src="product.erpProduct.mainPic ?? '/images/empty.jpg'" :alt="product.erpProduct.productEnglishName"
                 class="w-full h-full object-cover object-top rounded">
             </div>
             <div class="mt-2">
-              <h3 class="text-sm font-normal mb-2 line-clamp-2 dark:text-black">{{ product.productEnglishName
+              <h3 class="text-sm font-normal mb-2 line-clamp-2 dark:text-black">{{ product.erpProduct.productEnglishName
                 }}
               </h3>
-              <p class="text-sm font-bold text-primary">${{ product.basePrice.toFixed(2) }}</p>
+              <p class="text-sm font-bold text-primary">${{ product.erpProduct.customPrice.toFixed(2) }}</p>
             </div>
           </NuxtLink>
         </div>
@@ -765,7 +709,7 @@
           'opacity-0 translate-y-8 pointer-events-none': !isBottomBarVisible
         }" v-show="isshow && !isLoading">
       <div>
-        <h2 class="font-semibold text-base sm:text-lg text-gray-900">{{ productinfo.productEnglishName }}
+        <h2 class="font-semibold text-base sm:text-lg text-gray-900">{{ productinfo.erpProduct.productEnglishName }}
         </h2>
         <div class="text-sm text-gray-500">Ordinary type sail / Rectangle</div>
       </div>
@@ -810,97 +754,6 @@
       </div>
     </UModal>
 
-    <!-- Proposed Desc Drawer -->
-    <ClientOnly>
-      <Drawer v-model:open="drawerVisible" :title="drawerTitle" placement="right" :width="500"
-        @close="closeProposedDrawer">
-        <div class="prose max-w-none" v-shadow-html="drawerContent"></div>
-      </Drawer>
-    </ClientOnly>
-
-    <!-- Measurement Tool Drawer -->
-    <ClientOnly>
-      <Drawer v-model:open="measureDrawerVisible" title="Shade Sail Size Calculator" placement="right" :width="680">
-        <div class="p-5 space-y-5 text-gray-800">
-          <!-- Selected summary -->
-          <div v-if="measureTargetProp" class="text-sm">
-            <div class="font-medium">Selected: {{ measureTargetProp.propertyNameShop }}</div>
-            <div v-if="currentNeedOption">
-              <span class="text-gray-500">Option:</span>
-              <span class="ml-1">{{ currentNeedOption.detailName }}</span>
-            </div>
-          </div>
-
-          <!-- Step 1 -->
-          <div>
-            <div class="font-semibold mb-2">Step1: Choose Your Layout</div>
-            <div class="text-sm text-gray-600 mb-2">Select the shape formed by your fixed points – rectangle, square,
-              irregular quadrilateral, or triangle.</div>
-            <div class="h-[180px] rounded overflow-hidden">
-              <img
-                v-if="(currentNeedOption && currentNeedOption.imageList && currentNeedOption.imageList.length) || currentNeedOption?.imageLink"
-                :src="(currentNeedOption?.imageList && currentNeedOption.imageList[0]) || currentNeedOption?.imageLink"
-                class="max-w-full max-h-full object-contain object-left" alt="layout" />
-            </div>
-          </div>
-
-          <!-- Step 2 -->
-          <div>
-            <div class="font-semibold mb-2">Step2: Enter distances (in feet).</div>
-            <div class="text-sm text-gray-600 mb-2">
-              Enter distance {{ measureInputLabels.length > 0 ? measureInputLabels.join(' and ') : '' }}
-            </div>
-            <div class="space-y-3 max-w-[520px]">
-              <div v-for="(label, i) in measureInputLabels" :key="'dist-' + i" class="flex items-center gap-2">
-                <div class="text-sm text-gray-700 w-30">Enter distance {{ label }}</div>
-                <ClientOnly>
-                  <InputNumber v-model:value="measureDistances[i]" :min="0" :max="9999" :step="0.1"
-                    style="width: 200px" />
-                </ClientOnly>
-                <span class="text-sm">inch</span>
-              </div>
-            </div>
-            <div class="mt-3">
-              <Button type="primary" @click="calcSides">Calculation side</Button>
-            </div>
-          </div>
-
-          <!-- Step 3 results -->
-          <div>
-            <div class="font-semibold mb-2">Step3: Check the shade sail sizes we recommend for you</div>
-            <div class="text-sm text-gray-600 mb-3">You can save the shade sail size combination and return to the input
-              box
-              to enter it with one click.</div>
-            <div class="space-y-3 max-w-[520px]">
-              <div v-for="(label, i) in measureInputLabels" :key="i"
-                class="grid grid-cols-[auto_1fr] items-center gap-3">
-                <div class="text-sm text-gray-700">{{ label }}</div>
-                <ClientOnly>
-                  <InputNumber v-model:value="measureSides[i]" :min="0" :max="9999" :step="0.1" style="width: 200px" />
-                </ClientOnly>
-              </div>
-            </div>
-          </div>
-
-          <!-- Notes -->
-          <div class="bg-blue-50 text-blue-900 text-xs p-3 rounded border border-blue-100">
-            <div>Note:</div>
-            <ol class="list-decimal ml-4 space-y-1">
-              <li>The minimum angle of a triangular shade sail must be greater than 35°.</li>
-              <li>A trapezoidal shade sail is a convex quadrilateral.</li>
-              <li>The longest side of a triangular shade sail is 24 feet, and the longest side of a quadrilateral shade
-                sail
-                is 25 feet.</li>
-            </ol>
-          </div>
-
-          <div class="pt-2">
-            <Button type="primary" @click="applyMeasuredToProperty">Continue to buy</Button>
-          </div>
-        </div>
-      </Drawer>
-    </ClientOnly>
-
   </div>
 </template>
 
@@ -911,7 +764,7 @@ import 'swiper/css/navigation'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Navigation, Controller } from 'swiper/modules'
 import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
-import { message, Tooltip, Select, InputNumber, Button, Drawer } from 'ant-design-vue'
+import { message, Tooltip, Select, InputNumber, Button } from 'ant-design-vue'
 import { useCartStore } from '@/stores/cart'
 import { useRouter, useRoute } from 'vue-router'
 import { useFbq } from '~/composables/useFbq'
@@ -919,7 +772,7 @@ import { Splide, SplideSlide } from '@splidejs/vue-splide'
 import '@splidejs/vue-splide/css'
 const { addToCartEvent, initiateCheckout } = useFbq({ currency: 'USD' })
 const { viewItem, addToCart: trackAddToCart, beginCheckout } = useTrack()
-const { getProductSpuV2ById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV4, erpTryToCreateSkuV2 } = ProductAuth()
+const { getProductById, getProductDetailsById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV3, erpTryToCreateSku, getmapProductByProductSkuList } = ProductAuth()
 const { createCart } = cartAuth()
 const { getspuCommentProductRollPage, getgroupComment } = CommentAuth()
 const { getUserInfo } = useAuth()
@@ -968,86 +821,17 @@ const mainImageIndex = ref(0)
 const isSwiperAtStart = ref(true)
 const isSwiperAtEnd = ref(false)
 
-// Keep a copy of original gallery to restore when SKU has no images
-const originalPhotoList = ref([])
-const skuPhotosActive = ref(false)
-const currentSkuImage = ref(null) // SKU 图片单独控制主图第一张
-
 const onMainSwiper = (s) => { swiperMain.value = s }
 const onThumbSwiper = (s) => { swiperThumb.value = s }
 
-// 不再建立双向控制，因为主图有 SKU 图时索引会不匹配
-// watch([swiperMain, swiperThumb], ([main, thumb]) => {
-//   if (main && thumb) {
-//     main.controller.control = thumb
-//     thumb.controller.control = main
-//   }
-// })
-const zoomPreviewBoxStyle = ref({})
-const zoomBoxStyle = ref({});
-const zoomedImage = ref('');
-const zoomedImageStyle = ref({});
-const showZoomBox = ref(false);
-const zoomScale = 2;
+// 建立双向控制（主图 <-> 缩略图）
+watch([swiperMain, swiperThumb], ([main, thumb]) => {
+  if (main && thumb) {
+    main.controller.control = thumb
+    thumb.controller.control = main
+  }
+})
 
-// 当鼠标进入主图时，显示放大方块
-const onMouseEnter = () => {
-  showZoomBox.value = true;
-};
-
-// 当鼠标移动时，更新放大框的位置和显示内容
-const onMouseMove = (event) => {
-  const swiperSlide = event.target.closest('.swiper-slide');
-  const { left, top, width, height } = swiperSlide.getBoundingClientRect();
-  const x = event.clientX - left;
-  const y = event.clientY - top;
-
-  // 设置预览框大小与主图一致
-  zoomPreviewBoxStyle.value = {
-    width: `${width}px`,
-    height: `${height}px`,
-  };
-
-  // 计算选框大小（预览大小 / 缩放比例）
-  const selectSize = width / zoomScale;
-  const halfSize = selectSize / 2;
-
-  // 计算选框中心位置，并限制在边界内
-  let centerX = x;
-  centerX = Math.max(halfSize, Math.min(centerX, width - halfSize));
-  let centerY = y;
-  centerY = Math.max(halfSize, Math.min(centerY, height - halfSize));
-
-  // 计算选框左上角位置
-  const selectLeft = centerX - halfSize;
-  const selectTop = centerY - halfSize;
-
-  // 更新放大方块的位置
-  zoomBoxStyle.value = {
-    top: `${selectTop}px`,
-    left: `${selectLeft}px`,
-    width: `${selectSize}px`,
-    height: `${selectSize}px`,
-    display: 'block',
-  };
-
-  // 获取当前主图的 src
-  const mainImageElement = swiperSlide.querySelector('img');
-  zoomedImage.value = mainImageElement.src;
-
-  // 更新放大图片的样式
-  zoomedImageStyle.value = {
-    backgroundPositionX: `-${selectLeft * zoomScale}px`,
-    backgroundPositionY: `-${selectTop * zoomScale}px`,
-    backgroundImage: `url(${zoomedImage.value})`,
-    backgroundSize: `${width * zoomScale}px ${height * zoomScale}px`,
-  };
-};
-
-// 当鼠标离开时，隐藏放大方块
-const onMouseLeave = () => {
-  showZoomBox.value = false;
-};
 // 主图切换时更新 index / 按钮状态 / mainImage（供其它逻辑用）
 const onMainSlideChange = () => {
   const s = swiperMain.value
@@ -1056,50 +840,31 @@ const onMainSlideChange = () => {
   isSwiperAtStart.value = s.isBeginning
   isSwiperAtEnd.value = s.isEnd
 
-  // 如果有 SKU 图，第一张是 SKU 图，后续是原图
-  const slides = productinfo.value.photoList || []
-  const skuOffset = currentSkuImage.value ? 1 : 0
-  const actualIndex = s.activeIndex - skuOffset
-
-  if (s.activeIndex === 0 && currentSkuImage.value) {
-    mainImage.value = currentSkuImage.value.url
-  } else if (actualIndex >= 0 && actualIndex < slides.length) {
-    mainImage.value = slides[actualIndex]?.url || productinfo.value.mainPic
+  const slides = productinfo.value.erpProduct.photoList || []
+  if (s.activeIndex < slides.length) {
+    mainImage.value = slides[s.activeIndex]?.url || productinfo.value.erpProduct.mainPic
   } else {
-    mainImage.value = slides[slides.length - 1]?.url || productinfo.value.mainPic
+    mainImage.value = slides[slides.length - 1]?.url || productinfo.value.erpProduct.mainPic
   }
-
-  // 更新预览框大小以匹配当前主图
-  nextTick(() => {
-    const currentSlide = s.slides[s.activeIndex]
-    const mainImageElement = currentSlide?.querySelector('.main-image')
-    if (mainImageElement && mainImageElement.complete) {
-      const rect = mainImageElement.getBoundingClientRect()
-      zoomPreviewBoxStyle.value = {
-        width: `${rect.width}px`,
-        height: `${rect.height}px`,
-      }
-    }
-  })
 }
+
+const prevMainImage = () => swiperMain.value?.slidePrev()
+const nextMainImage = () => swiperMain.value?.slideNext()
 
 /** ===== 其余原有逻辑 ===== **/
 const lastpage = router.options.history.state.back
 const cartloding = ref(false)
 const orderloding = ref(false)
 const orginproductinfo = ref({})
-const drawerVisible = ref(false)
-const drawerContent = ref('')
-const drawerTitle = ref('')
-const measureDrawerVisible = ref(false)
-const measureTargetIndex = ref(null)
-const measureDistances = ref([]) // anchor distances entered in Step 2, aligned with input labels
-const measureSides = ref([]) // numeric array reflecting needinput inputList length
 const productid = computed(() => route.params.id[0] ?? '29201')
 const { data: serverProductData, pending, error } = await useAsyncData('product-detail', () => {
-  return getProductSpuV2ById({
-    id: productid.value,
-    needPublishSkuData: true
+  // return getProductById({ id: productid.value, needPropData: true, excludeUserCustomProp: true })
+  // let needfileds = 'id,catalogIdPathList,erpProduct.productStyle,erpProduct.productVideoUrl,erpProduct.remarks,erpProduct.productPicUrl,erpProduct.productName,erpProduct.productVideoUrl,erpProduct.productId,erpProduct.productEnglishName,erpProduct.photoList,erpProduct.mainPic,erpProduct.customPrice,erpProduct.customPrice,printPropertyList,normalPropertyList.propertyId,normalPropertyList.desc, normalPropertyList.productPropertyDetailType,normalPropertyList.propertyNameShop,normalPropertyList.propertyName,normalPropertyList.propertyType,normalPropertyList.detailList.isCustomAdd,normalPropertyList.detailList.customDetailList,normalPropertyList.detailList.desc,normalPropertyList.detailList.detailName,normalPropertyList.detailList.imageLink,normalPropertyList.detailList.inputList,normalPropertyList.detailList.isMissing,normalPropertyList.detailList.isSelect,normalPropertyList.detailList.propertyDetailId,normalPropertyList.detailList.propertyId,normalPropertyList.detailList.customDetailList,normalPropertyList.detailList.skuList'
+
+  let needfileds = 'id,catalogIdPathList,printPropertyList,erpProduct.productStyle,erpProduct.productVideoUrl,erpProduct.remarks,erpProduct.productPicUrl,erpProduct.productName,erpProduct.productVideoUrl,erpProduct.productId,erpProduct.productEnglishName,erpProduct.photoList,erpProduct.mainPic,erpProduct.customPrice,erpProduct.customPrice,normalPropertyList.propertyId,normalPropertyList.desc,normalPropertyList.productPropertyDetailType,normalPropertyList.propertyNameShop,normalPropertyList.propertyName,normalPropertyList.propertyType,normalPropertyList.detailList'
+  return getProductDetailsById({
+    productId: productid.value,
+    spuFields: needfileds
   })
 })
 const showDimensions = ref(true)
@@ -1116,7 +881,7 @@ if (productinfo.value.productState !== 'published') {
 
 if (productinfo.value?.seoPageTitle || productinfo.value?.seoMetaDescription) {
   useHead({
-    title: productinfo.value.seoPageTitle || productinfo.value.productEnglishName || 'Product Detail',
+    title: productinfo.value.seoPageTitle || productinfo.value.erpProduct?.productEnglishName || 'Product Detail',
     meta: [
       {
         name: 'description',
@@ -1126,39 +891,29 @@ if (productinfo.value?.seoPageTitle || productinfo.value?.seoMetaDescription) {
   })
 
   useServerSeoMeta({
-    title: () => productinfo.value.seoPageTitle || productinfo.value.productEnglishName || 'Product Detail',
+    title: () => productinfo.value.seoPageTitle || productinfo.value.erpProduct?.productEnglishName || 'Product Detail',
     description: () => productinfo.value.seoMetaDescription || ''
   })
 } else {
   // ✅ 如果 SEO 字段为空，回退到商品英文名
   useHead({
-    title: productinfo.value.productEnglishName || 'Product Detail'
+    title: productinfo.value.erpProduct?.productEnglishName || 'Product Detail'
   })
 
   useServerSeoMeta({
-    description: () => productinfo.value.desc || ''
+    description: () => productinfo.value.erpProduct?.remarks || ''
   })
 }
 
-if (productinfo.value.mainPic) {
-  mainImage.value = productinfo.value.mainPic
+if (productinfo.value.erpProduct?.mainPic) {
+  mainImage.value = productinfo.value.erpProduct.mainPic
 }
-// Initialize original photos from first load (prefer existing photoList, else derive from fileList)
-if (Array.isArray(productinfo.value?.photoList)) {
-  originalPhotoList.value = productinfo.value.photoList.map(it => ({ ...it }))
-} else if (Array.isArray(productinfo.value?.fileList)) {
-  // Derive photoList from fileList for gallery consumption
-  const derived = productinfo.value.fileList.map(f => ({ url: f.url, type: f.type || (isVideo(f.url) ? 'video' : 'image'), altText: f.altText }))
-  productinfo.value.photoList = derived
-  originalPhotoList.value = derived.map(it => ({ ...it }))
-}
-const skuprice = ref(productinfo.value?.basePrice ?? {})
+const skuprice = ref(productinfo.value?.erpProduct.customPrice ?? {})
 const products = ref([])
 const quantity = ref(1)
 const totalPrice = computed(() => quantity.value * skuprice.value)
 const tabindex = ref(1)
 const errorsize = ref('')
-const lastTrialPropIndex = ref(null) // 仅当该属性进行尺寸试算报错时，展示 errorsize
 const averageRating = ref(0)
 const totalReviews = ref(0)
 const starPercentages = ref({ 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 })
@@ -1186,82 +941,13 @@ const onMainImageLoaded = () => {
     swiperRefThumb.value?.swiper?.update()
   })
 }
-
-// Helper: update photoList and refresh swipers/zoom
-function updatePhotoList(newList) {
-  productinfo.value.photoList = newList
-  // Keep fileList in sync for callers expecting fileList
-  productinfo.value.fileList = (newList || []).map(it => ({ url: it.url, type: it.type, altText: it.altText }))
-  nextTick(() => {
-    // Reset to first slide
-    try { swiperMain.value?.slideTo?.(0) } catch (e) { }
-    try { swiperThumb.value?.slideTo?.(0) } catch (e) { }
-    swiperMain.value?.update?.()
-    swiperThumb.value?.update?.()
-    mainImageIndex.value = 0
-    const firstUrl = productinfo.value.photoList?.[0]?.url || productinfo.value.mainPic
-    if (firstUrl) mainImage.value = firstUrl
-    handleVideoPlayback()
-  })
-}
-
-// Try to apply SKU images (if any). Revert to original if none.
-async function applySkuImagesIfAvailable(sku) {
-  try {
-    console.log('Applying SKU images for SKU:', sku)
-    if (!sku) return
-
-    // Find the SKU object from the current product detail's skuList
-    const list = Array.isArray(productinfo.value?.skuList) ? productinfo.value.skuList : []
-    const skuinfo = list.find(
-      (it) => String(it.id) === String(sku) || String(it.mallProductSkuId) === String(sku)
-    )
-
-    if (!skuinfo) {
-      currentSkuImage.value = null
-      skuPhotosActive.value = false
-      nextTick(() => {
-        swiperMain.value?.slideTo(0)
-        swiperMain.value?.update()
-      })
-      return
-    }
-
-    // Use imageList only; take the first image
-    let firstUrl = null
-    if (Array.isArray(skuinfo.imageList) && skuinfo.imageList.length) {
-      const first = skuinfo.imageList[0]
-      firstUrl = typeof first === 'string' ? first : (first && first.url)
-    }
-
-    if (firstUrl) {
-      currentSkuImage.value = { url: firstUrl, type: isVideo(firstUrl) ? 'video' : 'image' }
-      skuPhotosActive.value = true
-      nextTick(() => {
-        swiperMain.value?.slideTo(0)
-        swiperMain.value?.update()
-      })
-    } else {
-      currentSkuImage.value = null
-      skuPhotosActive.value = false
-      nextTick(() => {
-        swiperMain.value?.slideTo(0)
-        swiperMain.value?.update()
-      })
-    }
-  } catch (err) {
-    currentSkuImage.value = null
-    skuPhotosActive.value = false
-    console.warn('applySkuImagesIfAvailable failed:', err)
-  }
-}
 /** ======== 按 sort 排序统一整理所有详情段落 + 评论 ======== **/
 const sections = computed(() => {
   const allSections = []
 
   // 1️⃣ Description（详情描述）
   const descValue = productinfo.value.detailedDescription?.value
-    || productinfo.value.desc
+    || productinfo.value.erpProduct?.remarks
   if (productinfo.value.detailedDescription?.show && descValue) {
     allSections.push({
       key: 'description',
@@ -1332,6 +1018,20 @@ const sections = computed(() => {
     })
   }
 
+  // 4️⃣ 自定义详情（Custom Sections）
+  if (productinfo.value.detailedCustomList?.length) {
+    productinfo.value.detailedCustomList
+      .filter(i => i.show)
+      .forEach(i => {
+        allSections.push({
+          key: i.title.toLowerCase().replace(/\s+/g, '-'),
+          label: i.title,
+          type: 'html',
+          content: i.value,
+          sort: i.sort ?? 0
+        })
+      })
+  }
 
   // 5️⃣ Reviews（评论模块）
   if (reviews.value?.length > 0) {
@@ -1389,18 +1089,18 @@ function getCatalogId(arr) {
   return arr[0]
 }
 const toGa4Item = (opts = {}) => {
-  const p = productinfo.value
+  const p = productinfo.value?.erpProduct
   if (!p) return null
   const qty = opts.withQuantity ? (opts.q ?? quantity.value ?? 1) : 1
   return {
     item_id: String(productinfo.value.id),
     item_name: p.productEnglishName || '',
-    price: Number(skuprice.value ?? p.basePrice ?? 0),
+    price: Number(skuprice.value ?? p.customPrice ?? 0),
     currency: 'USD',
     quantity: qty,
     // 可选
     item_brand: p.productName,
-    item_category: getCatalogId(productinfo.value.catalogPathIdList) || undefined,
+    item_category: getCatalogId(productinfo.value.catalogIdPathList) || undefined,
   }
 }
 
@@ -1410,118 +1110,10 @@ const reportViewItem = () => {
   const item = toGa4Item()
   if (item) viewItem(item)
 }
-
-// Open drawer for proposedDesc
-const openProposedDrawer = (property) => {
-  drawerTitle.value = property.propertyNameShop
-  drawerContent.value = property.proposedDesc || ''
-  drawerVisible.value = true
-}
-
-const closeProposedDrawer = () => {
-  drawerVisible.value = false
-}
-
-// Measurement tool helpers
-const hasMeasurementTool = (property) => {
-  const list = property && Array.isArray(property.specialRestrictionList)
-    ? property.specialRestrictionList
-    : []
-  return list.some(r => Number(r?.type) === 20 && r?.use === true)
-}
-const measureTargetProp = computed(() => {
-  const idx = measureTargetIndex.value
-  if (idx === null || idx === undefined) return null
-  return productinfo.value.normalPropertyList?.[idx] || null
-})
-
-const currentNeedOption = computed(() => {
-  const p = measureTargetProp.value
-  if (!p || !p.needinputlist?.length) return null
-  const actives = p.needinputlist.filter(i => i.isactive !== false && i.disabled !== true)
-  const chooseIdx = Number(p.chooseindex || 2) - 2
-  return actives[chooseIdx] || actives[0]
-})
-
-const measureInputLabels = computed(() => {
-  const opt = currentNeedOption.value
-  if (opt?.inputList?.length) return opt.inputList.map((n, i) => n || `Side ${i + 1}`)
-  // Fallback: create labels based on existing sides length
-  return measureSides.value.map((_, i) => `Side ${i + 1}`)
-})
-
-const openMeasurementDrawer = (property, index) => {
-  try {
-    measureTargetIndex.value = index
-    const opt = (property.needinputlist || []).find((_, i) => (Number(property.chooseindex || 2) - 2) === i)
-      || (property.needinputlist || []).find(i => i.isactive !== false && i.disabled !== true)
-
-    // Initialize sides from existing values if present
-    let sides = []
-    if (Array.isArray(opt?.inputvalue) && opt.inputvalue.length) {
-      sides = opt.inputvalue.map(v => (v === '' || v === null || v === undefined) ? null : Number(v))
-    } else if (property.selectedproperty?.inputvalue) {
-      const arr = String(property.selectedproperty.inputvalue).split('*')
-      sides = arr.map(v => (v === '' || v === null || v === undefined) ? null : Number(v))
-    } else if (Array.isArray(opt?.inputList)) {
-      sides = opt.inputList.map(() => null)
-    }
-    measureSides.value = sides
-    // initialize distances array with same length as labels (empty by default)
-    const L = (sides && sides.length) || (opt?.inputList?.length || 0)
-    measureDistances.value = Array.from({ length: L }, () => null)
-    measureDrawerVisible.value = true
-  } catch {
-    measureDrawerVisible.value = true
-  }
-}
-
-const calcSides = () => {
-  // Fake calculation: copy entered distances to sides; fallback to simple defaults if empty
-  const labels = measureInputLabels.value
-  const len = labels.length || (measureSides.value?.length || 0) || 2
-  const distances = measureDistances.value || []
-  const result = Array.from({ length: len }, (_, i) => {
-    const d = Number(distances[i])
-    if (!isNaN(d) && d > 0) return d
-    // fallback placeholders
-    if (i === 0) return 10
-    if (i === 1) return 12
-    return 11
-  })
-  measureSides.value = result
-}
-
-const applyMeasuredToProperty = () => {
-  const idx = measureTargetIndex.value
-  if (idx === null || idx === undefined) return
-  const prop = productinfo.value.normalPropertyList?.[idx]
-  if (!prop) return
-
-  // Ensure needinput mode
-  const actives = (prop.needinputlist || []).filter(i => i.isactive !== false && i.disabled !== true)
-  const picked = actives[Number(prop.chooseindex || 2) - 2] || actives[0]
-  if (!picked) return
-
-  const values = (measureSides.value || []).map(v => (v === null || v === undefined) ? '' : String(v))
-  picked.inputvalue = values.slice()
-  prop.chooseindex = (actives.indexOf(picked) + 2).toString()
-  // Sync selectedproperty in the same shape used by changeinputvalue()
-  prop.selectedproperty = {
-    detailName: picked.detailName,
-    inputvalue: values.join('*'),
-    inputList: picked.inputList,
-    propertyId: prop.propertyId
-  }
-  // Trigger selection flow to recalc price/images
-  selectproperty(idx, prop.selectedproperty)
-  measureDrawerVisible.value = false
-}
-
 const handleGetrelated = async () => {
   try {
-    let catalogPathIdList = productinfo.value.catalogPathIdList
-    let recommendcateid = getCatalogId(catalogPathIdList)
+    let catalogIdPathList = productinfo.value.catalogIdPathList
+    let recommendcateid = getCatalogId(catalogIdPathList)
     let parmes = { catalogId: recommendcateid, size: 5, excludeProductId: productinfo.value.id }
     let res = await randomRecommendationProductByCatalogId(parmes)
     products.value = res.result
@@ -1570,6 +1162,7 @@ function getCurrentSkusOfProp(prop) {
   return Array.from(union)
 }
 
+/** 计算除第 i 个属性外，其它属性联合允许的 SKU 交集 */
 /** 计算除第 i 个属性外，其它属性联合允许的 SKU 交集 */
 function getAcceptableSkusExcept(indexToSkip) {
   const props = productinfo.value.normalPropertyList || []
@@ -1680,13 +1273,12 @@ const selectproperty = (index, type) => {
   let needinputproperty
   let ischoose = true
 
-  let needinputIndex = null
-  productinfo.value.normalPropertyList.forEach((element, idx2) => {
+  productinfo.value.normalPropertyList.forEach((element) => {
     if (isUndefinedOrEmptyObject(element.selectedproperty)) {
       ischoose = false
     }
 
-    if (element.isneedinput && Number(element.chooseindex) >= 2) {
+    if (element.isneedinput && element.chooseindex === 2) {
       // 仅找“当前选中的那一项”
       const actives = (element.needinputlist || []).filter(i => i.isactive !== false)
       // 优先用 chooseindex（= 2 起），回退用 selectedproperty.detailName 对齐
@@ -1698,74 +1290,32 @@ const selectproperty = (index, type) => {
       hasEmpty = inputvalue.some(v => v === '')
 
       needinputproperty = element
-      needinputIndex = idx2
     }
   })
 
-  // ✅ 仅在“输入全部完成后”才进行价格试算
-  if (needinputproperty) {
-    if (ischoose && !hasEmpty) {
-      // Custom input mode: we may still have a uniquely resolved SKU from non-custom props.
-      // Try resolving SKU using ONLY non-custom properties; if unique, keep/apply its first image.
-      const nonCustomSkuLists = productinfo.value.normalPropertyList
-        .filter(p => !(p.isneedinput && p.chooseindex === 2))
-        .map(p => p.selectedproperty?.skuList)
-        .filter(list => Array.isArray(list) && list.length > 0)
-
-      let resolvedSku = null
-      if (nonCustomSkuLists.length > 0) {
-        const intersection = nonCustomSkuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)))
-        if (intersection.length === 1) {
-          resolvedSku = intersection[0]
-        }
-      }
-
-      if (resolvedSku) {
-        // Preserve SKU image (or apply if not yet applied)
-        applySkuImagesIfAvailable(resolvedSku)
-      } else if (!skuPhotosActive.value) {
-        // If we don't already show a SKU image, fall back to original gallery
-        if (originalPhotoList.value?.length) updatePhotoList(originalPhotoList.value.map(it => ({ ...it })))
-      }
-
-      // Only trigger price calculation when custom inputs are fully filled
-      // 传递 needinputIndex 给 getbasePrice，让它在失败时记录
-      getbasePrice(needinputIndex)
-    } else {
-      // Custom inputs not complete → 不触发价格试算
-      // 同时避免误走“非自定义”分支
-      return
-    }
+  // ✅ 条件满足才调用
+  if (needinputproperty && ischoose && !hasEmpty) {
+    getcustomprice()    // 参数可省略
   } else if (ischoose) {
-    // 原有 SKU 路径（非自定义输入）
+    // 原有 SKU 路径…
     const skuLists = productinfo.value.normalPropertyList
       .map(p => p.selectedproperty?.skuList)
       .filter(list => Array.isArray(list) && list.length > 0)
     if (skuLists.length === 0) return
     const innersku = skuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)))
     const firstsku = innersku[0]
-    if (firstsku) {
-      // Optionally fetch price; main need: apply SKU images
-      // getskuprice(firstsku) // disabled upstream
-      applySkuImagesIfAvailable(firstsku)
-      // Also run price trial for non-custom selections when all chosen
-      // 非自定义路径，传递 null 表示不记录错误索引
-      getbasePrice(null)
-    } else {
-      // No resolved sku, revert
-      skuPhotosActive.value = false
-      if (originalPhotoList.value?.length) updatePhotoList(originalPhotoList.value.map(it => ({ ...it })))
-    }
-  } else {
-    // Not all properties chosen; revert any SKU image override
-    skuPhotosActive.value = false
-    if (originalPhotoList.value?.length) updatePhotoList(originalPhotoList.value.map(it => ({ ...it })))
+    if (firstsku) getskuprice(firstsku)
   }
 };
 
 const getskuprice = async (sku) => {
-  // Price fetching via mapping API is deprecated; keep as no-op unless backend exposes price in product.skuList
-  return
+  try {
+    let params = { skuList: [sku] }
+    let res = await getmapProductByProductSkuList(params)
+    let lists = res.result
+    let skuinfo = lists[sku]
+    skuprice.value = skuinfo.skuSpec.customPrice
+  } catch (error) { console.error(error) }
 }
 
 const opencartloding = () => { cartloding.value = true }
@@ -1787,8 +1337,7 @@ const resolveSkuForAction = async () => {
     if (isUndefinedOrEmptyObject(element.selectedproperty)) ischoose = false
 
     // 自定义输入模式：把 inputvalue 数组保存在 element.inputvalue，便于后续统一读取
-    // chooseindex >= 2 表示选中了任意一个自定义输入选项
-    if (element.isneedinput && Number(element.chooseindex) >= 2) {
+    if (element.isneedinput && element.chooseindex == 2) {
       const actives = (element.needinputlist || []).filter((it) => it.isactive)
       let picked = actives[element.chooseindex - 2]
       if (!picked && element.selectedproperty?.detailName) {
@@ -1820,8 +1369,7 @@ const resolveSkuForAction = async () => {
     })
 
     // 参与试算的 propList（仅用于价格试算/可视化，不影响建 SKU）
-    // chooseindex >= 2 表示选中了任意一个自定义输入选项
-    const isCustomInput = element.isneedinput && Number(element.chooseindex) >= 2
+    const isCustomInput = element.isneedinput && element.chooseindex === 2
     const propItem = { propertyNameShop: element.propertyNameShop, detailName: element.selectedproperty?.detailName }
     if (isCustomInput && element.selectedproperty?.inputvalue) {
       const inputArr = Array.isArray(element.selectedproperty.inputvalue)
@@ -1848,142 +1396,30 @@ const resolveSkuForAction = async () => {
 
   // 情况 A：存在自定义输入 —— 需创建临时 SKU
   if (needinputpropertyarr.length > 0) {
-    // 构建 skuPropList（与试算接口格式一致）
-    const skuPropList = []
-    const originProps = Array.isArray(productinfo.value?.propList) ? productinfo.value.propList : []
-
-    productinfo.value.normalPropertyList.forEach((p) => {
-      const sel = p.selectedproperty || {}
-      if (!sel || Object.keys(sel).length === 0) return
-
-      // Find original prop meta
-      const originProp = originProps.find(op => String(op.id) === String(p.propertyId))
-      if (!originProp) return
-
-      // Resolve selected propValue (id + enName)
-      let propValueId = sel.propertyDetailId
-      let propValueEnName = sel.detailName
-      if (!propValueId) {
-        const pv = (originProp.propValueList || []).find(v => v.enName === sel.detailName)
-        if (pv) {
-          propValueId = pv.id
-          propValueEnName = pv.enName
-        }
-      }
-      if (!propValueId) return
-
-      const item = {
-        propId: originProp.id,
-        propEnName: originProp.enName || '',
-        propZhName: originProp.zhName || '',
-        propValueId: propValueId,
-        propValueEnName: propValueEnName || ''
-      }
-
-      // Attach inputList for custom input properties
-      if (p.isneedinput && Number(p.chooseindex) >= 2) {
-        const originPV = (originProp.propValueList || []).find(v => String(v.id) === String(propValueId) || v.enName === propValueEnName)
-        const groups = Array.isArray(originPV?.groupList) ? originPV.groupList : []
-
-        // 合并所有 group 的 inputList
-        const flatInputs = []
-        groups.forEach(g => {
-          if (g.inputList && Array.isArray(g.inputList)) {
-            g.inputList.forEach(input => {
-              flatInputs.push({
-                inputId: input.inputId,
-                inputName: input.inputName
-              })
-            })
-          }
-        })
-
-        // Collect values from selection
-        let values = []
-        if (Array.isArray(sel.inputvalue)) values = sel.inputvalue.slice()
-        else if (typeof sel.inputvalue === 'string') values = sel.inputvalue.split('*')
-        else {
-          const actives = (p.needinputlist || []).filter(i => i.isactive !== false && i.disabled !== true)
-          const picked = actives[Number(p.chooseindex) - 2]
-          if (picked && Array.isArray(picked.inputvalue)) values = picked.inputvalue.slice()
-        }
-
-        // 构建完整的 inputList
-        item.inputList = flatInputs.map((fi, idx) => ({
-          inputId: fi.inputId,
-          inputName: fi.inputName,
-          inputValue: values[idx] != null ? String(values[idx]) : ''
-        }))
-      }
-
-      skuPropList.push(item)
-    })
-
-    // 获取 productSkuV2Id：从所有已选择属性的 SKU 交集中获取
-    let productSkuV2Id = ''
-    const allSelectedSkuLists = []
-
-    productinfo.value.normalPropertyList.forEach(p => {
-      let skuList = null
-
-      if (p.isneedinput && Number(p.chooseindex) >= 2) {
-        // 对于定制输入属性，从当前选择的定制选项中获取 skuList
-        const actives = (p.needinputlist || []).filter(i => i.isactive !== false && i.disabled !== true)
-        const picked = actives[Number(p.chooseindex) - 2]
-        if (picked && Array.isArray(picked.skuList) && picked.skuList.length > 0) {
-          skuList = picked.skuList
-        }
-      } else {
-        // 对于标准属性，从 selectedproperty 中获取 skuList
-        if (p.selectedproperty?.skuList && Array.isArray(p.selectedproperty.skuList) && p.selectedproperty.skuList.length > 0) {
-          skuList = p.selectedproperty.skuList
-        }
-      }
-
-      if (skuList) {
-        allSelectedSkuLists.push(skuList)
+    // 把自定义输入的 detailName 用 * 拼接，同时保留 detailList[0].inputvalue（数组）
+    needinputpropertyarr.forEach((needProp) => {
+      const target = selectproperlist.find(x => x.propertyId === needProp.propertyId)
+      if (target && target.detailList?.[0]) {
+        target.detailList[0].detailName = (needProp.inputvalue || []).join('*')
       }
     })
 
-    if (allSelectedSkuLists.length > 0) {
-      const skuIntersection = allSelectedSkuLists.reduce((acc, list) => acc.filter(sku => list.includes(sku)))
-      if (skuIntersection.length > 0) {
-        productSkuV2Id = String(skuIntersection[0])
-      }
-    }
-
-    // 按照 SKU 的 propList 顺序排序 skuPropList
-    if (productSkuV2Id) {
-      const skuInfo = (productinfo.value.skuList || []).find(
-        s => String(s.id) === productSkuV2Id || String(s.mallProductSkuId) === productSkuV2Id
-      )
-
-      if (skuInfo && Array.isArray(skuInfo.propList)) {
-        // 创建一个映射：propId -> 在 SKU propList 中的顺序
-        const propOrderMap = {}
-        skuInfo.propList.forEach((prop, idx) => {
-          propOrderMap[String(prop.propId)] = idx
-        })
-
-        // 按照 SKU propList 的顺序排序
-        skuPropList.sort((a, b) => {
-          const orderA = propOrderMap[String(a.propId)] ?? 9999
-          const orderB = propOrderMap[String(b.propId)] ?? 9999
-          return orderA - orderB
-        })
-      }
-    }
-
-    // 调用新的 erpTryToCreateSkuV2 接口
+    const variationList = productinfo.value.erpProduct.variationList
     const createData = {
-      productId: String(productinfo.value.id || ''),
-      productSkuV2Id: productSkuV2Id,
-      skuPropList
+      productId: productid.value,
+      productStyle: productinfo.value.erpProduct.productStyle,
+      propertyList: selectproperlist,
+      propList,
+      variationList: variationList || []
     }
 
-    const res = await erpTryToCreateSkuV2(createData)
-    console.log('erpTryToCreateSkuV2 result:', res)
-    const sku = res.result?.id
+    // edge1..n —— 从第一个 needinput 属性读
+    const edges = needinputpropertyarr[0]?.inputvalue || []
+    edges.forEach((v, i) => { createData[`edge${i + 1}`] = v || 0 })
+
+    // 请求创建
+    const res = await erpTryToCreateSku(createData)
+    const sku = res.result?.skuSpec?.sku
     if (!sku) throw new Error('Create SKU failed')
     return { sku, selectproperlist, needinputpropertyarr, propList }
   }
@@ -2035,7 +1471,7 @@ const addtocart = async () => {
     const { sku: selectsku } = await resolveSkuForAction()
 
     // 创建购物车
-    const data = { productQuantity: quantity.value, productSkuId: selectsku }
+    const data = { productQuantity: quantity.value, productSku: selectsku }
     await createCart(data)
 
     // FB Pixel
@@ -2064,7 +1500,7 @@ const addtocart = async () => {
           quantity: quantity.value,
           item_price: skuprice.value
         }],
-        description: productinfo.value.productEnglishName || ''
+        description: productinfo.value.erpProduct?.productEnglishName || ''
       })
       console.log('🟢 TikTok AddToCart sent:', selectsku)
     }
@@ -2154,7 +1590,7 @@ const createorder = async () => {
               price: Number(skuprice.value)
             }
           ],
-          description: productinfo.value.productEnglishName || ''
+          description: productinfo.value.erpProduct?.productEnglishName || ''
         })
         console.log('🟢 TikTok InitiateCheckout sent:', selectsku)
       } catch (e) {
@@ -2197,95 +1633,12 @@ if (lastpage) {
 const handleGetProudct = async () => {
   try {
     isLoading.value = true // 保持你原有写法
-    let parmes = { id: productid.value, needPropData: true, needPublishSkuData: true }
-    let res = await getProductSpuV2ById(parmes)
-    // updateBreadcrumbProduct(res.result.productEnglishName);
+    let parmes = { id: productid.value, needPropData: true, excludeUserCustomProp: true }
+    let res = await getProductById(parmes)
+    // updateBreadcrumbProduct(res.result.erpProduct.productEnglishName);
     orginproductinfo.value = res.result
     productinfo.value = res.result
-    skuprice.value = res.result.basePrice
-
-    // Transform new API structure to old structure
-    if (!productinfo.value.photoList && productinfo.value.fileList) {
-      // Transform fileList to photoList
-      productinfo.value.photoList = productinfo.value.fileList.map(file => ({
-        url: file.url,
-        type: file.type,
-        altText: file.altText
-      }))
-    }
-    // Cache original gallery after mapping + ensure fileList sync
-    if (Array.isArray(productinfo.value.photoList)) {
-      originalPhotoList.value = productinfo.value.photoList.map(it => ({ ...it }))
-      productinfo.value.fileList = productinfo.value.photoList.map(it => ({ url: it.url, type: it.type, altText: it.altText }))
-    }
-
-    // Map spu to productStyle for backward compatibility
-    if (productinfo.value.spu && !productinfo.value.productStyle) {
-      productinfo.value.productStyle = productinfo.value.spu
-    }
-
-    // Transform new API structure (propList) to old structure (normalPropertyList)
-    if (productinfo.value.propList && !productinfo.value.normalPropertyList) {
-      productinfo.value.normalPropertyList = productinfo.value.propList.map(prop => {
-        // Transform propValueList to detailList
-        const detailList = (prop.propValueList || []).map(propValue => {
-          const groups = Array.isArray(propValue.groupList) ? propValue.groupList : []
-          const inputNames = groups.flatMap(g => (g.inputList || []).map(i => i.inputName))
-          const groupsMeta = []
-          const inputMeta = [] // 保留每个输入框的完整元数据（包括 inputStart/inputEnd）
-          let start = 0
-          groups.forEach(g => {
-            const len = (g.inputList || []).length
-            groupsMeta.push({ name: g.groupName, start, length: len })
-              // 保存每个输入框的元数据
-              ; (g.inputList || []).forEach(input => {
-                inputMeta.push({
-                  inputId: input.inputId,
-                  inputName: input.inputName,
-                  inputStart: input.inputStart ?? 0,
-                  inputEnd: input.inputEnd ?? 10000,
-                  unit: input.unit || ''
-                })
-              })
-            start += len
-          })
-
-          return {
-            propertyDetailId: propValue.id,
-            detailName: propValue.enName,
-            propertyId: prop.id,
-            imageLink: propValue.imageUrlList?.[0] || '',
-            imageList: Array.isArray(propValue.imageUrlList) ? propValue.imageUrlList : [],
-            skuList: propValue.skuIdList || [], // Map skuIdList to skuList
-            isactive: true,
-            label: propValue.enName,
-            // Flattened input names for compatibility; keep group metadata for UI
-            inputList: inputNames.length ? inputNames : null,
-            groupsMeta: groupsMeta.length ? groupsMeta : null,
-            inputMeta: inputMeta.length ? inputMeta : null // 新增：保存输入框元数据
-          }
-        })
-
-        const hasAnyImg = detailList.some(d => !!d.imageLink)
-        return {
-          propertyId: prop.id,
-          propertyName: prop.enName || prop.zhName,
-          propertyNameShop: prop.enName,
-          propertyType: prop.type,
-          // carry special restrictions for downstream UI (e.g., measurement tool)
-          specialRestrictionList: Array.isArray(prop.specialRestrictionList) ? prop.specialRestrictionList : [],
-          productPropertyDetailType: hasAnyImg ? 'image' : 'text',
-          desc: prop.desc || '',
-          proposedDesc: prop.proposedDesc || '',
-          proposedView: prop.proposedView || false,
-          proposedViewType: prop.proposedViewType || 10,
-          detailList: detailList,
-          selectedproperty: {},
-          showType: false
-        }
-      })
-    }
-
+    skuprice.value = res.result.erpProduct.customPrice
     productinfo.value.normalPropertyList.forEach(element => {
       let noneedinputlist = ref([])
       let needinputlist = ref([])
@@ -2308,12 +1661,7 @@ const handleGetProudct = async () => {
       })
     })
     productinfo.value.normalPropertyList[0].showType = true
-    mainImage.value = productinfo.value.mainPic
-    // Ensure original gallery cache
-    if (Array.isArray(productinfo.value.photoList)) {
-      originalPhotoList.value = productinfo.value.photoList.map(it => ({ ...it }))
-      productinfo.value.fileList = productinfo.value.photoList.map(it => ({ url: it.url, type: it.type, altText: it.altText }))
-    }
+    mainImage.value = productinfo.value.erpProduct.mainPic
 
     // 新增：首次拉取后做一次全量双向可用性计算
     recomputeAvailabilityAndFix()
@@ -2333,92 +1681,19 @@ const handleGetProudct = async () => {
 
 const organizeproduct = () => {
   try {
-    // Transform new API structure to old structure
-    if (!productinfo.value.photoList && productinfo.value.fileList) {
-      // Transform fileList to photoList
-      productinfo.value.photoList = productinfo.value.fileList.map(file => ({
-        url: file.url,
-        type: file.type,
-        altText: file.altText
-      }))
-    }
-    // Cache original photos if present + ensure fileList sync
-    if (Array.isArray(productinfo.value.photoList)) {
-      originalPhotoList.value = productinfo.value.photoList.map(it => ({ ...it }))
-      productinfo.value.fileList = productinfo.value.photoList.map(it => ({ url: it.url, type: it.type, altText: it.altText }))
-    }
-
-    // Map spu to productStyle for backward compatibility
-    if (productinfo.value.spu && !productinfo.value.productStyle) {
-      productinfo.value.productStyle = productinfo.value.spu
-    }
-
-    // Transform new API structure (propList) to old structure (normalPropertyList)
-    if (productinfo.value.propList && !productinfo.value.normalPropertyList) {
-      productinfo.value.normalPropertyList = productinfo.value.propList.map(prop => {
-        // Transform propValueList to detailList with grouping meta
-        const detailList = (prop.propValueList || []).map(propValue => {
-          const groups = Array.isArray(propValue.groupList) ? propValue.groupList : []
-          const inputNames = groups.flatMap(g => (g.inputList || []).map(i => i.inputName))
-          const groupsMeta = []
-          const inputMeta = [] // 保留每个输入框的完整元数据（包括 inputStart/inputEnd）
-          let start = 0
-          groups.forEach(g => {
-            const len = (g.inputList || []).length
-            groupsMeta.push({ name: g.groupName, start, length: len })
-              // 保存每个输入框的元数据
-              ; (g.inputList || []).forEach(input => {
-                inputMeta.push({
-                  inputId: input.inputId,
-                  inputName: input.inputName,
-                  inputStart: input.inputStart ?? 0,
-                  inputEnd: input.inputEnd ?? 100,
-                  unit: input.unit || ''
-                })
-              })
-            start += len
-          })
-
-          return {
-            propertyDetailId: propValue.id,
-            detailName: propValue.enName,
-            propertyId: prop.id,
-            imageLink: Array.isArray(propValue.imageUrlList) ? (propValue.imageUrlList[0] || '') : '',
-            imageList: Array.isArray(propValue.imageUrlList) ? propValue.imageUrlList : [],
-            skuList: Array.isArray(propValue.skuIdList) ? propValue.skuIdList : [],
-            isactive: true,
-            label: propValue.enName,
-            inputList: inputNames.length ? inputNames : null,
-            groupsMeta: groupsMeta.length ? groupsMeta : null,
-            inputMeta: inputMeta.length ? inputMeta : null // 新增：保存输入框元数据
-          }
-        })
-
-        const hasAnyImg = detailList.some(d => !!d.imageLink)
-        return {
-          propertyId: prop.id,
-          propertyName: prop.enName || prop.zhName,
-          propertyNameShop: prop.enName,
-          propertyType: prop.type,
-          // carry special restrictions for downstream UI (e.g., measurement tool)
-          specialRestrictionList: Array.isArray(prop.specialRestrictionList) ? prop.specialRestrictionList : [],
-          productPropertyDetailType: hasAnyImg ? 'image' : 'text',
-          desc: prop.desc || '',
-          proposedDesc: prop.proposedDesc || '',
-          proposedView: prop.proposedView || false,
-          proposedViewType: prop.proposedViewType || 10,
-          detailList: detailList,
-          selectedproperty: {},
-          showType: false
-        }
-      })
-    }    // updateBreadcrumbProduct(productinfo.value.productEnglishName);
+    // updateBreadcrumbProduct(productinfo.value.erpProduct.productEnglishName);
     productinfo.value.normalPropertyList.forEach(element => {
       let noneedinputlist = ref([])
       let needinputlist = ref([])
       element.detailList.forEach(item => {
         item.isactive = true
         item.label = item.detailName
+        if (item.customDetailList) {
+          let sortedCustomDetailList = item.inputList.map(inputName =>
+            item.customDetailList.find(item => item.input === inputName)
+          )
+          item.customDetailList = sortedCustomDetailList
+        }
         if (item.inputList) {
           let inputvalue = []
           item.inputList.forEach(() => { inputvalue.push('') })
@@ -2440,8 +1715,9 @@ const organizeproduct = () => {
     for (let i = 0; i < productinfo.value.normalPropertyList.length; i++) {
       const prop = productinfo.value.normalPropertyList[i]
 
-      // ① 跳过需要自定义输入的属性（存在 needinputlist 即代表需输入）
-      if (prop.needinputlist && prop.needinputlist.length > 0) break
+      // ① 跳过含有 customDetailList（需要输入/下拉）的属性
+      const hasCustomDetail = prop.detailList?.some(d => d.customDetailList && d.customDetailList.length)
+      if (hasCustomDetail) break
 
       // ✅ 新增逻辑：
       // 如果 needinputlist 存在，并且里面有至少一个未禁用项，则设置 chooseindex = 2 并停止后续自动选择
@@ -2527,10 +1803,6 @@ const onChange = (val, property, index) => {
 }
 
 const changeinputvalue = (element, index, propertyindex) => {
-  // 清除错误状态（切换时立即清除，避免闪烁）
-  errorsize.value = ''
-  lastTrialPropIndex.value = null
-
   element.chooseindex = index
   let strresult = ''
   let detailName = ''
@@ -2553,177 +1825,41 @@ const changeinputvalue = (element, index, propertyindex) => {
   }
 }
 
-const getbasePrice = async (trialPropIndex = null) => {
-  try {
-    // Build skuPropList from current selections
-    const skuPropList = []
-    const originProps = Array.isArray(productinfo.value?.propList) ? productinfo.value.propList : []
-
-      ; (productinfo.value.normalPropertyList || []).forEach((p) => {
-        const sel = p.selectedproperty || {}
-        if (!sel || Object.keys(sel).length === 0) return
-
-        // Find original prop meta
-        const originProp = originProps.find(op => String(op.id) === String(p.propertyId))
-        if (!originProp) return
-
-        // Resolve selected propValue (id + enName)
-        let propValueId = sel.propertyDetailId
-        let propValueEnName = sel.detailName
-        if (!propValueId) {
-          const pv = (originProp.propValueList || []).find(v => v.enName === sel.detailName)
-          if (pv) {
-            propValueId = pv.id
-            propValueEnName = pv.enName
-          }
-        }
-        if (!propValueId) return
-
-        const item = {
-          propId: originProp.id,
-          propEnName: originProp.enName || '',
-          propZhName: originProp.zhName || '',
-          propValueId: propValueId,
-          propValueEnName: propValueEnName || ''
-        }
-
-        // Attach inputList for custom input properties (chooseindex >= 2 表示选中了自定义输入)
-        if (p.isneedinput && Number(p.chooseindex) >= 2) {
-          // Find corresponding origin propValue to get input ids/names
-          const originPV = (originProp.propValueList || []).find(v => String(v.id) === String(propValueId) || v.enName === propValueEnName)
-          const groups = Array.isArray(originPV?.groupList) ? originPV.groupList : []
-
-          // 合并所有 group 的 inputList
-          const flatInputs = []
-          groups.forEach(g => {
-            if (g.inputList && Array.isArray(g.inputList)) {
-              g.inputList.forEach(input => {
-                flatInputs.push({
-                  inputId: input.inputId,
-                  inputName: input.inputName
-                })
-              })
-            }
-          })
-
-          // Collect values from selection
-          let values = []
-          if (Array.isArray(sel.inputvalue)) values = sel.inputvalue.slice()
-          else if (typeof sel.inputvalue === 'string') values = sel.inputvalue.split('*')
-          else {
-            // fallback to needinput item
-            const actives = (p.needinputlist || []).filter(i => i.isactive !== false && i.disabled !== true)
-            const picked = actives[Number(p.chooseindex) - 2]
-            if (picked && Array.isArray(picked.inputvalue)) values = picked.inputvalue.slice()
-          }
-
-          // 构建完整的 inputList，包含所有 group 的输入
-          item.inputList = flatInputs.map((fi, idx) => ({
-            inputId: fi.inputId,
-            inputName: fi.inputName,
-            inputValue: values[idx] != null ? String(values[idx]) : ''
-          }))
-        }
-
-        skuPropList.push(item)
+const getcustomprice = async (inputvalue) => {
+  const propList = []
+  const sideMap = {}
+  const shapeProperty = productinfo.value.normalPropertyList.find(p => p.propertyNameShop === 'Shape')
+  const shape = shapeProperty?.selectedproperty?.detailName || ''
+  productinfo.value.normalPropertyList.forEach((property) => {
+    if (!property.selectedproperty) return
+    const isCustomInput = property.isneedinput && property.chooseindex === 2
+    let detailName = property.selectedproperty.detailName
+    const propItem = { propertyNameShop: property.propertyNameShop, detailName }
+    if (isCustomInput && property.selectedproperty.inputvalue) {
+      const inputArr = Array.isArray(property.selectedproperty.inputvalue)
+        ? property.selectedproperty.inputvalue
+        : String(property.selectedproperty.inputvalue).split('*')
+      propItem.inputList = inputArr.map((val, idx) => {
+        const inputKey = property.selectedproperty?.inputList?.[idx] || `side${idx + 1}`
+        sideMap[`side${idx + 1}`] = val
+        return { input: inputKey, customPropValue: val }
       })
-
-    const params = { productId: String(productinfo.value.id || ''), skuPropList }
-    const res = await trialPriceCalculationBySpuV4(params)
-    // Parse price from result: try basePrice, sellingPrice, price, or fallback to product base
-    const price = res?.result?.basePrice ?? 0
-    skuprice.value = Number(price) || 0
-    errorsize.value = ''
-    // 试算成功，清除错误索引
-    lastTrialPropIndex.value = null
-  } catch (error) {
-    // Try to parse structured error; fallback to message string
-    let msg = ''
-    try { msg = JSON.parse(error?.message || '{}')?.enDesc } catch { msg = error?.message }
-    errorsize.value = msg || 'Invalid input'
-
-    // 试算失败时，只有传入了有效的 trialPropIndex 才记录（自定义输入才显示错误）
-    if (trialPropIndex !== null && trialPropIndex !== undefined) {
-      lastTrialPropIndex.value = trialPropIndex
-    } else {
-      // 非自定义输入的错误，不显示在属性下（可以用其他方式提示用户）
-      lastTrialPropIndex.value = null
     }
+    propList.push(propItem)
+  })
+  const params = { spu: productinfo.value.erpProduct.productStyle, propList }
+  try {
+    const res = await trialPriceCalculationBySpuV3(params)
+    skuprice.value = res.result.sellingPrice
+    errorsize.value = ''
+  } catch (error) {
+    const errormsg = JSON.parse(error.message || '{}')
+    errorsize.value = errormsg.enDesc || 'Invalid input'
   }
 }
 
 const hasRange = (item) => {
   return (item.inputStart !== null && item.inputEnd !== null && item.inputStart !== undefined && item.inputEnd !== undefined && (item.inputStart !== 0 || item.inputEnd !== 0))
-}
-
-// 获取分组名称（不带范围和单位）
-function getGroupName(needinput, startIndex) {
-  if (!needinput?.groupsMeta) return ''
-  const group = needinput.groupsMeta.find(g => g.start === startIndex)
-  return group?.name || ''
-}
-
-// 获取输入框的范围限制（从 inputMeta 中）
-function getInputRange(needinput, inputIndex) {
-  if (!needinput?.inputMeta || !Array.isArray(needinput.inputMeta)) {
-    return { min: 0, max: 100 }
-  }
-  const meta = needinput.inputMeta[inputIndex]
-  if (!meta) return { min: 0, max: 100 }
-  return {
-    min: meta.inputStart ?? 0,
-    max: meta.inputEnd ?? 100
-  }
-}
-
-// 格式化自定义输入的显示：按分组展示，例如 "女 46 55 * 男 67 75"
-function getFormattedInputDisplay(property) {
-  // 转换 chooseindex 为数字进行比较
-  const chooseIndexNum = Number(property.chooseindex)
-  if (!property.isneedinput || chooseIndexNum < 2) {
-    return property.selectedproperty?.inputvalue || ''
-  }
-
-  // 找到当前选中的 needinput 项
-  const needinputlist = property.needinputlist || []
-  const chooseIndex = chooseIndexNum - 2
-  const activelist = needinputlist.filter(item => item.isactive !== false)
-  const picked = activelist[chooseIndex] || needinputlist.find(item =>
-    item.detailName === property.selectedproperty?.detailName
-  )
-
-  if (!picked || !picked.groupsMeta) {
-    return property.selectedproperty?.inputvalue || ''
-  }
-
-  // 获取输入值数组：优先从 picked.inputvalue，否则从 selectedproperty.inputvalue 按 * 分割
-  let inputValues = []
-  if (Array.isArray(picked.inputvalue)) {
-    inputValues = picked.inputvalue
-  } else if (property.selectedproperty?.inputvalue) {
-    inputValues = String(property.selectedproperty.inputvalue).split('*')
-  }
-
-  if (!inputValues.length) {
-    return property.selectedproperty?.inputvalue || ''
-  }
-
-  // 按分组拼接：每组显示 "GroupName value1 value2"，例如 "女 46 55 * 男 67 75"
-  const parts = []
-  picked.groupsMeta.forEach(group => {
-    const groupValues = []
-    for (let i = group.start; i < group.start + group.length; i++) {
-      const val = inputValues[i]
-      if (val !== '' && val !== null && val !== undefined) {
-        groupValues.push(val)
-      }
-    }
-    if (groupValues.length > 0) {
-      parts.push(`${group.name} ${groupValues.join(' ')}`)
-    }
-  })
-
-  return parts.length > 0 ? parts.join(' * ') : property.selectedproperty?.inputvalue || ''
 }
 
 const customFilter = (input, option) => {
@@ -2787,7 +1923,7 @@ const formatShanghaiToLocalDate = (shanghaiDate) => {
 
 const fetchComments = async () => {
   try {
-    const groupRes = await getgroupComment({ productId: productid.value })
+    const groupRes = await getgroupComment({ productSpu: productinfo.value.erpProduct.productStyle })
     const result = groupRes.result
     averageRating.value = result.averageRank || 0
     totalReviews.value = result.total || 0
@@ -2803,7 +1939,7 @@ const fetchComments = async () => {
     const rollRes = await getspuCommentProductRollPage({
       pageNum: currentPage.value,
       pageSize: pageSize.value,
-      productId: productid.value,
+      productSpu: productinfo.value.erpProduct.productStyle,
       needCount: true,
     })
     reviews.value = rollRes.result.list.map((review) => ({
@@ -2819,7 +1955,7 @@ const fetchComments = async () => {
     totalPages.value = Math.ceil(
       (rollRes.result.total > 0 ? rollRes.result.total : reviews.value.length) / pageSize.value
     )
-    if ((!productinfo.value.remarks || productinfo.value.remarks.trim() === '') &&
+    if ((!productinfo.value.erpProduct.remarks || productinfo.value.erpProduct.remarks.trim() === '') &&
       productinfo.value.printPropertyList.length === 0 &&
       reviews.value.length > 0) {
       tabindex.value = 3
@@ -2932,7 +2068,7 @@ const onVideoError = (index, review) => {
 
 watch(() => route.query, () => { handleGetProudct() }, { deep: true })
 watch(mainImageIndex, (newVal) => {
-  const list = productinfo.value.photoList
+  const list = productinfo.value.erpProduct.photoList
   if (list && list[newVal]) { mainImage.value = list[newVal].url }
   handleVideoPlayback()
 })
@@ -2952,8 +2088,8 @@ onMounted(() => {
     window.ttq.track('ViewContent', {
       content_id: String(productinfo.value.id || p.productId),
       content_type: 'product',
-      price: Number(p.basePrice ?? 0),
-      value: Number(p.basePrice ?? 0),
+      price: Number(p.customPrice ?? 0),
+      value: Number(p.customPrice ?? 0),
       currency: 'USD',
       description: p.productEnglishName || ''
     })
@@ -2984,52 +2120,8 @@ const slugify = (str) => {
   display: flex !important;
 }
 
-.zoom-box {
-  position: absolute;
-  border: 2px solid #00B2E3;
-  background: rgba(255, 255, 255, 0.3);
-  pointer-events: none;
-  z-index: 1000;
-  /* 设置高于属性选择部分 */
-  display: none;
-}
-
-.grid-container {
-  position: relative;
-  /* 确保 z-index 生效 */
-  z-index: 5;
-  /* 设置为较低层级 */
-}
-
-/* 右侧悬浮框，相对swiper-slide定位，脱离swiper-slide限制 */
-.zoom-preview-box {
-  position: absolute;
-  top: 50%;
-  left: calc(100% + 10px);
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 1);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  /* 可选：添加阴影提升视觉效果 */
-  border-radius: 8px;
-  /* 与模板一致 */
-}
-
-.zoomed-image {
-  width: 100%;
-  height: 100%;
-  background-repeat: no-repeat;
-  background-position: center;
-  border-radius: 8px;
-  /* 确保背景图圆角一致 */
-}
-
 .truncate-2-lines {
   display: -webkit-box;
-  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -3037,7 +2129,6 @@ const slugify = (str) => {
 
 .truncate-1-lines {
   display: -webkit-box;
-  line-clamp: 1;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -3097,6 +2188,12 @@ input[type="radio"]:focus-visible {
 }
 
 input[type="radio"]:focus {
+  outline: none;
+  box-shadow: none;
+  background-color: #00B2E3;
+}
+
+input[type="text"]:focus {
   outline: none;
   box-shadow: none;
   background-color: #00B2E3;
@@ -3219,11 +2316,12 @@ input[type="radio"]:checked:hover {
   box-shadow: none !important;
 }
 
+input:where(:not([type])):focus {}
+
 :deep(input[type='search']:focus) {
   outline: none !important;
   border-color: transparent !important;
   box-shadow: none !important;
-  appearance: none !important;
   -webkit-appearance: none !important;
 }
 
@@ -3320,13 +2418,12 @@ input[type="radio"]:checked:hover {
 
 .clamp-2 {
   display: -webkit-box;
-  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-:deep(.ant-input-number-focused) {
+:deep(.custom-input.ant-input-number-focused) {
   box-shadow: none !important;
 }
 </style>

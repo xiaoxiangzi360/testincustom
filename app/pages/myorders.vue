@@ -209,7 +209,24 @@ const ordervalue = ref('');
 const ordercount = ref(0);
 const showMore = ref({}); // Tracks which orders show all SKUs
 const { getOrderlists, groupUserOrderStatusCount } = OrderAuth();
+const token = useCookie('token')
+const userType = useCookie('userType', { sameSite: 'lax', path: '/' });
 
+
+const isuserTokenValid = computed(() => {
+    const isMember = userType.value === 1 || userType.value === '1'
+    return !!token.value && isMember
+})
+const checkUserAuthentication = () => {
+    if (!isuserTokenValid.value) {
+        router.push('/login'); // 跳转到登录页
+        return; // 阻止后续代码执行
+    }
+
+    // 用户身份验证通过，继续执行后续代码
+    console.log('User is authenticated');
+};
+checkUserAuthentication()
 const setCancleOrder = async (id) => {
     Modal.confirm({
         title: 'Confirm',

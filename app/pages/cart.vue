@@ -35,25 +35,24 @@
                                                 <input type="checkbox" v-model="item.selected" @change="updateSelection"
                                                     class="rounded w-4 h-4" />
                                                 <div class="w-16 h-16 overflow-hidden rounded-lg">
-                                                    <img :src="item.productImage || item.product?.mainPic"
-                                                        @click="checkdetai(item.product?.id, item.productSku, item.productName)"
+                                                    <img :src="item.product.erpProduct.mainPic"
+                                                        @click="checkdetai(item.product.id, item.productSku, item.product.erpProduct.productEnglishName)"
                                                         alt="Product image"
                                                         class="w-16 h-16 object-cover cursor-pointer" />
                                                 </div>
                                                 <div class="flex-1">
                                                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
-                                                        :title="item.productName"
+                                                        :title="item.product.erpProduct.productEnglishName"
                                                         :overlayStyle="{ maxWidth: '250px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
                                                         <div class="text-sm font-medium text-black truncate-1-lines">
-                                                            {{ item.productName }}
+                                                            {{ item.product.erpProduct.productEnglishName }}
                                                         </div>
                                                     </Tooltip>
                                                     <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
-                                                        :title="item.skuData?.propList ? getSpecAttrFromPropList(item.skuData.propList) : ''"
+                                                        :title="item.product.skuSpec.specAttr"
                                                         :overlayStyle="{ maxWidth: '250px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
                                                         <div class="text-xs text-[#8E8E8E] truncate-1-lines mt-1">
-                                                            {{ item.skuData?.propList ?
-                                                                getSpecAttrFromPropList(item.skuData.propList) : '' }}
+                                                            {{ item.product.skuSpec.specAttr }}
                                                         </div>
                                                     </Tooltip>
                                                 </div>
@@ -62,11 +61,11 @@
                                             <div class="flex justify-between items-center">
                                                 <div>
                                                     <div class="text-sm text-gray-900">
-                                                        Price: ${{ item.productPrice.toFixed(2) }}
+                                                        Price: ${{ item.product.skuSpec.customPrice.toFixed(2) }}
                                                     </div>
                                                     <div class="text-sm text-gray-900 mt-1">
                                                         Subtotal:
-                                                        ${{ (item.productPrice *
+                                                        ${{ (item.product.skuSpec.customPrice *
                                                             item.productQuantity).toFixed(2) }}
                                                     </div>
                                                 </div>
@@ -105,25 +104,25 @@
                                     <td class="py-4 w-80 hidden md:table-cell">
                                         <div class="flex lg:items-center gap-4">
                                             <div class="w-20 h-20 lg:w-24 lg:h-24 overflow-hidden">
-                                                <img :src="item.productImage || item.product?.mainPic"
-                                                    @click="checkdetai(item.product?.id, item.productSku, item.productName)"
+                                                <img :src="item.product.erpProduct.mainPic"
+                                                    @click="checkdetai(item.product.id, item.productSku, item.product.erpProduct.productEnglishName)"
                                                     alt="Product image"
                                                     class="w-20 h-20 lg:w-24 lg:h-24 object-cover cursor-pointer rounded-lg" />
                                             </div>
                                             <div class="w-52">
                                                 <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
-                                                    :title="item.productName"
+                                                    :title="item.product.erpProduct.productEnglishName"
                                                     :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
                                                     <div
                                                         class="text-sm lg:text-lg font-medium text-blackcolor truncate-1-lines max-w-52">
-                                                        {{ item.productName }}
+                                                        {{ item.product.erpProduct.productEnglishName }}
                                                     </div>
                                                 </Tooltip>
                                                 <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
-                                                    :title="getSpecAttrFromPropList(item.skuData?.propList)"
+                                                    :title="item.product.skuSpec.specAttr"
                                                     :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
                                                     <div class="text-sm text-[#8E8E8E] truncate-1-lines max-w-52 mt-1">
-                                                        {{ getSpecAttrFromPropList(item.skuData?.propList) }}
+                                                        {{ item.product.skuSpec.specAttr }}
                                                     </div>
                                                 </Tooltip>
                                             </div>
@@ -131,7 +130,7 @@
                                     </td>
 
                                     <td class="py-4 pl-4 text-center p-6 text-gray-900 hidden md:table-cell">
-                                        {{ item.productPrice.toFixed(2) }}
+                                        {{ item.product.skuSpec.customPrice.toFixed(2) }}
                                     </td>
 
                                     <td class="py-4 text-center w-28 hidden md:table-cell">
@@ -153,7 +152,7 @@
                                     </td>
 
                                     <td class="py-4 pl-4 text-center p-6 text-gray-900 hidden md:table-cell">
-                                        ${{ (item.productPrice * item.productQuantity).toFixed(2) }}
+                                        {{ (item.product.skuSpec.customPrice * item.productQuantity).toFixed(2) }}
                                     </td>
 
                                     <td class="py-4 pl-4 text-center p-6 hidden md:table-cell">
@@ -197,7 +196,7 @@
                                         <div class="flex flex-col gap-4">
                                             <div class="flex items-center gap-4">
                                                 <div class="w-20 h-20 overflow-hidden rounded relative cursor-pointer">
-                                                    <img :src="item.product ? item.product.mainPic : ''"
+                                                    <img :src="item.product ? item.product.erpProduct.mainPic : ''"
                                                         alt="Product image" class="w-full h-full object-cover" />
                                                     <div
                                                         class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -206,13 +205,11 @@
                                                 </div>
                                                 <div>
                                                     <div class="font-medium text-base">
-                                                        {{ item.product ? item.product.productEnglishName ||
-                                                            item.product.productName :
+                                                        {{ item.product ? item.product.erpProduct.productEnglishName :
                                                             '' }}
                                                     </div>
-                                                    <p class="text-xs text-gray-500">{{ item.product?.skuData ?
-                                                        getSpecAttrFromPropList(item.product.skuData.propList) : ''
-                                                    }}</p>
+                                                    <p class="text-xs text-gray-500">{{ item.product?.skuSpec?.specAttr
+                                                        }}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -222,8 +219,8 @@
                                     <td class="py-4 pl-6 p-6 hidden md:table-cell">
                                         <div class="flex items-center gap-6">
                                             <div class="w-24 h-24 overflow-hidden rounded relative cursor-pointer">
-                                                <img :src="item.product ? item.product.mainPic : ''" alt="Product image"
-                                                    class="w-full h-full object-cover" />
+                                                <img :src="item.product ? item.product.erpProduct.mainPic : ''"
+                                                    alt="Product image" class="w-full h-full object-cover" />
                                                 <div
                                                     class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                                                     <span class="text-white text-base">Invalid</span>
@@ -231,11 +228,9 @@
                                             </div>
                                             <div>
                                                 <div class="font-medium text-lg">
-                                                    {{ item.product ? item.product.productEnglishName ||
-                                                        item.product.productName : '' }}
+                                                    {{ item.product ? item.product.erpProduct.productEnglishName : '' }}
                                                 </div>
-                                                <p class="text-sm text-gray-500">{{ item.product?.skuData ?
-                                                    getSpecAttrFromPropList(item.product.skuData.propList) : '' }}
+                                                <p class="text-sm text-gray-500">{{ item.product?.skuSpec?.specAttr }}
                                                 </p>
                                             </div>
                                         </div>
@@ -324,29 +319,11 @@ const isDesktop = ref(false)
 
 const selectedItems = computed(() => cart.itemList.filter(item => item.selected))
 const selectedTotal = computed(() =>
-    selectedItems.value.reduce((total, item) => total + item.productPrice * item.productQuantity, 0),
+    selectedItems.value.reduce((total, item) => total + item.product.skuSpec.customPrice * item.productQuantity, 0),
 )
 const selectedQuantity = computed(() =>
     selectedItems.value.reduce((sum, item) => sum + item.productQuantity, 0),
 )
-
-// 从 propList 构建规格属性字符串
-const getSpecAttrFromPropList = (propList: any[]) => {
-    if (!propList || !Array.isArray(propList)) return ''
-
-    const specParts = propList.map(prop => {
-        if (prop.inputList && prop.inputList.length > 0) {
-            // 自定义输入属性
-            const inputValues = prop.inputList.map((input: any) => `${input.inputName}: ${input.inputValue}`).join(', ')
-            return `${prop.propEnName}: ${inputValues}`
-        } else {
-            // 标准属性
-            return `${prop.propEnName}: ${prop.propValueEnName}`
-        }
-    })
-
-    return specParts.join(' | ')
-}
 
 const validate = (index: number) => {
     if (cart.itemList[index].productQuantity < min) cart.itemList[index].productQuantity = min

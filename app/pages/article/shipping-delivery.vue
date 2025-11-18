@@ -70,10 +70,11 @@
     </div>
 </template>
 
-<script setup lang="ts">
-// No dynamic script needed for static FAQ content
+<script setup>
+useHead({
+    title: 'Shipping & Delivery Policy | inCustom Custom Products',
+    meta: [
+        { name: 'description', content: 'Get all the details on inCustom shipping. Learn about our production times, delivery options, and tracking info. We ship your unique, custom creations worldwide.' }
+    ]
+})
 </script>
-
-<style scoped>
-/* Optional styling customization */
-</style>

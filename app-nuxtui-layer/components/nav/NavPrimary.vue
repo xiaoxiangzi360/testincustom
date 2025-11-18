@@ -10,7 +10,7 @@ const { isMobileMenuOpen, openMobileMenu } = useMobileMenu()
 
 // ============ 类型 ============
 interface CatalogItem {
-  id: number;
+  catalogId: number;
   catalogEnName: string;
   catalogName: string;
   children?: CatalogItem[];
@@ -21,7 +21,7 @@ interface CatalogItem {
 const emit = defineEmits<{ (e: 'closeSlideover'): void }>()
 
 // API（你原有）
-const { listOnlineMallProductCatalogTree } = ProductAuth();
+const { getlistOnlineCatalogTree } = ProductAuth();
 
 // ============ 分类数据 ============
 const catemenu = ref<CatalogItem[]>([])
@@ -38,11 +38,18 @@ const expandedLevel2 = reactive<{ [key: number]: number | null }>({})
 const getcatelist = async () => {
   isLoading.value = true
   try {
-    const res = await listOnlineMallProductCatalogTree()
-    const cate = res.treeList
-    catemenu.value = cate
-    menuData.value = cate
-    recommendData.value = cate.filter(item => item.recommend === true)
+    const res = await getlistOnlineCatalogTree()
+    if (!res || !res.result || !Array.isArray(res.result) || res.result.length === 0) {
+      console.warn('未获取到有效的分类数据')
+      return
+    }
+    const result = res.result
+    const cate = result[0]
+    if (cate?.children?.length) {
+      catemenu.value = cate.children
+      menuData.value = cate.children
+      recommendData.value = cate.children.filter(item => item.recommend === true)
+    }
   } catch (e) {
     console.error('获取产品分类错误:', e)
   } finally {
@@ -433,10 +440,10 @@ onMounted(async () => {
 
       <transition name="slide-down">
         <div v-if="expandedLevel1 === -1" class="pl-4">
-          <div v-for="(item, i) in menuData" :key="item.id" class="category-level-2">
+          <div v-for="(item, i) in menuData" :key="item.catalogId" class="category-level-2">
             <div class="flex items-center justify-between p-3 border-b border-b-blackcolor/10 "
               @click="toggleLevel2(-1, i, $event)">
-              <div @click="navigate(formatCatalogPath(item.catalogEnName || item.catalogName, item.id), $event)">
+              <div @click="navigate(formatCatalogPath(item.catalogEnName || item.catalogName, item.catalogId), $event)">
                 <span>{{ item.catalogEnName || item.catalogName }}</span>
               </div>
 
@@ -447,9 +454,10 @@ onMounted(async () => {
 
             <transition name="slide-down">
               <div v-if="expandedLevel2[-1] === i" class="pl-4">
-                <div v-for="(sub, j) in item?.children" :key="sub.id" class="category-level-3">
+                <div v-for="(sub, j) in item?.children" :key="sub.catalogId" class="category-level-3">
                   <div class="flex items-center justify-between p-3 border-b border-b-blackcolor/10">
-                    <div @click="navigate(formatCatalogPath(sub.catalogEnName || sub.catalogName, sub.id), $event)">
+                    <div
+                      @click="navigate(formatCatalogPath(sub.catalogEnName || sub.catalogName, sub.catalogId), $event)">
                       <span>{{ sub.catalogEnName || sub.catalogName }}</span>
                     </div>
 
@@ -463,10 +471,11 @@ onMounted(async () => {
     </div>
 
     <!-- 推荐分类 -->
-    <div v-for="(category, index) in recommendData" :key="category.id" class="mobile-category-item">
+    <div v-for="(category, index) in recommendData" :key="category.catalogId" class="mobile-category-item">
       <div class="category-level-1 flex items-center justify-between p-3 border-b border-b-blackcolor/10 last:border-0"
         @click="toggleLevel1(index, $event)">
-        <div @click="navigate(formatCatalogPath(category.catalogEnName || category.catalogName, category.id), $event)">
+        <div
+          @click="navigate(formatCatalogPath(category.catalogEnName || category.catalogName, category.catalogId), $event)">
           <span>{{ category.catalogEnName || category.catalogName }}</span>
         </div>
 
@@ -477,10 +486,10 @@ onMounted(async () => {
 
       <transition name="slide-down">
         <div v-if="expandedLevel1 === index" class="pl-4">
-          <div v-for="(sub, j) in category?.children" :key="sub.id" class="category-level-2">
+          <div v-for="(sub, j) in category?.children" :key="sub.catalogId" class="category-level-2">
             <div class="flex items-center justify-between p-3 border-b border-b-blackcolor/10"
               @click="toggleLevel2(index, j, $event)">
-              <div @click="navigate(formatCatalogPath(sub.catalogEnName || sub.catalogName, sub.id), $event)">
+              <div @click="navigate(formatCatalogPath(sub.catalogEnName || sub.catalogName, sub.catalogId), $event)">
                 <span>{{ sub.catalogEnName || sub.catalogName }}</span>
               </div>
 
@@ -491,9 +500,9 @@ onMounted(async () => {
 
             <transition name="slide-down">
               <div v-if="expandedLevel2[index] === j" class="pl-4">
-                <div v-for="child in sub?.children" :key="child.id" class="category-level-3">
+                <div v-for="child in sub?.children" :key="child.catalogId" class="category-level-3">
                   <div class="flex items-center justify-between p-3 border-b border-b-blackcolor/10"
-                    @click="navigate(formatCatalogPath(child.catalogEnName || child.catalogName, child.id), $event)">
+                    @click="navigate(formatCatalogPath(child.catalogEnName || child.catalogName, child.catalogId), $event)">
                     <span>{{ child.catalogEnName || child.catalogName }}</span>
                   </div>
 
@@ -521,8 +530,9 @@ onMounted(async () => {
         @mouseleave="hoverLevel1 = null; hoverLevel2 = null; hoverSub = null">
         <!-- 一级 -->
         <ul class="text-sm w-60">
-          <li v-for="(item, i) in menuData" :key="item.id" class="group" @mouseenter="hoverLevel2 = i; hoverSub = null">
-            <NuxtLink :to="formatCatalogPath(item.catalogEnName || item.catalogName, item.id)"
+          <li v-for="(item, i) in menuData" :key="item.catalogId" class="group"
+            @mouseenter="hoverLevel2 = i; hoverSub = null">
+            <NuxtLink :to="formatCatalogPath(item.catalogEnName || item.catalogName, item.catalogId)"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap w-full"
               @click="emit('closeSlideover')">
               <span>{{ item.catalogEnName || item.catalogName }}</span>
@@ -534,9 +544,9 @@ onMounted(async () => {
 
         <!-- 二级 -->
         <ul v-if="hoverLevel2 !== null && menuData[hoverLevel2]?.children" class="text-sm w-60">
-          <li v-for="(sub, j) in menuData[hoverLevel2]?.children" :key="sub.id" class="group"
+          <li v-for="(sub, j) in menuData[hoverLevel2]?.children" :key="sub.catalogId" class="group"
             @mouseenter="hoverSub = j">
-            <NuxtLink :to="formatCatalogPath(sub.catalogEnName || sub.catalogName, sub.id)"
+            <NuxtLink :to="formatCatalogPath(sub.catalogEnName || sub.catalogName, sub.catalogId)"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap"
               @click="emit('closeSlideover')">
               <span>{{ sub.catalogEnName || sub.catalogName }}</span>
@@ -549,8 +559,8 @@ onMounted(async () => {
         <!-- 三级 -->
         <ul v-if="hoverLevel2 !== null && hoverSub !== null && menuData[hoverLevel2]?.children?.[hoverSub]?.children"
           class="text-sm w-60">
-          <li v-for="child in menuData[hoverLevel2]?.children?.[hoverSub]?.children" :key="child.id">
-            <NuxtLink :to="formatCatalogPath(child.catalogEnName || child.catalogName, child.id)"
+          <li v-for="child in menuData[hoverLevel2]?.children?.[hoverSub]?.children" :key="child.catalogId">
+            <NuxtLink :to="formatCatalogPath(child.catalogEnName || child.catalogName, child.catalogId)"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] cursor-pointer whitespace-nowrap"
               @click="emit('closeSlideover')">
               {{ child.catalogEnName || child.catalogName }}
@@ -561,10 +571,10 @@ onMounted(async () => {
     </div>
 
     <!-- 分类按钮 -->
-    <div v-for="(category, index) in recommendData" :key="category.id"
+    <div v-for="(category, index) in recommendData" :key="category.catalogId"
       class="relative flex items-center p-2 cursor-pointer whitespace-nowrap" @mouseenter="hoverRecommend = index"
       @mouseleave="hoverRecommend = null; hoverRecommendSub = null">
-      <NuxtLink :to="formatCatalogPath(category.catalogEnName || category.catalogName, category.id)"
+      <NuxtLink :to="formatCatalogPath(category.catalogEnName || category.catalogName, category.catalogId)"
         class="text-base duration-200 border border-transparent md:border-none leading-none"
         @click="emit('closeSlideover')">
         {{ category.catalogEnName || category.catalogName }}
@@ -574,8 +584,9 @@ onMounted(async () => {
         v-if="hoverRecommend === index && category?.children?.length">
         <!-- 二级 -->
         <ul class="text-sm w-60">
-          <li v-for="(sub, j) in category?.children" :key="sub.id" class="group" @mouseenter="hoverRecommendSub = j">
-            <NuxtLink :to="formatCatalogPath(sub.catalogEnName || sub.catalogName, sub.id)"
+          <li v-for="(sub, j) in category?.children" :key="sub.catalogId" class="group"
+            @mouseenter="hoverRecommendSub = j">
+            <NuxtLink :to="formatCatalogPath(sub.catalogEnName || sub.catalogName, sub.catalogId)"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap"
               @click="emit('closeSlideover')">
               <span>{{ sub.catalogEnName || sub.catalogName }}</span>
@@ -586,8 +597,8 @@ onMounted(async () => {
         </ul>
         <!-- 三级 -->
         <ul v-if="hoverRecommendSub !== null && category?.children?.[hoverRecommendSub]?.children" class="text-sm w-60">
-          <li v-for="child in category?.children?.[hoverRecommendSub]?.children" :key="child.id">
-            <NuxtLink :to="formatCatalogPath(child.catalogEnName || child.catalogName, child.id)"
+          <li v-for="child in category?.children?.[hoverRecommendSub]?.children" :key="child.catalogId">
+            <NuxtLink :to="formatCatalogPath(child.catalogEnName || child.catalogName, child.catalogId)"
               class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] cursor-pointer whitespace-nowrap"
               @click="emit('closeSlideover')">
               {{ child.catalogEnName || child.catalogName }}

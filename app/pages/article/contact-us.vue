@@ -55,7 +55,12 @@
 <script setup>
 import { ref } from 'vue'
 import { message } from 'ant-design-vue'
-
+useHead({
+    title: 'Contact Us - Customer Support',
+    meta: [
+        { name: 'description', content: 'Need help? Our inCustom support team is here for you. Find our contact form, email address, and expected response times here.' }
+    ]
+})
 const { createContactUs } = useAuth()
 
 const name = ref('')

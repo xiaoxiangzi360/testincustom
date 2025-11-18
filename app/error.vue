@@ -31,10 +31,10 @@ function handleError() {
     <div class="lg:min-h-[500px] flex flex-col bg-white">
       <!-- 主体 -->
       <main class="flex flex-col flex-1 items-center justify-center text-center p-6">
-        <!-- <h1 class="text-[60px] font-extrabold text-primary mb-2">404</h1>
-        <p class="text-xl font-medium text-gray-800 mb-3">Page Not Found</p> -->
+        <h1 class="text-[60px] font-extrabold text-primary mb-2">404</h1>
+        <p class="text-xl font-medium text-gray-800 mb-3">Page Not Found</p>
         <p class="text-gray-500 mb-8 max-w-md">
-          The product you want to access has been removed from the shelves. We recommend you to view similar products.
+          The product you're looking for might be unpublished or no longer available.
         </p>
 
         <UButton color="primary" size="lg" class="px-8 py-3 rounded-md" @click="handleError">

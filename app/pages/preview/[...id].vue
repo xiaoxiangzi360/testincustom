@@ -774,7 +774,7 @@ import { Splide, SplideSlide } from '@splidejs/vue-splide'
 import '@splidejs/vue-splide/css'
 const { addToCartEvent, initiateCheckout } = useFbq({ currency: 'USD' })
 const { viewItem, addToCart: trackAddToCart, beginCheckout } = useTrack()
-const { getProductById, getProductDetailsById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV4, erpTryToCreateSkuV2, getmapProductSpuV2ByProductSkuV2IdList } = ProductAuth()
+const { getProductById, getProductDetailsById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV3, erpTryToCreateSku, getmapProductByProductSkuList } = ProductAuth()
 const { createCart } = cartAuth()
 const { getspuCommentProductRollPage, getgroupComment } = CommentAuth()
 const { getUserInfo } = useAuth()
@@ -1305,7 +1305,7 @@ const selectproperty = (index, type) => {
 const getskuprice = async (sku) => {
   try {
     let params = { skuList: [sku] }
-    let res = await getmapProductSpuV2ByProductSkuV2IdList(params)
+    let res = await getmapProductByProductSkuList(params)
     let lists = res.result
     let skuinfo = lists[sku]
     skuprice.value = skuinfo.skuSpec.customPrice
@@ -1412,7 +1412,7 @@ const resolveSkuForAction = async () => {
     edges.forEach((v, i) => { createData[`edge${i + 1}`] = v || 0 })
 
     // 请求创建
-    const res = await erpTryToCreateSkuV2(createData)
+    const res = await erpTryToCreateSku(createData)
     const sku = res.result?.skuSpec?.sku
     if (!sku) throw new Error('Create SKU failed')
     return { sku, selectproperlist, needinputpropertyarr, propList }
@@ -1843,7 +1843,7 @@ const getcustomprice = async (inputvalue) => {
   })
   const params = { spu: productinfo.value.erpProduct.productStyle, propList }
   try {
-    const res = await trialPriceCalculationBySpuV4(params)
+    const res = await trialPriceCalculationBySpuV3(params)
     skuprice.value = res.result.sellingPrice
     errorsize.value = ''
   } catch (error) {

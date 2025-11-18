@@ -3,15 +3,14 @@
 // @unocss-include
 
 export default {
-  title: 'Incustom',
+  title: 'Unique but Affordable Custom Products | Design Your Own Online | inCustom',
   description:
-    'Incustom – A one-stop product customization platform to easily create your own unique items.',
+    'inCustom proves that personalization doesn\'t have to be expensive. Create Unique but Affordable custom products and personalized gifts with our easy online tool. Design yours today!',
   logo: 'incustom.png',
   author: 'Pinegrow',
-  url: 'https://incustom.com',
-  github: 'https://github.com/pinegrow/pg-nuxtui',
-  ogImageUrl: 'og-image.jpg', // absolute url (or) from public folder
-  generator: 'https://vuedesigner.com',
+  url: 'https://www.incustom.com',
+  ogImageUrl: 'og-image.png', // absolute url (or) from public folder
+  generator: 'https://www.incustom.com',
   defaultLocale: 'en', // default
   identity: {
     type: 'Organization',

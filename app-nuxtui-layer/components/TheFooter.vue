@@ -41,8 +41,12 @@
               <template #item="{ item }">
                 <div class="pb-4 space-y-3">
                   <template v-if="item.type !== 'trust'">
-                    <NuxtLink v-for="(link, i) in item.links" :key="i" :to="link.to"
-                      class="block hover:text-primary text-white/80">{{ link.label }}</NuxtLink>
+                    <template v-for="(link, i) in item.links" :key="i">
+                      <NuxtLink v-if="!needsTokenValidation(link.label)" :to="link.to"
+                        class="block hover:text-primary text-white/80">{{ link.label }}</NuxtLink>
+                      <a v-else @click="handleAccountNavigation(link)"
+                        class="block hover:text-primary text-white/80 cursor-pointer">{{ link.label }}</a>
+                    </template>
                   </template>
                   <template v-else>
                     <div class="space-y-2">
@@ -63,8 +67,12 @@
           <div class="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-8">
             <div v-for="(section, idx) in sections" :key="'sec-' + idx">
               <p class="font-medium text-lg mb-5">{{ section.title }}</p>
-              <NuxtLink v-for="(link, i) in section.links" :key="i" :to="link.to"
-                class="block hover:text-primary mt-3 text-white/80 text-sm">{{ link.label }}</NuxtLink>
+              <template v-for="(link, i) in section.links" :key="i">
+                <NuxtLink v-if="!needsTokenValidation(link.label)" :to="link.to"
+                  class="block hover:text-primary mt-3 text-white/80 text-sm">{{ link.label }}</NuxtLink>
+                <a v-else @click="handleAccountNavigation(link)"
+                  class="block hover:text-primary mt-3 text-white/80 text-sm cursor-pointer">{{ link.label }}</a>
+              </template>
             </div>
 
             <!-- Trust & Payment 列 -->
@@ -100,7 +108,7 @@
 
         <!-- 中间：语言 & 支付 -->
         <div class="flex flex-wrap items-center gap-2">
-          <NuxtImg format="webp" v-for="(item, idx) in payicons" :key="'pay-' + idx" :src="item" class="h-[30px]" />
+          <NuxtImg format="webp" v-for="(item, idx) in payicons" :key="'pay-' + idx" :src="item" class="h-[26px]" />
         </div>
 
         <!-- 右侧：保障 + 社媒 -->
@@ -130,7 +138,47 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const token = useCookie('token')
+const userType = useCookie('userType', { sameSite: 'lax', path: '/' })
+
+const isuserTokenValid = computed(() => {
+  const isMember = userType.value === 1 || userType.value === '1'
+  return !!token.value && isMember
+})
+
+const needsTokenValidation = (linkLabel) => {
+  const protectedLinks = ['My Account', 'My Returns', 'Tracking My Order']
+  return protectedLinks.includes(linkLabel)
+}
+
+const handleAccountNavigation = (link) => {
+  if (!isuserTokenValid.value) {
+    router.push('/login')
+    return
+  }
+
+  // 根据不同的链接跳转到相应页面
+  switch (link.label) {
+    case 'Tracking My Order':
+      router.push('/myorders')
+      break
+    case 'My Account':
+    case 'My Returns':
+      router.push(link.to)
+      break
+    default:
+      router.push(link.to)
+  }
+}
+
+// 保持向后兼容
+const handleTrackingNavigation = () => {
+  handleAccountNavigation({ label: 'Tracking My Order', to: '/myorders' })
+}
 
 /** 社媒图标（保持你原来的 hover 切换） */
 const medialist = [

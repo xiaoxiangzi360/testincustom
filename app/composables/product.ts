@@ -2,10 +2,10 @@ export const ProductAuth = () => {
   const { $api } = useNuxtApp()
 
 
-  const getProductSpuV2ById = async (params) => {
+  const getProductById = async (params) => {
     try {
       const query = new URLSearchParams(params).toString()
-      const response = await $api(`/product/product/getProductSpuV2ById?${query}`, {
+      const response = await $api(`/product/product/getProductById?${query}`, {
         method: 'GET',
       })
 
@@ -69,9 +69,9 @@ export const ProductAuth = () => {
       throw error
     }
   }
-  const getmapProductSpuV2ByProductSkuV2IdList = async (params) => {
+  const getmapProductByProductSkuList = async (params) => {
     try {
-      const response = await $api('/product/product//mapProductSpuV2ByProductSkuV2IdList', {
+      const response = await $api('/product/product//mapProductByProductSkuList', {
         method: 'POST',
         body: params,
       })
@@ -95,9 +95,9 @@ export const ProductAuth = () => {
       throw error
     }
   }
-  const trialPriceCalculationBySpuV4 = async (params) => {
+  const trialPriceCalculationBySpuV2 = async (params) => {
     try {
-      const response = await $api('/product/product/trialPriceCalculationBySpuV4', {
+      const response = await $api('/product/spuMeter/trialPriceCalculationBySpuV2', {
         method: 'POST',
         body: params,
       })
@@ -108,9 +108,22 @@ export const ProductAuth = () => {
       throw error
     }
   }
-  const erpTryToCreateSkuV2 = async (params) => {
+  const trialPriceCalculationBySpuV3 = async (params) => {
     try {
-      const response = await $api('/product/product/erpTryToCreateSkuV2', {
+      const response = await $api('/product/spuMeter/trialPriceCalculationBySpuV3', {
+        method: 'POST',
+        body: params,
+      })
+
+      return response
+    } catch (error) {
+
+      throw error
+    }
+  }
+  const erpTryToCreateSku = async (params) => {
+    try {
+      const response = await $api('/product/product/erpTryToCreateSku', {
         method: 'POST',
         body: params,
       })
@@ -135,9 +148,9 @@ export const ProductAuth = () => {
     }
   }
 
-  const listOnlineMallProductCatalogTree = async () => {
+  const getlistOnlineCatalogTree = async () => {
     try {
-      const response = await $api(`/product/mallProductCatalog/listOnlineMallProductCatalogTree`, {
+      const response = await $api(`/product/product/listOnlineCatalogTree`, {
         method: 'GET',
       })
 
@@ -148,10 +161,10 @@ export const ProductAuth = () => {
     }
   }
 
-  const getMallProductCatalogById = async (params) => {
+  const getProductCatalogById = async (params) => {
     try {
       const query = new URLSearchParams(params).toString()
-      const response = await $api(`/product/mallProductCatalog/getMallProductCatalogById?${query}`, {
+      const response = await $api(`/product/product/getProductCatalogById?${query}`, {
         method: 'GET',
       })
 
@@ -175,5 +188,5 @@ export const ProductAuth = () => {
       throw error
     }
   }
-  return { getProductSpuV2ById, getProductDetailsById, randomRecommendationProductByCatalogId, getUserProductRollPage, getmapProductSpuV2ByProductSkuV2IdList, customizedProductPriceTrialCalculation, erpTryToCreateSkuV2, getproductSearch, productSearchRecommendation, listOnlineMallProductCatalogTree, trialPriceCalculationBySpuV4, getMallProductCatalogById, getconfigRollPage }
+  return { getProductById, getProductDetailsById, randomRecommendationProductByCatalogId, getUserProductRollPage, getmapProductByProductSkuList, customizedProductPriceTrialCalculation, erpTryToCreateSku, trialPriceCalculationBySpuV2, getproductSearch, productSearchRecommendation, getlistOnlineCatalogTree, trialPriceCalculationBySpuV3, getProductCatalogById, getconfigRollPage }
 }

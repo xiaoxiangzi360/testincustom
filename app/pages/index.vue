@@ -3,8 +3,8 @@ import { heroImageUrl } from '@/utils/hero'
 import type { title } from 'process'
 
 definePageMeta({
-  title: 'Home',
-  description: 'New Arrivals, Big Savings!',
+  title: 'Unique but Affordable Custom Products | Design Your Own Online | inCustom',
+  description: 'inCustom proves that personalization doesn\'t have to be expensive.Create Unique but Affordable custom products and personalized gifts with our easy online tool.Design yours today!',
   navOrder: 1,
   type: 'primary',
   icon: 'i-mdi-home',

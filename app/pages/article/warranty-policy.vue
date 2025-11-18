@@ -69,7 +69,12 @@
 </template>
 
 <script setup>
-// Static content page – no logic required
+useHead({
+    title: 'Warranty & Quality Guarantee',
+    meta: [
+        { name: 'description', content: 'inCustom stands behind the quality of our custom products. Read our warranty policy to understand what is covered and how to make a claim.' }
+    ]
+})
 </script>
 
 <style scoped>

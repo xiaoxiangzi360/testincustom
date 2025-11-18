@@ -49,19 +49,19 @@ const sortarray = [
 
 const sortarraymapping: Record<(typeof sortarray)[number], { value: string; sort: 'asc' | 'desc' }> = {
   'Name Alphabetic, a-z': {
-    value: 'ProductEnglishName',
+    value: 'erpProduct.ProductEnglishName',
     sort: 'asc'
   },
   'Name Alphabetic, z-a': {
-    value: 'ProductEnglishName',
+    value: 'erpProduct.ProductEnglishName',
     sort: 'desc'
   },
   'Price Low to High': {
-    value: 'basePrice',
+    value: 'erpProduct.customPrice',
     sort: 'asc'
   },
   'Price High to Low': {
-    value: 'basePrice',
+    value: 'erpProduct.customPrice',
     sort: 'desc'
   },
   'Date, Old to New': {
@@ -85,7 +85,7 @@ const pageSize = 12
 const hasMore = ref(true)
 const isBottomLoading = ref(false)
 
-const { getUserProductRollPage, getMallProductCatalogById } = ProductAuth()
+const { getUserProductRollPage, getProductCatalogById } = ProductAuth()
 const router = useRouter()
 
 const breadcrumbLinks = computed(() => [
@@ -122,10 +122,11 @@ const getlistlist = async (isReset = false) => {
 
   try {
     const parmes: Record<string, any> = {
-      catalogPathIdList: [cateid],
+      catalogIdPath: cateid,
       pageNum: pageNum.value,
       needCount: true,
       pageSize,
+      fields: 'id,erpProduct.productEnglishName,erpProduct.customPrice,erpProduct.mainPic',
     }
     if (selectedsort.value) {
       parmes['sortKey'] = sortarraymapping[selectedsort.value].value
@@ -157,29 +158,18 @@ const getlistlist = async (isReset = false) => {
 const getcateinfo = async () => {
   try {
     const parmes = { id: cateid }
-    const res = await getMallProductCatalogById(parmes)
+    const res = await getProductCatalogById(parmes)
     const result = res.result
     if (result) {
-      // 更新字段处理
-      categorybanner.value = result.contentConfigImageUrl || '';  // 使用 contentConfigImageUrl 字段
-      categorytitle.value = result.contentConfigTitle || result.catalogEnName || '';  // 优先使用 contentConfigTitle，其次使用 catalogEnName
-      categorydesc.value = result.contentConfigSubtitle || result.desc || '';  // 优先使用 contentConfigSubtitle，其次使用 desc
-      catename.value = result.catalogEnName || '';  // 使用 catalogEnName 字段
-
-      // SEO 设置
-      useHead({
-        title: result.seoPageTitle || categorytitle.value,  // 如果有 seoPageTitle，则使用它；否则使用 categorytitle
-        meta: [
-          { name: 'description', content: result.seoMetaDescription || categorydesc.value }  // 如果有 seoMetaDescription，则使用它；否则使用 categorydesc
-        ]
-      });
+      categorybanner.value = result.rootPictureUrl
+      categorytitle.value = result.rootPictureTitle
+      categorydesc.value = result.rootPictureContent
+      catename.value = result.catalogEnName || result.catalogName || ''
     }
   } catch (error) {
     console.error('Load catenfo failed:', error)
   }
 }
-
-
 
 getlistlist(true)
 getcateinfo()
@@ -239,7 +229,7 @@ const toGa4Items = (list: any[]) =>
   (list || []).map((p, i) => ({
     item_id: String(p.id),
     item_name: p?.erpProduct?.productEnglishName || '',
-    price: Number(p?.erpProduct?.basePrice ?? 0),
+    price: Number(p?.erpProduct?.customPrice ?? 0),
     index: i,
     item_list_id: listId.value,
     item_list_name: listName.value
@@ -259,7 +249,7 @@ const onSelectItem = (p: any, index: number) => {
       {
         item_id: String(p.id),
         item_name: p?.erpProduct?.productEnglishName || '',
-        price: Number(p?.erpProduct?.basePrice ?? 0),
+        price: Number(p?.erpProduct?.customPrice ?? 0),
         index,
         item_list_id: listId.value,
         item_list_name: listName.value
@@ -362,31 +352,26 @@ watch([products, loading, selectedsort, () => selected.value], () => {
           <!-- Product List -->
           <div v-show="products.length > 0 && !loading"
             class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
-            <ULink :to="`/product/${product.id}/${slugify(product.productEnglishName)}`"
+            <ULink :to="`/product/${product.id}/${slugify(product.erpProduct.productEnglishName)}`"
               @click="onSelectItem(product, index)" v-for="(product, index) in products" :key="index"
               class="bg-white rounded-lg cursor-pointer group">
               <div class="aspect-square overflow-hidden rounded-t-lg">
-                <NuxtImg :src="product.mainPic
-                  ? `${product.mainPic}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`
-                  : '/images/empty.jpg'" :alt="product.productEnglishName"
+                <NuxtImg :src="product.erpProduct.mainPic
+                  ? `${product.erpProduct.mainPic}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`
+                  : '/images/empty.jpg'" :alt="product.erpProduct.productEnglishName"
                   class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                   style="aspect-ratio: 1 / 1;" loading="lazy" />
 
               </div>
               <div>
-                <h3 class="text-sm sm:text-sm text-customblack my-2 lg:my-4 cursor-default font-normal mb-4 title"
-                  :title="product.productEnglishName">
-                  {{ product.productEnglishName }}
+                <h3 class="text-sm sm:text-sm text-customblack my-2 lg:my-4 line-clamp-2 cursor-default font-normal"
+                  :title="product.erpProduct.productEnglishName">
+                  {{ product.erpProduct.productEnglishName }}
                 </h3>
-                <div class="flex items-center">
-
-                  <!-- Regular price -->
+                <p class="text-sm sm:text-sm text-[#AEAEAE] mb-1 sm:mb-2">{{ product.size }}</p>
+                <div class="flex justify-between items-center">
                   <span class="text-sm sm:text-base font-medium text-primary">
-                    ${{ product.basePrice }}
-                  </span>
-                  <!-- Crossed-out price -->
-                  <span v-if="product.originPrice" class="text-sm text-gray-400 line-through ml-3">
-                    ${{ product.originPrice }}
+                    ${{ product.erpProduct.customPrice }}
                   </span>
                 </div>
               </div>
@@ -413,16 +398,4 @@ watch([products, loading, selectedsort, () => selected.value], () => {
 
 </template>
 
-<style scoped>
-.title {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  /* Ensure two lines max */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  height: 2.4rem;
-  /* Adjust this value to fit two lines */
-  line-height: 1.2rem;
-  /* This should match the height of one line */
-}
-</style>
+<style scoped></style>
