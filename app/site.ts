@@ -9,7 +9,7 @@ export default {
   logo: 'incustomlogo.png',
   author: 'Pinegrow',
   url: 'https://www.incustom.com',
-  ogImageUrl: 'og-image.png', // absolute url (or) from public folder
+  ogImageUrl: 'og-image.jpg', // absolute url (or) from public folder
   generator: 'https://www.incustom.com',
   defaultLocale: 'en', // default
   identity: {
