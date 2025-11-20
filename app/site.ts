@@ -8,9 +8,9 @@ export default {
     'inCustom proves that personalization doesn\'t have to be expensive. Create Unique but Affordable custom products and personalized gifts with our easy online tool. Design yours today!',
   logo: 'incustomlogo.png',
   author: 'Pinegrow',
-  url: 'https://test.incustom.com',
+  url: 'https://www.incustom.com',
   ogImageUrl: 'og-image.jpg', // absolute url (or) from public folder
-  generator: 'https://test.incustom.com',
+  generator: 'https://www.incustom.com',
   defaultLocale: 'en', // default
   identity: {
     type: 'Organization',

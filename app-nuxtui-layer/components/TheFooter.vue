@@ -78,8 +78,8 @@
             <!-- Trust & Payment 列 -->
             <div>
               <p class="font-medium text-lg mb-5">Trust & Payment</p>
-              <NuxtLink to="/badges" class="block hover:text-primary mt-3 text-white/80 text-sm">Badges</NuxtLink>
-              <NuxtLink to="/certifications" class="block hover:text-primary mt-3 text-white/80 text-sm">Quality
+              <NuxtLink class="block hover:text-primary mt-3 text-white/80 text-sm">Badges</NuxtLink>
+              <NuxtLink class="block hover:text-primary mt-3 text-white/80 text-sm">Quality
                 Certification
               </NuxtLink>
               <div class="flex flex-wrap items-center gap-3 mt-3">

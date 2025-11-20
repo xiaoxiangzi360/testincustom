@@ -19,7 +19,7 @@ definePageMeta({
 const categorybanner = ref('')
 const categorytitle = ref('')
 const categorydesc = ref('')
-const bannerLoading = ref(true)   // ✅ 背景图骨架屏状态
+const bannerLoading = ref(true)
 const capitalize = (s: string) => (s && s[0].toUpperCase() + s.slice(1)) || ''
 
 useHead({
@@ -36,7 +36,6 @@ const rawCategory = Array.isArray(route.params.category)
 
 const catename = ref('')
 const cateid = rawCategory?.split?.('-')?.pop() ?? ''
-
 
 const sortarray = [
   'Name Alphabetic, a-z',
@@ -171,21 +170,44 @@ const getcateinfo = async () => {
   }
 }
 
-getlistlist(true)
-getcateinfo()
+// ✅ SSR 数据预取
+const { data: categoryData } = await useAsyncData('categoryData', async () => {
+  await Promise.all([
+    getlistlist(true),
+    getcateinfo()
+  ])
+  return {
+    products: products.value,
+    categorybanner: categorybanner.value,
+    categorytitle: categorytitle.value,
+    categorydesc: categorydesc.value,
+    catename: catename.value
+  }
+})
 
-// ✅ 背景图加载完再隐藏骨架
-watch(categorybanner, () => {
+// ✅ 使用服务端预取的数据初始化响应式变量
+if (categoryData.value) {
+  products.value = categoryData.value.products
+  categorybanner.value = categoryData.value.categorybanner
+  categorytitle.value = categoryData.value.categorytitle
+  categorydesc.value = categoryData.value.categorydesc
+  catename.value = categoryData.value.catename
+}
+
+// ✅ 背景图加载完再隐藏骨架（仅客户端）
+onMounted(() => {
   if (categorybanner.value) {
     const img = new Image()
     img.src = categorybanner.value
     img.onload = () => {
       bannerLoading.value = false
     }
+  } else {
+    bannerLoading.value = false
   }
 })
 
-// ✅ IntersectionObserver 懒加载更多
+// ✅ IntersectionObserver 懒加载更多（仅客户端）
 const bottomRef = ref<HTMLElement | null>(null)
 const observer = ref<IntersectionObserver | null>(null)
 
@@ -196,7 +218,7 @@ onMounted(() => {
     }
   })
   nextTick(() => {
-    if (bottomRef.value) observer.value.observe(bottomRef.value)
+    if (bottomRef.value) observer.value?.observe(bottomRef.value)
   })
 })
 
@@ -222,7 +244,7 @@ const { viewItemList, selectItem } = useTrack()
 
 // 列表ID/名称（发给 GA4 的 item_list_id / item_list_name）
 const listId = computed(() => `cate_${cateid}`)
-const listName = computed(() => categorytitle.value || catename || 'Category')
+const listName = computed(() => categorytitle.value || catename.value || 'Category')
 
 // 转换接口返回的产品为 GA4 items
 const toGa4Items = (list: any[]) =>
@@ -235,15 +257,16 @@ const toGa4Items = (list: any[]) =>
     item_list_name: listName.value
   }))
 
-// 上报“查看商品列表”
+// 上报"查看商品列表"（仅客户端）
 const reportListImpression = () => {
   if (process.server) return
   if (!products.value?.length) return
   viewItemList(toGa4Items(products.value), listId.value, listName.value)
 }
 
-// 点击上报“选择了商品”
+// 点击上报"选择了商品"（仅客户端）
 const onSelectItem = (p: any, index: number) => {
+  if (process.server) return
   selectItem(
     [
       {
@@ -260,12 +283,12 @@ const onSelectItem = (p: any, index: number) => {
   )
 }
 
-// 当“列表加载完成/排序改变/过滤改变”后，上报 view_item_list
+// 当"列表加载完成/排序改变/过滤改变"后，上报 view_item_list（仅客户端）
 watch([products, loading, selectedsort, () => selected.value], () => {
+  if (process.server) return
   if (!loading.value && products.value?.length) reportListImpression()
 })
 </script>
-
 
 <template>
   <div class="bg-white">
@@ -357,7 +380,7 @@ watch([products, loading, selectedsort, () => selected.value], () => {
               class="bg-white rounded-lg cursor-pointer group">
               <div class="aspect-square overflow-hidden rounded-t-lg">
                 <NuxtImg :src="product.erpProduct.mainPic
-                  ? `${product.erpProduct.mainPic}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`
+                  ? `${product.erpProduct.mainPic}?x-oss-process=image/auto-orient,1/resize,w_400,limit_0`
                   : '/images/empty.jpg'" :alt="product.erpProduct.productEnglishName"
                   class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                   style="aspect-ratio: 1 / 1;" loading="lazy" />
@@ -395,7 +418,6 @@ watch([products, loading, selectedsort, () => selected.value], () => {
     <span v-if="isBottomLoading" class="text-sm text-gray-400">Loading more products...</span>
     <span v-else-if="!hasMore && products.length > 0" class="text-sm text-gray-300">No more products</span>
   </div>
-
 </template>
 
 <style scoped></style>
