@@ -383,7 +383,7 @@
                                     <div class="max-h-96 overflow-y-auto">
                                         <div class="flex items-center space-x-4 bg-white rounded-md shadow-sm py-4"
                                             v-for="item in productlists" :key="item.productSku">
-                                            <img :src="item.mainPic" alt="Product Image"
+                                            <img :src="item.mainPic" :alt="item.altText || 'Product image'"
                                                 class="w-20 h-20 rounded-md object-cover" />
                                             <div class="flex flex-col justify-between">
                                                 <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
@@ -679,7 +679,7 @@ import { useGoogleMapsLoader } from '@/composables/useGoogleMapsLoader'
 const { addPaymentInfo, purchase } = useFbq({ currency: 'USD' });
 const { purchaseorder } = useTrack();
 const { getuserAddressRollPage, createUserAddress } = AddressAuth();
-const { getmapProductByProductSkuList } = ProductAuth();
+const { getmapProductSpuV2ByProductSkuV2IdList } = ProductAuth();
 const { generateOrderId, createOrder, getUserOrderDocByOrderNumber, tryOrder } = OrderAuth();
 const { getlistOldShippingRule } = ShippingAuth();
 const { createPayment } = PayAuth();
@@ -822,7 +822,8 @@ let awxCvcEl: any = null;
 async function initAirwallex(): Promise<void> {
     if (awxInited.value) return;
     const AWX = await getAWX();
-    const env = 'prod'; // 'demo' or 'prod'
+    const config = useRuntimeConfig();
+    const env = config.public.airwallexEnv; // 从 nuxt.config 获取环境配置
     await AWX.init({
         env,
         langKey: 'en',
@@ -917,9 +918,15 @@ const applyCoupon = async () => {
     productlists.value.forEach((element: any) => {
         orderItemListarr.push({
             productSku: element.productSku,
+            productSkuId: element.productSkuId,
+            productSpu: element.productStyle,
+            productSpuId: element.productSpuId,
+            productName: element.productName,
+            productImage: element.mainPic?.url,
             qtyOrdered: Number(element.qtyOrdered),
             priceOrdered: element.productPrice,
-            amountOrdered: element.productPrice * Number(element.qtyOrdered)
+            amountOrdered: element.productPrice * Number(element.qtyOrdered),
+            skuPropList: element.skuPropList || []
         });
     });
     let addparmes: any = {
@@ -970,24 +977,58 @@ const removeCoupon = () => {
 
 const getProductlist = async () => {
     try {
-        const params = { skuList: skuList.value };
-        const res = await getmapProductByProductSkuList(params);
+        const params = { productSkuV2IdList: skuList.value, needPublishSkuData: false };
+        const res = await getmapProductSpuV2ByProductSkuV2IdList(params);
         const lists = res.result;
+
+        // 清空原有数据
+        productlists.value = [];
+
         for (const key in lists) {
-            const obj = lists[key];
+            const productData = lists[key];
+
+            // 构造规格属性字符串 - 从 skuData.propList 中获取
+            let specAttr = '';
+            if (productData.skuData && Array.isArray(productData.skuData.propList)) {
+                const specParts = productData.skuData.propList.map(prop => {
+                    if (prop.inputList && prop.inputList.length > 0) {
+                        // 自定义输入属性
+                        const inputValues = prop.inputList.map(input => `${input.inputName}: ${input.inputValue}`).join(', ');
+                        return `${prop.propEnName}: ${inputValues}`;
+                    } else {
+                        // 标准属性
+                        return `${prop.propEnName}: ${prop.propValueEnName}`;
+                    }
+                });
+                specAttr = specParts.join(' | ');
+            }
+
             productlists.value.push({
-                productName: obj.erpProduct.productEnglishName,
-                mainPic: obj.erpProduct.mainPic,
-                productSku: key,
-                specAttr: obj.skuSpec.specAttr,
+                productId: productData.id,
+                productName: productData.productEnglishName,
+                mainPic: productData.mainPic?.url,
+                altText: productData.mainPic?.altText,
+                productSku: productData.skuData?.sku || productData.sku || key, // 实际的 SKU 字符串
+                productSkuString: productData.skuData?.sku || productData.sku || key, // 实际的 SKU 字符串（备用）
+                specAttr: specAttr,
                 qtyOrdered: skunum[key],
-                productPrice: obj.skuSpec.customPrice,
-                productStyle: obj.erpProduct.productStyle
+                productPrice: productData.skuData ? productData.skuData.basePrice : productData.basePrice,
+                productStyle: productData.spu || productData.productName, // 使用 spu 或 productName 作为 productStyle
+                // 添加新的字段用于订单创建
+                productSpuId: productData.id, // SPU ID
+                productSkuId: key, // SKU ID  
+                skuPropList: productData.skuData?.propList || [], // 从 skuData 中获取 propList
+                // 添加更多可能需要的字段
+                customized: productData.customized || false,
+                printOnDemand: productData.printOnDemand || false,
+                variant: productData.variant || false,
+                catalogId: productData.catalogId,
+                catalogEnName: productData.catalogEnName
             });
         }
         await getShippingRulelist();
     } catch (e) {
-        console.error(e);
+        console.error('获取产品列表失败:', e);
     } finally {
         isProductLoaded.value = true; // 骨架屏结束
     }
@@ -1000,7 +1041,7 @@ const getShippingRulelist = async () => {
     try {
         const detailarr: any[] = productlists.value.map((element: any) => ({
             productRealSku: element.productStyle,
-            sku: element.productSku,
+            sku: element.productSku, // 现在 productSku 直接是 SKU 字符串
             num: Number(element.qtyOrdered)
         }));
         const addresspbj: any = {};
@@ -1081,7 +1122,12 @@ const handleGetCart = async () => {
         if (typeof cartids === 'string') cartids = cartids.split(',')
 
         const res = await getCart()
+
+        // 处理新的购物车数据结构
         let result = res.result as Array<any>
+        if (!Array.isArray(result)) {
+            result = []
+        }
 
         // 2) 优先使用 itemsMap 的 id 集合过滤
         if (itemsMap && itemsMap.size > 0) {
@@ -1098,9 +1144,13 @@ const handleGetCart = async () => {
 
         // 3) 构造 skuList & 数量映射（itemsMap 覆盖购物车原数量）
         result.forEach((item: any) => {
-            skuList.value.push(item.productSku)
-            const overrideQty = itemsMap?.get(String(item.id))
-            skunum[item.productSku] = (overrideQty ?? item.productQuantity)
+            // 使用新数据结构中的 productSkuId
+            const productSkuId = item.productSkuId || item.product?.skuData?.id || item.productSku
+            if (productSkuId) {
+                skuList.value.push(productSkuId)
+                const overrideQty = itemsMap?.get(String(item.id))
+                skunum[productSkuId] = (overrideQty ?? item.productQuantity)
+            }
         })
 
         await getProductlist()
@@ -1293,9 +1343,15 @@ const paynow = async () => {
 const handleSubmit = async () => {
     const orderItemListarr: any[] = productlists.value.map((element: any) => ({
         productSku: element.productSku,
+        productSkuId: element.productSkuId,
+        productSpu: element.productStyle,
+        productSpuId: element.productSpuId,
+        productName: element.productName,
+        productImage: element.mainPic?.url,
         qtyOrdered: Number(element.qtyOrdered),
         priceOrdered: element.productPrice,
-        amountOrdered: element.productPrice * Number(element.qtyOrdered)
+        amountOrdered: element.productPrice * Number(element.qtyOrdered),
+        skuPropList: element.skuPropList || []
     }));
     const addparmes: any = {
         buyerCity: addressinfo.value.city,
@@ -1677,6 +1733,11 @@ watch(selected, async (val) => {
     }
 });
 
+// 监听产品加载状态和商品数据，自动尝试渲染PayPal按钮
+watch([isProductLoaded, hasItems], () => {
+    tryRenderPaypalButtons();
+}, { immediate: false });
+
 const payPalCaptureOrder = async (token: string) => {
     try {
         await completePayment({ payPalOrderId: token });
@@ -1693,8 +1754,15 @@ const airWallexCaptureOrder = async (token: string) => {
 };
 // 渲染 PayPal（仅当加载完成 & 有商品 & 未渲染过）
 async function tryRenderPaypalButtons() {
-    if (paypalRendered.value) return;
-    if (!isProductLoaded.value || !hasItems.value) return;
+
+    if (paypalRendered.value) {
+        console.log('PayPal 按钮已渲染，跳过');
+        return;
+    }
+    if (!isProductLoaded.value || !hasItems.value) {
+        console.log('条件未满足，等待产品加载或商品数据');
+        return;
+    }
 
     const config = useRuntimeConfig();
     const paypal = await loadScript({ clientId: config.public.paypalClientId, currency: 'USD', locale: 'en_US' });
@@ -1817,9 +1885,15 @@ async function ensureAwxPaymentIntent(payType): Promise<string> {
         try {
             const orderItemList = (productlists.value || []).map((item: any) => ({
                 productSku: item.productSku,
+                productSkuId: item.productSkuId,
+                productSpu: item.productStyle,
+                productSpuId: item.productSpuId,
+                productName: item.productName,
+                productImage: item.mainPic?.url,
                 qtyOrdered: Number(item.qtyOrdered),
                 priceOrdered: Number(item.productPrice),
-                amountOrdered: Number(item.productPrice) * Number(item.qtyOrdered)
+                amountOrdered: Number(item.productPrice) * Number(item.qtyOrdered),
+                skuPropList: item.skuPropList || []
             }));
             const createRes = await createOrder({
                 buyerCity: addressinfo.value.city,
@@ -2224,7 +2298,7 @@ async function mountApplePay() {
             const result = await awxAppleEl.confirmIntent({ client_secret: awxClientSecret.value })
             console.log(result);
             if (result?.status === 'SUCCEEDED') {
-                await airWallexCaptureOrder(result.id)  // 后端捕获
+                airWallexCaptureOrder(result.id)  // 后端捕获
                 // → 执行埋点 + 跳转 paysuccess
                 const totalAmount = totalPayable.value
                 purchase({ ...buildFbqPayload(), value: Number(totalAmount), currency: awxCurrency.value || 'USD', order_id: orderNo.value || orderId.value })
@@ -2408,7 +2482,7 @@ async function mountGooglePay() {
             console.log('authorized');
             const result = await gpayEl.value.confirmIntent({ client_secret: awxClientSecret.value })
             if (result?.status === 'SUCCEEDED') {
-                await airWallexCaptureOrder(result.id)
+                airWallexCaptureOrder(result.id)
 
                 const totalAmount = totalPayable.value
                 purchase({ ...buildFbqPayload(), value: Number(totalAmount), currency: awxCurrency.value || 'USD', order_id: orderNo.value || orderId.value })

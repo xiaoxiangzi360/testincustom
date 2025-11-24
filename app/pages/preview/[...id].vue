@@ -167,7 +167,7 @@
               </h1>
             </div>
             <div
-              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0  pb-4 mt-4 border-b border-b-[#D1D1D1]">
+              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0  pb-4 pt-4 border-b border-b-[#D1D1D1]">
               <div class="text-base sm:text-xl font-medium text-primary">${{ skuprice }}</div>
             </div>
 
@@ -418,7 +418,7 @@
                   <div class="flex items-center rounded px-2">
                     <div class="flex items-center rounded">
                       <button
-                        class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center"
+                        class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center rounded-tl-[6px] rounded-bl-[6px]"
                         @click="decrement">
                         <BaseIcon name="i-heroicons-minus-20-solid" />
                       </button>
@@ -426,7 +426,7 @@
                       <input @input="onQuantityInput" v-model="quantity"
                         class="focus:outline-none focus:ring-0 focus:border-transparent w-12 h-[26px] text-center outline-none border-0 py-1 bg-[#F8F8F8] mx-0.5" />
                       <button
-                        class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center"
+                        class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center rounded-tr-[6px] rounded-br-[6px]"
                         @click="increment">
                         <BaseIcon name="i-heroicons-plus-20-solid" />
                       </button>
@@ -447,14 +447,14 @@
                   <UButton class="w-full sm:flex-1 flex items-center justify-center rounded-md 
            border border-[#00B4F0] text-[#00B4F0] bg-white 
            hover:bg-[#00B4F0] hover:text-white transition-colors disabled:bg-primary-100 disabled:text-primary"
-                    :loading="cartloding" @click="addtocart" disabled color="primary" variant="solid" size="xl">
+                    :loading="cartloding" @click="addtocart" color="primary" variant="solid" size="xl">
                     Add to Cart
                   </UButton>
 
                   <!-- Order Now -->
                   <UButton class="w-full sm:flex-1 flex items-center justify-center rounded-md 
-           bg-[#00B4F0] text-white hover:bg-[#0099D6] transition-colors" disabled :loading="orderloding"
-                    @click="createorder" color="primary" variant="solid" size="xl">
+           bg-[#00B4F0] text-white hover:bg-[#0099D6] transition-colors" :loading="orderloding" @click="createorder"
+                    color="primary" variant="solid" size="xl">
                     Order Now
                   </UButton>
                 </div>
@@ -715,7 +715,8 @@
       </div>
       <div class="flex flex-wrap items-center gap-3 sm:gap-4">
         <div class="flex items-center rounded">
-          <button class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center"
+          <button
+            class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center rounded-tl-[6px] rounded-bl-[6px]"
             @click="decrement">
             <BaseIcon name="i-heroicons-minus-20-solid" />
           </button>
@@ -723,17 +724,18 @@
           <input @input="onQuantityInput" v-model="quantity"
             class="focus:outline-none focus:ring-0 focus:border-transparent w-12 h-[26px] text-center outline-none border-0 py-1 bg-[#F8F8F8] mx-0.5" />
           <button @click="increment"
-            class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center">
+            class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center rounded-tr-[6px] rounded-br-[6px]">
             <BaseIcon name="i-heroicons-plus-20-solid" />
           </button>
         </div>
         <span class="text-sm text-gray-600">Panels</span>
         <span class="text-base sm:text-lg font-medium text-gray-800">${{ totalPrice.toFixed(2) }}</span>
-        <UButton color="primary" size="md" @click="addtocart" disabled class="rounded-lg">Add to Cart</UButton>
+        <UButton color="primary" size="md" @click="addtocart" class="rounded-lg">Add to Cart</UButton>
       </div>
     </div>
 
-    <UModal v-model="addSuccessOpen" :ui="{ width: 'lg:w-[500px] lg:max-w-[500px] sm:max-w-sm' }">
+    <UModal v-model="addSuccessOpen"
+      :ui="{ width: 'lg:w-[500px] lg:max-w-[500px] sm:max-w-sm', container: 'items-center' }">
       <div class="p-8 pb-6">
         <div class="mb-4 text-gray-400">
           The product has been successfully added to the shopping cart
@@ -752,10 +754,6 @@
       </div>
     </UModal>
 
-
-
-    <!-- <Faq /> -->
-    <div :style="{ height: isBottomBarVisible ? '76px' : '0px' }"></div>
   </div>
 </template>
 
@@ -873,6 +871,14 @@ const showDimensions = ref(true)
 const designimage = ref('')
 const mainImage = ref('')
 const productinfo = ref(serverProductData.value?.result ?? {})
+
+if (productinfo.value.productState !== 'published') {
+  throw createError({
+    statusCode: 404,
+    message: 'Product not fetched.',
+  })
+}
+
 if (productinfo.value?.seoPageTitle || productinfo.value?.seoMetaDescription) {
   useHead({
     title: productinfo.value.seoPageTitle || productinfo.value.erpProduct?.productEnglishName || 'Product Detail',

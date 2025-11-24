@@ -69,28 +69,33 @@
                     </div>
 
                     <!-- Product List -->
-                    <div v-show="products.length > 0"
-                        class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
-                        <NuxtLink :to="`/product/${product.id}/${slugify(product.erpProduct.productEnglishName)}`"
+                    <div v-show="products.length > 0 && !loading"
+                        class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
+                        <NuxtLink :to="`/product/${product.id}/${slugify(product.productEnglishName)}`"
                             v-for="(product, index) in products" :key="index"
                             class="bg-white rounded-lg cursor-pointer group">
                             <div class="aspect-square overflow-hidden rounded-t-lg">
-                                <img :src="product.erpProduct.mainPic ?? '/images/empty.jpg'"
-                                    :alt="product.erpProduct.productEnglishName"
+                                <NuxtImg :src="product.mainPic?.url
+                                    ? `${product.mainPic.url}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`
+                                    : '/images/empty.jpg'"
+                                    :alt="product.mainPic?.altText || product.productEnglishName || 'Product image'"
                                     class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
-                                    style="aspect-ratio: 1 / 1;" />
+                                    style="aspect-ratio: 1 / 1;" loading="lazy" />
                             </div>
-                            <div class="py-2">
-                                <h3 class="text-sm sm:text-sm mb-1 sm:mb-2 text-customblack mt-2 sm:mt-3 line-clamp-2 cursor-default font-normal"
-                                    :title="product.erpProduct.productEnglishName">
-                                    {{ product.erpProduct.productEnglishName }}
+                            <div>
+                                <h3 class="text-sm sm:text-sm text-customblack my-2 lg:my-4 cursor-default font-normal mb-4 title"
+                                    :title="product.productEnglishName">
+                                    {{ product.productEnglishName }}
                                 </h3>
-                                <p class="text-sm sm:text-sm text-[#AEAEAE] mb-1 sm:mb-2">
-                                    {{ product.size }}
-                                </p>
-                                <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+
+                                    <!-- Regular price -->
                                     <span class="text-sm sm:text-base font-medium text-primary">
-                                        ${{ product.erpProduct.customPrice }}
+                                        ${{ product.basePrice }}
+                                    </span>
+                                    <!-- Crossed-out price -->
+                                    <span v-if="product.originPrice" class="text-sm text-gray-400 line-through ml-3">
+                                        ${{ product.originPrice }}
                                     </span>
                                 </div>
                             </div>
@@ -126,14 +131,19 @@ const sortarray = [
 ]
 
 const sortarraymapping = {
-    'Name Alphabetic, a-z': { value: 'erpProduct.ProductEnglishName', sort: 'asc' },
-    'Name Alphabetic, z-a': { value: 'erpProduct.ProductEnglishName', sort: 'desc' },
-    'Price Low to High': { value: 'erpProduct.customPrice', sort: 'asc' },
-    'Price High to Low': { value: 'erpProduct.customPrice', sort: 'desc' },
+    'Name Alphabetic, a-z': { value: 'ProductEnglishName', sort: 'asc' },
+    'Name Alphabetic, z-a': { value: 'ProductEnglishName', sort: 'desc' },
+    'Price Low to High': { value: 'basePrice', sort: 'asc' },
+    'Price High to Low': { value: 'basePrice', sort: 'desc' },
     'Date, Old to New': { value: 'createDate', sort: 'asc' },
     'Date, New to Old': { value: 'createDate', sort: 'desc' },
 }
-
+const collectionobj = {
+    'Outdoor Shade Solutions': 'dbf1f7231114cafb50f4e5d4bec84d85',
+    'Privacy & Garden Decor': '16734fe26787804eddd06f0ca822ee8a',
+    'Indoor Window Shades': 'cefdb0c4d04b8af49ce9dc75c01d61d3',
+    'Printed Shade & Screen': 'ee937647151abc05acbcd98da6159fe3',
+}
 const selectedsort = ref(sortarray[0])
 const selected = ref('')
 const loading = ref(false)
@@ -171,13 +181,17 @@ const getlistlist = async (isReset = false) => {
     }
 
     try {
+        // 获取 tagIdList
+        const tagId = collectionobj[collection]
+        const tagIdList = tagId ? [tagId] : []
+
         const parmes: any = {
-            tag: collection,
             pageNum: pageNum.value,
             pageSize,
             needCount: true,
-            fields: 'id,erpProduct.productEnglishName,erpProduct.customPrice,erpProduct.mainPic',
+            tagIdList,  // 添加 tagIdList 到请求参数
         }
+
         if (selectedsort.value) {
             parmes.sortKey = sortarraymapping[selectedsort.value].value
             parmes.sortOrder = sortarraymapping[selectedsort.value].sort
@@ -204,6 +218,7 @@ const getlistlist = async (isReset = false) => {
         isBottomLoading.value = false
     }
 }
+
 const bottomRef = ref<HTMLElement | null>(null)
 const observer = ref<IntersectionObserver | null>(null)
 onMounted(() => {
@@ -241,5 +256,17 @@ const slugify = (str: string) =>
 <style scoped>
 .container {
     max-width: 1440px;
+}
+
+.title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    /* Ensure two lines max */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 2.4rem;
+    /* Adjust this value to fit two lines */
+    line-height: 1.2rem;
+    /* This should match the height of one line */
 }
 </style>

@@ -65,9 +65,13 @@
                                     {{ product.productEnglishName }}
                                 </h3>
                                 <p class="text-sm sm:text-sm text-[#AEAEAE] mb-1 sm:mb-2">{{ product.size }}</p>
-                                <div class="flex justify-between items-center">
+                                <div class="flex items-center">
                                     <span class="text-sm sm:text-base font-medium text-primary">
                                         ${{ product.customPriceStr }}
+                                    </span>
+                                    <!-- Crossed-out price -->
+                                    <span v-if="product.originPriceStr" class="text-sm text-gray-400 line-through ml-3">
+                                        ${{ product.originPriceStr }}
                                     </span>
                                 </div>
                             </div>
@@ -120,9 +124,13 @@
                                     {{ product.productEnglishName }}
                                 </h3>
                                 <p class="text-[#AEAEAE] mb-1 sm:mb-2 text-xs sm:text-sm">{{ product.size }}</p>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-sm sm:text-base font-semibold text-primary">
+                                <div class="flex items-center">
+                                    <span class="text-sm sm:text-base font-medium text-primary">
                                         ${{ product.customPriceStr }}
+                                    </span>
+                                    <!-- Crossed-out price -->
+                                    <span v-if="product.originPriceStr" class="text-sm text-gray-400 line-through ml-3">
+                                        ${{ product.originPriceStr }}
                                     </span>
                                 </div>
                             </div>

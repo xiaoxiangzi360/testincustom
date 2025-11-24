@@ -9,7 +9,11 @@ const route = useRoute()
 const searchInput = ref(route.query.query || '')
 const token = useCookie('token')
 const isTokenValid = computed(() => !!token.value)
-
+const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' })
+const isuserTokenValid = computed(() => {
+  const isMember = userType.value === 1 || userType.value === '1'
+  return !!token.value && isMember
+})
 // 控制移动菜单
 const { isMobileMenuOpen } = useMobileMenu()
 const { isMobileCartMenuOpen } = useMobileCartMenu()
@@ -87,6 +91,21 @@ const searchkeywords = (keyword: string) => {
   searchInput.value = keyword
   isSearchHistoryVisible.value = false
   saveKeywordToLocalHistory(keyword)
+
+  // ✅ TikTok Pixel - Search 事件
+  if (typeof window !== 'undefined' && window.ttq) {
+    try {
+      window.ttq.track('Search', {
+        query: keyword,
+        content_type: 'product',
+        value: 1,
+        currency: 'USD'
+      })
+      console.log('🟢 TikTok Search event sent:', keyword)
+    } catch (e) {
+      console.warn('TikTok Search track failed:', e)
+    }
+  }
   window.location.href = `/search?query=${encodeURIComponent(keyword)}`
 }
 
@@ -206,7 +225,9 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
           <ProfileActions class="!hidden lg:!flex"></ProfileActions>
 
           <BaseIcon name="i-heroicons-user-circle" class="lg:!hidden w-7 h-7" width="28" height="28"
-            @click="checklogin()" />
+            @click="checklogin()" v-show="isuserTokenValid" />
+          <img v-show="!isuserTokenValid" @click="router.push('/login')" src="/user.png" alt="user"
+            class="lg:!hidden w-7 h-7 cursor-pointer" />
           <BaseIcon name="i-heroicons:shopping-cart" class="lg:!hidden w-7 h-7 ml-3" width="28" height="28"
             @click="goToCart" />
 

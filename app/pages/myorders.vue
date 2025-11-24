@@ -129,7 +129,7 @@
                                         <div class="md:col-span-3 flex items-center justify-start md:justify-center">
                                             <span class="font-medium text-base mt-1 md:mt-0 dark:text-gray-900">${{
                                                 order.paymentAmount
-                                            }}</span>
+                                                }}</span>
                                         </div>
 
                                         <!-- Actions -->
@@ -209,7 +209,7 @@ const ordervalue = ref('');
 const ordercount = ref(0);
 const showMore = ref({}); // Tracks which orders show all SKUs
 const { getOrderlists, groupUserOrderStatusCount } = OrderAuth();
-const token = useCookie('token')
+const token = useCookie('token')
 const userType = useCookie('userType', { sameSite: 'lax', path: '/' });
 
 

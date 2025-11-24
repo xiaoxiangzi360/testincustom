@@ -106,14 +106,14 @@
       left-[calc(0.75rem+12px)] sm:left-[calc(1rem+12px)] lg:left-[calc(1.5rem+12px)] xl:left-[calc(4rem+12px)]"
       @click="goPrev">
       <div class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
-               <BaseIcon name="i-raphael:arrowleft2" class="text-primary w-4 h-4" />
+        <BaseIcon name="i-raphael:arrowleft2" class="text-primary w-4 h-4" />
       </div>
     </div>
     <div v-if="isReady" class="home-button-next absolute top-1/2 -translate-y-1/2 z-30 cursor-pointer
       right-[calc(0.75rem+12px)] sm:right-[calc(1rem+12px)] lg:right-[calc(1.5rem+12px)] xl:right-[calc(4rem+12px)]"
       @click="goNext">
       <div class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
-               <BaseIcon name="i-raphael:arrowright2" class="text-primary w-4 h-4" />
+        <BaseIcon name="i-raphael:arrowright2" class="text-primary w-4 h-4" />
       </div>
     </div>
 
@@ -158,12 +158,12 @@ type Slide = VariantA | VariantB
 
 /** 原始图片（保持干净，无查询参数） */
 const baseImages = [
-  'https://cdn.incustom.com/upload/web/banner1031-1.webp',
-  'https://cdn.incustom.com/upload/web/banner1031-2.webp',
-  'https://cdn.incustom.com/upload/web/banner1031-3.webp',
-  'https://cdn.incustom.com/upload/web/homebanner2-1.webp',
-  'https://cdn.incustom.com/upload/web/banner1031-5.webp',
-  'https://cdn.incustom.com/upload/web/banner1031-6.webp',
+  'https://cdn.incustom.com/upload/web/banner1119-1-1.webp',
+  'https://cdn.incustom.com/upload/web/banner1119-2-1.webp',
+  'https://cdn.incustom.com/upload/web/banner1119-3-1.webp',
+  'https://cdn.incustom.com/upload/web/banner1119-4-1.webp',
+  'https://cdn.incustom.com/upload/web/banner1119-5-3.webp',
+  'https://cdn.incustom.com/upload/web/banner1119-6-1.webp',
 ]
 
 /** slides 配置 */
@@ -221,7 +221,8 @@ const slides = ref<Slide[]>([
 const img = (url: string, opt: { w?: number; h?: number }) => {
   const size = opt.w ? `w_${opt.w}` : `h_${opt.h}`
   // auto-orient + webp + 质量 82 + 限制
-  return `${url}?x-oss-process=image/auto-orient,1/format,webp/quality,q_82/resize,${size},limit_0`
+  return `${url}`
+  // return `${url}?x-oss-process=image/auto-orient,1/format,webp/quality,q_82/resize,${size},limit_0`
 }
 
 /** ✅ 首屏优化：预连接 + 仅预加载第0张（按断点） */

@@ -58,11 +58,33 @@ export const useCartStore = defineStore('cart', {
         async refreshCart() {
             try {
                 const { getCart } = cartAuth()
-                const res = await getCart()
-                this.items = res?.result || []
-                this.saleDownList = res?.saleDownList || []
+                const response = await getCart()
+
+                // 处理新的数据结构
+                if (response?.result && Array.isArray(response.result)) {
+                    // 可售商品列表
+                    this.items = response.result.map((item: any) => ({
+                        ...item,
+                        // 确保有必要的字段
+                        productName: item.product?.productEnglishName || item.product?.productName || '',
+                        productImage: item.product?.mainPic?.url || '',
+                        productPrice: item.product?.skuData?.basePrice || item.product?.basePrice || 0,
+                        productSku: item.productSkuId || '',
+                        // 保留原始数据
+                        product: item.product,
+                        skuData: item.product?.skuData,
+                        materialInfo: item.materialInfo
+                    }))
+                } else {
+                    this.items = []
+                }
+
+                // 下架/失效商品列表
+                this.saleDownList = response?.saleDownList || []
             } catch (error) {
                 console.error('Failed to refresh cart:', error)
+                this.items = []
+                this.saleDownList = []
             }
         },
 

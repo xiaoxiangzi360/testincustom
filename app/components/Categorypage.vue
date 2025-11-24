@@ -3,7 +3,7 @@
         <div class="grid sm:grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
             <NuxtLink v-for="(item, index) in items" :key="index" :to="`/collections/${formatTitle(item.tag)}`"
                 class="relative h-[160px] lg:h-[220px] rounded overflow-hidden group cursor-pointer transition-shadow duration-300">
-                <NuxtImg :src="item.image + '?x-oss-process=image/auto-orient,1/resize,w_700,limit_0'"
+                <NuxtImg :src="item.image"
                     class="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                     format="webp" alt="InCustom" loading="lazy" />
                 <div class="absolute inset-0 flex items-center">
@@ -33,25 +33,25 @@ const items = ref([
         title: 'Outdoor Shade Solutions',
         tag: 'Outdoor Shade Solutions',
         description: 'UV protection for outdoor living. >',
-        image: 'https://cdn.incustom.com/upload/web/collect1031-1.webp',
+        image: 'https://cdn.incustom.com/upload/web/collect1119-1-1.webp',
     },
     {
         title: 'Privacy & Garden Decor',
         tag: 'Privacy & Garden Decor',
         description: 'Stylish privacy for your backyard. >',
-        image: 'https://cdn.incustom.com/upload/web/collect1031-2.webp',
+        image: 'https://cdn.incustom.com/upload/web/collect1119-2-1.webp',
     },
     {
         title: 'Indoor Window Shades',
         tag: 'Indoor Window Shades',
         description: 'Elegant shading for modern homes. >',
-        image: 'https://cdn.incustom.com/upload/web/collect1031-3.webp',
+        image: 'https://cdn.incustom.com/upload/web/collect1119-3.webp',
     },
     {
         title: 'Printed Shade & Screen',
         tag: 'Printed Shade & Screen',
         description: 'Print your ideas on fabric. >',
-        image: 'https://cdn.incustom.com/upload/web/collect1031-4.webp',
+        image: 'https://cdn.incustom.com/upload/web/collect1119-4.webp',
     },
 ])
 

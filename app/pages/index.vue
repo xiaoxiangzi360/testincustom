@@ -3,8 +3,8 @@ import { heroImageUrl } from '@/utils/hero'
 import type { title } from 'process'
 
 definePageMeta({
-  title: 'Unique but Affordable Custom Products | Design Your Own Online | inCustom',
-  description: 'inCustom proves that personalization doesn\'t have to be expensive.Create Unique but Affordable custom products and personalized gifts with our easy online tool.Design yours today!',
+  title: 'Home',
+  description: 'New Arrivals, Big Savings!',
   navOrder: 1,
   type: 'primary',
   icon: 'i-mdi-home',
@@ -88,9 +88,9 @@ getactivitylistlist()
     <Homepage />
     <Tags />
     <Categorypage />
-    <PopularProducts tag="Most Loved Picks" title="Most Loved Picks"
+    <PopularProducts tag="Most Loved Picks" :tagIdList="['7900a02c00794c3ef06c6d4c30802363']" title="Most Loved Picks"
       subtitle="Custom shades celebrated by design enthusiasts everywhere" />
-    <PopularProducts tag="New Arrivals" title="New Arrivals"
+    <PopularProducts tag="New Arrivals" :tagIdList="['31d26a6487e08357bd771619e894b0c6']" title="New Arrivals"
       subtitle="Fresh custom shades designed for your home and garden" />
     <!-- <Needs /> -->
 

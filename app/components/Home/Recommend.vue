@@ -82,7 +82,7 @@ const products = computed<Product[]>(() => {
     return list.map((p: any) => ({
         id: String(p.id),
         title: p.productName || '',
-        image: p.coverImg || p.productImg || '/images/empty.jpg',
+        image: p.coverImg || p.productImg?.url || '/images/empty.jpg',
         alt: p.alt || p.productName || '',
         price: p.price,
         originPrice: p.originPrice
@@ -169,7 +169,7 @@ const subtitle = computed(() => props.item?.desc?.trim() || '')
                                                         <span>${{ p.price.toFixed(2) }}</span>
                                                         <span v-if="p.originPrice"
                                                             class="text-gray-400 line-through ml-2">
-                                                            ${{ p.originPrice!.toFixed(2) }}
+                                                            ${{ p.originPrice.toFixed(2) }}
                                                         </span>
                                                     </div>
                                                 </div>

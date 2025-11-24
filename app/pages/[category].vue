@@ -19,7 +19,9 @@ definePageMeta({
 const categorybanner = ref('')
 const categorytitle = ref('')
 const categorydesc = ref('')
-const bannerLoading = ref(true)
+const categoryalt = ref('')
+const contentConfigView = ref(false)
+const bannerLoading = ref(true)   // ✅ 背景图骨架屏状态
 const capitalize = (s: string) => (s && s[0].toUpperCase() + s.slice(1)) || ''
 
 useHead({
@@ -37,6 +39,7 @@ const rawCategory = Array.isArray(route.params.category)
 const catename = ref('')
 const cateid = rawCategory?.split?.('-')?.pop() ?? ''
 
+
 const sortarray = [
   'Name Alphabetic, a-z',
   'Name Alphabetic, z-a',
@@ -48,19 +51,19 @@ const sortarray = [
 
 const sortarraymapping: Record<(typeof sortarray)[number], { value: string; sort: 'asc' | 'desc' }> = {
   'Name Alphabetic, a-z': {
-    value: 'erpProduct.ProductEnglishName',
+    value: 'ProductEnglishName',
     sort: 'asc'
   },
   'Name Alphabetic, z-a': {
-    value: 'erpProduct.ProductEnglishName',
+    value: 'ProductEnglishName',
     sort: 'desc'
   },
   'Price Low to High': {
-    value: 'erpProduct.customPrice',
+    value: 'basePrice',
     sort: 'asc'
   },
   'Price High to Low': {
-    value: 'erpProduct.customPrice',
+    value: 'basePrice',
     sort: 'desc'
   },
   'Date, Old to New': {
@@ -84,7 +87,7 @@ const pageSize = 12
 const hasMore = ref(true)
 const isBottomLoading = ref(false)
 
-const { getUserProductRollPage, getProductCatalogById } = ProductAuth()
+const { getUserProductRollPage, getMallProductCatalogById } = ProductAuth()
 const router = useRouter()
 
 const breadcrumbLinks = computed(() => [
@@ -121,11 +124,10 @@ const getlistlist = async (isReset = false) => {
 
   try {
     const parmes: Record<string, any> = {
-      catalogIdPath: cateid,
+      catalogPathIdList: [cateid],
       pageNum: pageNum.value,
       needCount: true,
       pageSize,
-      fields: 'id,erpProduct.productEnglishName,erpProduct.customPrice,erpProduct.mainPic',
     }
     if (selectedsort.value) {
       parmes['sortKey'] = sortarraymapping[selectedsort.value].value
@@ -157,57 +159,46 @@ const getlistlist = async (isReset = false) => {
 const getcateinfo = async () => {
   try {
     const parmes = { id: cateid }
-    const res = await getProductCatalogById(parmes)
+    const res = await getMallProductCatalogById(parmes)
     const result = res.result
     if (result) {
-      categorybanner.value = result.rootPictureUrl
-      categorytitle.value = result.rootPictureTitle
-      categorydesc.value = result.rootPictureContent
-      catename.value = result.catalogEnName || result.catalogName || ''
+      // 更新字段处理
+      categorybanner.value = result.contentConfigImageUrl || '';  // 使用 contentConfigImageUrl 字段
+      categoryalt.value = result.contentConfigAltText || '';  // 使用 contentConfigAltText 字段
+      categorytitle.value = result.contentConfigTitle || result.catalogEnName || '';  // 优先使用 contentConfigTitle，其次使用 catalogEnName
+      categorydesc.value = result.contentConfigSubtitle || result.desc || '';  // 优先使用 contentConfigSubtitle，其次使用 desc
+      catename.value = result.catalogEnName || '';  // 使用 catalogEnName 字段
+      contentConfigView.value = result.contentConfigView || false;
+      // SEO 设置
+      useHead({
+        title: result.seoPageTitle || categorytitle.value,  // 如果有 seoPageTitle，则使用它；否则使用 categorytitle
+        meta: [
+          { name: 'description', content: result.seoMetaDescription || categorydesc.value }  // 如果有 seoMetaDescription，则使用它；否则使用 categorydesc
+        ]
+      });
     }
   } catch (error) {
     console.error('Load catenfo failed:', error)
   }
 }
 
-// ✅ SSR 数据预取
-const { data: categoryData } = await useAsyncData('categoryData', async () => {
-  await Promise.all([
-    getlistlist(true),
-    getcateinfo()
-  ])
-  return {
-    products: products.value,
-    categorybanner: categorybanner.value,
-    categorytitle: categorytitle.value,
-    categorydesc: categorydesc.value,
-    catename: catename.value
-  }
-})
 
-// ✅ 使用服务端预取的数据初始化响应式变量
-if (categoryData.value) {
-  products.value = categoryData.value.products
-  categorybanner.value = categoryData.value.categorybanner
-  categorytitle.value = categoryData.value.categorytitle
-  categorydesc.value = categoryData.value.categorydesc
-  catename.value = categoryData.value.catename
-}
 
-// ✅ 背景图加载完再隐藏骨架（仅客户端）
-onMounted(() => {
+getlistlist(true)
+getcateinfo()
+
+// ✅ 背景图加载完再隐藏骨架
+watch(categorybanner, () => {
   if (categorybanner.value) {
     const img = new Image()
     img.src = categorybanner.value
     img.onload = () => {
       bannerLoading.value = false
     }
-  } else {
-    bannerLoading.value = false
   }
 })
 
-// ✅ IntersectionObserver 懒加载更多（仅客户端）
+// ✅ IntersectionObserver 懒加载更多
 const bottomRef = ref<HTMLElement | null>(null)
 const observer = ref<IntersectionObserver | null>(null)
 
@@ -218,7 +209,7 @@ onMounted(() => {
     }
   })
   nextTick(() => {
-    if (bottomRef.value) observer.value?.observe(bottomRef.value)
+    if (bottomRef.value) observer.value.observe(bottomRef.value)
   })
 })
 
@@ -244,35 +235,34 @@ const { viewItemList, selectItem } = useTrack()
 
 // 列表ID/名称（发给 GA4 的 item_list_id / item_list_name）
 const listId = computed(() => `cate_${cateid}`)
-const listName = computed(() => categorytitle.value || catename.value || 'Category')
+const listName = computed(() => categorytitle.value || catename || 'Category')
 
 // 转换接口返回的产品为 GA4 items
 const toGa4Items = (list: any[]) =>
   (list || []).map((p, i) => ({
     item_id: String(p.id),
     item_name: p?.erpProduct?.productEnglishName || '',
-    price: Number(p?.erpProduct?.customPrice ?? 0),
+    price: Number(p?.erpProduct?.basePrice ?? 0),
     index: i,
     item_list_id: listId.value,
     item_list_name: listName.value
   }))
 
-// 上报"查看商品列表"（仅客户端）
+// 上报“查看商品列表”
 const reportListImpression = () => {
   if (process.server) return
   if (!products.value?.length) return
   viewItemList(toGa4Items(products.value), listId.value, listName.value)
 }
 
-// 点击上报"选择了商品"（仅客户端）
+// 点击上报“选择了商品”
 const onSelectItem = (p: any, index: number) => {
-  if (process.server) return
   selectItem(
     [
       {
         item_id: String(p.id),
         item_name: p?.erpProduct?.productEnglishName || '',
-        price: Number(p?.erpProduct?.customPrice ?? 0),
+        price: Number(p?.erpProduct?.basePrice ?? 0),
         index,
         item_list_id: listId.value,
         item_list_name: listName.value
@@ -283,12 +273,12 @@ const onSelectItem = (p: any, index: number) => {
   )
 }
 
-// 当"列表加载完成/排序改变/过滤改变"后，上报 view_item_list（仅客户端）
+// 当“列表加载完成/排序改变/过滤改变”后，上报 view_item_list
 watch([products, loading, selectedsort, () => selected.value], () => {
-  if (process.server) return
   if (!loading.value && products.value?.length) reportListImpression()
 })
 </script>
+
 
 <template>
   <div class="bg-white">
@@ -303,14 +293,14 @@ watch([products, loading, selectedsort, () => selected.value], () => {
         }" />
 
       <!-- Hero Section -->
-      <div class="relative h-[180px] sm:h-[300px] overflow-hidden rounded-lg">
+      <div class="relative h-[180px] sm:h-[300px] overflow-hidden rounded-lg" v-if="contentConfigView">
         <!-- 骨架屏 -->
         <div v-if="bannerLoading" class="absolute inset-0 bg-gray-200 rounded-lg animate-pulse"></div>
 
         <!-- 背景图 -->
         <div v-else class="absolute inset-0">
           <NuxtImg :src="categorybanner" class="w-full h-full object-cover object-center sm:object-top rounded-lg"
-            alt="hero background" />
+            :alt="categoryalt" />
         </div>
 
         <!-- 文字层 -->
@@ -375,26 +365,32 @@ watch([products, loading, selectedsort, () => selected.value], () => {
           <!-- Product List -->
           <div v-show="products.length > 0 && !loading"
             class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
-            <ULink :to="`/product/${product.id}/${slugify(product.erpProduct.productEnglishName)}`"
+            <ULink :to="`/product/${product.id}/${slugify(product.productEnglishName)}`"
               @click="onSelectItem(product, index)" v-for="(product, index) in products" :key="index"
               class="bg-white rounded-lg cursor-pointer group">
               <div class="aspect-square overflow-hidden rounded-t-lg">
-                <NuxtImg :src="product.erpProduct.mainPic
-                  ? `${product.erpProduct.mainPic}?x-oss-process=image/auto-orient,1/resize,w_400,limit_0`
-                  : '/images/empty.jpg'" :alt="product.erpProduct.productEnglishName"
+                <NuxtImg :src="product.mainPic?.url
+                  ? `${product.mainPic.url}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`
+                  : '/images/empty.jpg'"
+                  :alt="product.mainPic?.altText || product.productEnglishName || 'Product image'"
                   class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                   style="aspect-ratio: 1 / 1;" loading="lazy" />
 
               </div>
               <div>
-                <h3 class="text-sm sm:text-sm text-customblack my-2 lg:my-4 line-clamp-2 cursor-default font-normal"
-                  :title="product.erpProduct.productEnglishName">
-                  {{ product.erpProduct.productEnglishName }}
+                <h3 class="text-sm sm:text-sm text-customblack my-2 lg:my-4 cursor-default font-normal mb-4 title"
+                  :title="product.productEnglishName">
+                  {{ product.productEnglishName }}
                 </h3>
-                <p class="text-sm sm:text-sm text-[#AEAEAE] mb-1 sm:mb-2">{{ product.size }}</p>
-                <div class="flex justify-between items-center">
+                <div class="flex items-center">
+
+                  <!-- Regular price -->
                   <span class="text-sm sm:text-base font-medium text-primary">
-                    ${{ product.erpProduct.customPrice }}
+                    ${{ product.basePrice }}
+                  </span>
+                  <!-- Crossed-out price -->
+                  <span v-if="product.originPrice" class="text-sm text-gray-400 line-through ml-3">
+                    ${{ product.originPrice }}
                   </span>
                 </div>
               </div>
@@ -418,6 +414,19 @@ watch([products, loading, selectedsort, () => selected.value], () => {
     <span v-if="isBottomLoading" class="text-sm text-gray-400">Loading more products...</span>
     <span v-else-if="!hasMore && products.length > 0" class="text-sm text-gray-300">No more products</span>
   </div>
+
 </template>
 
-<style scoped></style>
+<style scoped>
+.title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  /* Ensure two lines max */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 2.4rem;
+  /* Adjust this value to fit two lines */
+  line-height: 1.2rem;
+  /* This should match the height of one line */
+}
+</style>
