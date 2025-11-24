@@ -29,9 +29,9 @@ const rawCategory = computed(() => {
 useHead(() => ({
   title: capitalize(String(rawCategory.value || 'Category')),
 }))
-useServerSeoMeta(() => ({
+useServerSeoMeta({
   description: capitalize(String(rawCategory.value || 'Category')),
-}))
+})
 
 const catename = ref('')
 const cateid = rawCategory.value?.split?.('-')?.pop() ?? ''
