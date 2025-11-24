@@ -173,7 +173,7 @@ const slides = ref<Slide[]>([
     align: 'left',
     title: 'Indoor Roller Shade',
     subtitle: 'From harsh sun to nosy neighbors—your all-in-one window solution.',
-    onClick: () => { router.push('/Indoor-Shades-864') },
+    onClick: () => { router.push('/Indoor-Windows-Treatment-1988900034820935680') },
   },
   {
     variant: 'A',
@@ -181,14 +181,14 @@ const slides = ref<Slide[]>([
     title: 'Adjustable Zebra Shades',
     subtitle:
       'Effortlessly transition between light filtering \nand privacy with our modern,  streamlined, \nand custom-fit shades.',
-    onClick: () => { router.push('/Zebra-868') },
+    onClick: () => { router.push('/product/1990969316715237376/customized-pvc-roller-blind') },
   },
   {
     variant: 'A',
     align: 'left',
     title: 'Pergola Shade Cloth',
     subtitle: 'All-day UV protection with cool, breathable, and durable shade.',
-    onClick: () => { router.push('/Sun-Shade-Cloth-883') },
+    onClick: () => { router.push('/Privacy-Screen-1988900728281894912') },
   },
   {
     variant: 'B',
@@ -203,7 +203,7 @@ const slides = ref<Slide[]>([
     align: 'center',
     title: 'Outdoor Roller Shade',
     subtitle: 'Protect your outdoors from harsh sun Enjoy breezy comfort',
-    onClick: () => { router.push('/Outdoor-Roller-Shade-886') },
+    onClick: () => { router.push('/POD-Outdoor-Roller-Shade-1988909494754840576') },
   },
   {
     variant: 'A',
@@ -213,8 +213,6 @@ const slides = ref<Slide[]>([
       'Block harsh sun, enjoy cool comfort, \n and upgrade your outdoor space with a \ndurable shade sail.',
     onClick: () => { router.push('/Sun-Shade-Sail-879') },
   },
-
-
 ])
 
 /** ✅ 图片 URL 生成器：统一加 webp + q_82 + 需要的尺寸 */

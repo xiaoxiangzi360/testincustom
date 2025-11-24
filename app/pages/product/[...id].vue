@@ -265,7 +265,7 @@
                       {{ index +
                         1 }}</UBadge>
                     <span class="truncate-1-lines font-medium text-sm md:text-base">{{ property.propertyNameShop
-                      }}</span>
+                    }}</span>
                     <!-- Proposed tip: Tooltip type (proposedViewType=10) -->
                     <Tooltip color="#000" :overlayInnerStyle="{ color: '#fff' }" placement="top"
                       v-if="property.proposedView && property.proposedViewType === 10 && property.proposedDesc"
@@ -774,7 +774,7 @@
             </div>
             <div class="mt-2">
               <h3 class="text-sm font-normal mb-2 line-clamp-2 dark:text-black">{{ product.productEnglishName
-                }}
+              }}
               </h3>
               <p class="text-sm font-medium text-primary">
                 <span class="text-sm sm:text-base font-medium text-primary">
@@ -3098,9 +3098,9 @@ function formatInputRange(needinput, pindex) {
   const min = cfg.min !== undefined ? cfg.min : null
   const max = cfg.max !== undefined ? cfg.max : null
   if (min === null && max === null) return 'Please enter a value'
-  if (min !== null && max !== null) return `enter between ${min} and ${max}`
-  if (min !== null) return `enter a value of at least ${min}`
-  return `enter a value of at most ${max}`
+  if (min !== null && max !== null) return `Enter a value between ${min} and ${max}`
+  if (min !== null) return `Enter a value of at least ${min}`
+  return `Enter a value of at most ${max}`
 }
 
 const customFilter = (input, option) => {

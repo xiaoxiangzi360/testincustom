@@ -103,8 +103,8 @@ const { $showLoading, $hideLoading } = useNuxtApp()
 
 definePageMeta({
     layout: 'blank',
-    name: 'Register',
-    title: 'Register',
+    name: 'register',
+    title: 'register',
     description: 'INcustom Register',
 });
 
