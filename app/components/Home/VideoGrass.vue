@@ -7,7 +7,11 @@ import '@splidejs/splide/dist/css/splide.min.css'
 type Product = {
     id: string
     productName: string
-    productImg: string
+    productImg: {
+        url: string
+        type?: string
+        altText?: string
+    }
     price?: number
     video?: string
     videoCover?: string
@@ -32,7 +36,8 @@ const items = computed(() => {
             id: String(p.id),
             title: p.productName,
             img: p.videoCover,
-            thumb: p.productImg,
+            thumb: p.productImg?.url || '/images/empty.jpg',
+            thumbAlt: p.productImg?.altText || '',
             video: p.video,
             price: p.price,
         }))
