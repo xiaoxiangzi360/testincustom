@@ -3,13 +3,8 @@ const route = useRoute()
 
 definePageMeta({
   title: 'category',
-  description: () => {
-    const route = useRoute()
-    const rawCategory = Array.isArray(route.params.category)
-      ? route.params.category[0]
-      : route.params.category;
-    return rawCategory;
-  },
+  // 这里用一个静态 description，真正的 SEO description 在下面 useHead / useServerSeoMeta 和 getcateinfo 里覆盖
+  description: 'Category page',
   hidden: true,
   navOrder: 1,
   type: 'primary',
@@ -24,21 +19,22 @@ const contentConfigView = ref(false)
 const bannerLoading = ref(true)   // ✅ 背景图骨架屏状态
 const capitalize = (s: string) => (s && s[0].toUpperCase() + s.slice(1)) || ''
 
-useHead({
-  title: () => capitalize(String(route.params.category)),
+// 基于 URL slug 的原始 category
+const rawCategory = computed(() => {
+  const c = route.params.category
+  return Array.isArray(c) ? c[0] : (c as string)
 })
 
-useServerSeoMeta({
-  description: () => capitalize(String(route.params.category)),
-})
-
-const rawCategory = Array.isArray(route.params.category)
-  ? route.params.category[0]
-  : (route.params.category as string);
+// 纯 slug 做一个兜底 SEO
+useHead(() => ({
+  title: capitalize(String(rawCategory.value || 'Category')),
+}))
+useServerSeoMeta(() => ({
+  description: capitalize(String(rawCategory.value || 'Category')),
+}))
 
 const catename = ref('')
-const cateid = rawCategory?.split?.('-')?.pop() ?? ''
-
+const cateid = rawCategory.value?.split?.('-')?.pop() ?? ''
 
 const sortarray = [
   'Name Alphabetic, a-z',
@@ -47,7 +43,7 @@ const sortarray = [
   'Price High to Low',
   'Date, Old to New',
   'Date, New to Old'
-]
+] as const
 
 const sortarraymapping: Record<(typeof sortarray)[number], { value: string; sort: 'asc' | 'desc' }> = {
   'Name Alphabetic, a-z': {
@@ -81,7 +77,7 @@ const selected = ref('')
 const products = ref<any[]>([])
 const loading = ref(false)
 
-// ✅ 新增分页相关变量
+// ✅ 分页相关
 const pageNum = ref(1)
 const pageSize = 12
 const hasMore = ref(true)
@@ -109,7 +105,7 @@ watch(selectedsort, () => {
   getlistlist(true)
 })
 
-// ====== 数据加载（增强：分页 + 懒加载） ======
+// ====== 列表数据加载（SSR + 客户端分页/懒加载 共用） ======
 const getlistlist = async (isReset = false) => {
   // 防止重复触发
   if (loading.value || isBottomLoading.value || (!hasMore.value && !isReset)) return
@@ -129,10 +125,15 @@ const getlistlist = async (isReset = false) => {
       needCount: true,
       pageSize,
     }
+
+    // 排序
     if (selectedsort.value) {
       parmes['sortKey'] = sortarraymapping[selectedsort.value].value
       parmes['sortOrder'] = sortarraymapping[selectedsort.value].sort
     }
+
+    // 过滤（如果后端支持，可以加上；此处保持你的原逻辑不动）
+    // if (selected.value) { parmes['tag'] = selected.value }
 
     const res = await getUserProductRollPage(parmes)
     const list = res.result?.list || []
@@ -156,47 +157,73 @@ const getlistlist = async (isReset = false) => {
   }
 }
 
+// ====== 分类信息加载（包含 Banner + SEO） ======
 const getcateinfo = async () => {
+  if (!cateid) return
   try {
     const parmes = { id: cateid }
     const res = await getMallProductCatalogById(parmes)
     const result = res.result
     if (result) {
-      // 更新字段处理
-      categorybanner.value = result.contentConfigImageUrl || '';  // 使用 contentConfigImageUrl 字段
-      categoryalt.value = result.contentConfigAltText || '';  // 使用 contentConfigAltText 字段
-      categorytitle.value = result.contentConfigTitle || result.catalogEnName || '';  // 优先使用 contentConfigTitle，其次使用 catalogEnName
-      categorydesc.value = result.contentConfigSubtitle || result.desc || '';  // 优先使用 contentConfigSubtitle，其次使用 desc
-      catename.value = result.catalogEnName || '';  // 使用 catalogEnName 字段
-      contentConfigView.value = result.contentConfigView || false;
-      // SEO 设置
+      // 原有赋值逻辑保持不变
+      categorybanner.value = result.contentConfigImageUrl || ''
+      categoryalt.value = result.contentConfigAltText || 'Outdoor Shade Solution' // 给 alt 加兜底值
+      categorytitle.value = result.contentConfigTitle || result.catalogEnName || ''
+      categorydesc.value = result.contentConfigSubtitle || result.desc || ''
+      catename.value = result.catalogEnName || ''
+      contentConfigView.value = result.contentConfigView || false
+      console.log('Category Info:', categorybanner.value, categorytitle.value, categorydesc.value, contentConfigView.value)
+
+      // ✅ 新增：监听 Banner 图片加载状态，控制骨架屏
+      if (categorybanner.value) {
+        bannerLoading.value = true // 开始加载，显示骨架屏
+        const img = new Image()
+        img.src = categorybanner.value
+        // 图片加载完成：隐藏骨架屏
+        img.onload = () => {
+          bannerLoading.value = false
+        }
+        // 图片加载失败：隐藏骨架屏 + 显示兜底图
+        img.onerror = () => {
+          bannerLoading.value = false
+          categorybanner.value = '/images/empty.jpg' // 兜底图，避免空白
+        }
+      } else {
+        bannerLoading.value = false // 没有图片，直接隐藏骨架屏
+      }
+
+      // SEO 相关逻辑保持不变
       useHead({
-        title: result.seoPageTitle || categorytitle.value,  // 如果有 seoPageTitle，则使用它；否则使用 categorytitle
+        title: result.seoPageTitle || categorytitle.value || capitalize(String(rawCategory.value || 'Category')),
         meta: [
-          { name: 'description', content: result.seoMetaDescription || categorydesc.value }  // 如果有 seoMetaDescription，则使用它；否则使用 categorydesc
+          {
+            name: 'description',
+            content: result.seoMetaDescription || categorydesc.value || capitalize(String(rawCategory.value || 'Category'))
+          }
         ]
-      });
+      })
+
+      useServerSeoMeta({
+        title: result.seoPageTitle || categorytitle.value || capitalize(String(rawCategory.value || 'Category')),
+        description: result.seoMetaDescription || categorydesc.value || capitalize(String(rawCategory.value || 'Category')),
+      })
     }
   } catch (error) {
-    console.error('Load catenfo failed:', error)
+    console.error('Load cateinfo failed:', error)
+    bannerLoading.value = false // 异常时也隐藏骨架屏
   }
 }
 
+// ⚠️ 关键：在 SSR 阶段就等待首屏数据加载完成
+// 这样服务器返回的 HTML 里就已经有产品列表和分类文案了
+if (import.meta.env.SSR) {
+  // 服务端渲染时等待
+  await Promise.all([getlistlist(true), getcateinfo()])
+} else {
+  // 客户端首次进入（如切换路由）也等待一次，避免闪烁
+  await Promise.all([getlistlist(true), getcateinfo()])
+}
 
-
-getlistlist(true)
-getcateinfo()
-
-// ✅ 背景图加载完再隐藏骨架
-watch(categorybanner, () => {
-  if (categorybanner.value) {
-    const img = new Image()
-    img.src = categorybanner.value
-    img.onload = () => {
-      bannerLoading.value = false
-    }
-  }
-})
 
 // ✅ IntersectionObserver 懒加载更多
 const bottomRef = ref<HTMLElement | null>(null)
@@ -209,7 +236,7 @@ onMounted(() => {
     }
   })
   nextTick(() => {
-    if (bottomRef.value) observer.value.observe(bottomRef.value)
+    if (bottomRef.value && observer.value) observer.value.observe(bottomRef.value)
   })
 })
 
@@ -235,14 +262,14 @@ const { viewItemList, selectItem } = useTrack()
 
 // 列表ID/名称（发给 GA4 的 item_list_id / item_list_name）
 const listId = computed(() => `cate_${cateid}`)
-const listName = computed(() => categorytitle.value || catename || 'Category')
+const listName = computed(() => categorytitle.value || catename.value || 'Category')
 
 // 转换接口返回的产品为 GA4 items
 const toGa4Items = (list: any[]) =>
   (list || []).map((p, i) => ({
     item_id: String(p.id),
-    item_name: p?.erpProduct?.productEnglishName || '',
-    price: Number(p?.erpProduct?.basePrice ?? 0),
+    item_name: p?.erpProduct?.productEnglishName || p?.productEnglishName || '',
+    price: Number(p?.erpProduct?.basePrice ?? p?.basePrice ?? 0),
     index: i,
     item_list_id: listId.value,
     item_list_name: listName.value
@@ -261,8 +288,8 @@ const onSelectItem = (p: any, index: number) => {
     [
       {
         item_id: String(p.id),
-        item_name: p?.erpProduct?.productEnglishName || '',
-        price: Number(p?.erpProduct?.basePrice ?? 0),
+        item_name: p?.erpProduct?.productEnglishName || p?.productEnglishName || '',
+        price: Number(p?.erpProduct?.basePrice ?? p?.basePrice ?? 0),
         index,
         item_list_id: listId.value,
         item_list_name: listName.value
@@ -279,7 +306,6 @@ watch([products, loading, selectedsort, () => selected.value], () => {
 })
 </script>
 
-
 <template>
   <div class="bg-white">
     <div class="max-row py-3 md:py-8">
@@ -293,7 +319,7 @@ watch([products, loading, selectedsort, () => selected.value], () => {
         }" />
 
       <!-- Hero Section -->
-      <div class="relative h-[180px] sm:h-[300px] overflow-hidden rounded-lg" v-if="contentConfigView">
+      <div class="relative h-[180px] sm:h-[300px] overflow-hidden rounded-lg" v-show="contentConfigView">
         <!-- 骨架屏 -->
         <div v-if="bannerLoading" class="absolute inset-0 bg-gray-200 rounded-lg animate-pulse"></div>
 
@@ -333,7 +359,8 @@ watch([products, loading, selectedsort, () => selected.value], () => {
             <USelect size="xs" v-model="selectedsort" :options="sortarray" color="white" :ui="{
               color: {
                 white: {
-                  outline: 'bg-white dark:bg-white dark:text-gray-900 ring-1 ring-gray-300 dark:ring-gray-300'
+                  outline:
+                    'bg-white dark:bg-white dark:text-gray-900 ring-1 ring-gray-300 dark:ring-gray-300'
                 }
               }
             }" />
@@ -371,11 +398,10 @@ watch([products, loading, selectedsort, () => selected.value], () => {
               <div class="aspect-square overflow-hidden rounded-t-lg">
                 <NuxtImg :src="product.mainPic?.url
                   ? `${product.mainPic.url}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`
-                  : '/images/empty.jpg'"
-                  :alt="product.mainPic?.altText || product.productEnglishName || 'Product image'"
+                  : '/images/empty.jpg'
+                  " :alt="product.mainPic?.altText || product.productEnglishName || 'Product image'"
                   class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                   style="aspect-ratio: 1 / 1;" loading="lazy" />
-
               </div>
               <div>
                 <h3 class="text-sm sm:text-sm text-customblack my-2 lg:my-4 cursor-default font-normal mb-4 title"
@@ -383,7 +409,6 @@ watch([products, loading, selectedsort, () => selected.value], () => {
                   {{ product.productEnglishName }}
                 </h3>
                 <div class="flex items-center">
-
                   <!-- Regular price -->
                   <span class="text-sm sm:text-base font-medium text-primary">
                     ${{ product.basePrice }}
@@ -409,12 +434,12 @@ watch([products, loading, selectedsort, () => selected.value], () => {
       </div>
     </div>
   </div>
+
   <!-- 底部懒加载提示区 -->
   <div ref="bottomRef" class="flex justify-center items-center h-16">
     <span v-if="isBottomLoading" class="text-sm text-gray-400">Loading more products...</span>
     <span v-else-if="!hasMore && products.length > 0" class="text-sm text-gray-300">No more products</span>
   </div>
-
 </template>
 
 <style scoped>
