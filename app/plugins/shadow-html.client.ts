@@ -81,6 +81,12 @@ function transformOembeds(root: HTMLElement) {
             oembed.parentNode?.replaceChild(wrapper, oembed)
         }
     })
+
+    root.querySelectorAll('img').forEach((img) => {
+
+        // 添加 lazyload 属性
+        img.setAttribute('loading', 'lazy')
+    })
 }
 
 /**

@@ -96,7 +96,7 @@
                           playsinline preload="metadata"></video>
                       </template>
                       <template v-else>
-                        <NuxtImg format="webp" :src="currentSkuImage.url || '/images/empty.jpg'"
+                        <NuxtImg format="webp" loading="lazy" :src="currentSkuImage.url || '/images/empty.jpg'"
                           :alt="currentSkuImage.altText || productinfo.productEnglishName || 'Product image'"
                           class="main-image w-full h-full object-cover transition-all duration-300"
                           :class="{ 'cursor-pointer': !isMobile }" @load="onMainImageLoaded" @mousemove="onMouseMove"
@@ -113,7 +113,7 @@
                           preload="metadata"></video>
                       </template>
                       <template v-else>
-                        <NuxtImg format="webp" :src="item.url || '/images/empty.jpg'"
+                        <NuxtImg format="webp" loading="lazy" :src="item.url || '/images/empty.jpg'"
                           :alt="item.altText || productinfo.productEnglishName || 'Product image'"
                           class="main-image w-full h-full object-cover transition-all duration-300"
                           :class="{ 'cursor-pointer': !isMobile }" @load="onMainImageLoaded" @mousemove="onMouseMove"
@@ -156,7 +156,7 @@
                 <!-- 无图片时的占位显示 -->
                 <div v-else
                   class="w-full aspect-square overflow-hidden mb-4 relative rounded shadow-lg bg-[#F8F8F8] flex items-center justify-center">
-                  <NuxtImg format="webp" src="/images/empty.jpg"
+                  <NuxtImg loading="lazy" format="webp" src="/images/empty.jpg"
                     :alt="productinfo.productEnglishName || 'Product image'" class="w-full h-full object-cover" />
                 </div>
 
@@ -182,7 +182,7 @@
                         </div>
                       </template>
                       <template v-else>
-                        <NuxtImg width="80" height="80" loading="eager"
+                        <NuxtImg width="80" height="80" loading="lazy"
                           :src="(item.url || '/images/empty.jpg') + '?x-oss-process=image/auto-orient,1/resize,w_100,limit_0'"
                           :alt="item.altText || productinfo.productEnglishName || 'Product thumbnail'"
                           class="w-full h-full object-cover" />
@@ -265,7 +265,7 @@
                       {{ index +
                         1 }}</UBadge>
                     <span class="truncate-1-lines font-medium text-sm md:text-base">{{ property.propertyNameShop
-                    }}</span>
+                      }}</span>
                     <!-- Proposed tip: Tooltip type (proposedViewType=10) -->
                     <Tooltip color="#000" :overlayInnerStyle="{ color: '#fff' }" placement="top"
                       v-if="property.proposedView && property.proposedViewType === 10 && property.proposedDesc"
@@ -328,7 +328,7 @@
                       ]" v-if="type.imageLink">
                         <NuxtImg
                           :src="(type.imageLink || '/images/empty.jpg') + '?x-oss-process=image/auto-orient,1/resize,w_100,limit_0'"
-                          class="w-full h-full object-contain rounded" format="webp" :quality="80" />
+                          class="w-full h-full object-contain rounded" format="webp" loading="lazy" :quality="80" />
                         <div
                           v-if="property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId"
                           class="absolute bottom-0 right-0 w-5 h-5">
@@ -685,7 +685,7 @@
                     <div v-for="review in reviews" :key="review.date" class="bg-white p-4 border-b border-[#D1D1D1]">
                       <div class="flex items-center">
                         <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3">
-                          <NuxtImg src="/reviewer.png" class="w-11 h-11" />
+                          <NuxtImg src="/reviewer.png" loading="lazy" class="w-11 h-11" />
                         </div>
                         <div>
                           <p class="text-sm font-semibold text-black">{{ review.name }}</p>
@@ -774,7 +774,7 @@
             </div>
             <div class="mt-2">
               <h3 class="text-sm font-normal mb-2 line-clamp-2 dark:text-black">{{ product.productEnglishName
-              }}
+                }}
               </h3>
               <p class="text-sm font-medium text-primary">
                 <span class="text-sm sm:text-base font-medium text-primary">
