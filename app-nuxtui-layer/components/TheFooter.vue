@@ -5,20 +5,20 @@
       <div class="flex flex-col md:flex-row gap-8 md:gap-12 justify-between">
         <!-- 左侧 Logo & 介绍 -->
         <div class="md:w-[28%] flex-shrink-0">
-          <NuxtImg format="webp" alt="incustom" src="/images/footerlogo.png" class="h-8 md:h-10" />
+          <NuxtImg format="webp" alt="incustom" loading="lazy" src="/images/footerlogo.png" class="h-8 md:h-10" />
           <p class="text-sm mt-3 text-white">Fulfilling your ideas on demand</p>
           <p class="text-xs mt-2 text-white">Trusted to deliver 99.8M items since 2024</p>
 
           <div class="flex items-center gap-3 mt-5">
-            <NuxtImg format="webp" src="/email-2.png" alt="email" class="w-5" />
+            <NuxtImg format="webp" loading="lazy" src="/email-2.png" alt="email" class="w-5" />
             <a href="mailto:hello@incustom.com" class="text-sm hover:text-primary">hello@incustom.com</a>
           </div>
 
           <!-- 社交图标（设计图在右下角，这里放在桌面端底部栏右侧；移动端保持这里也显示） -->
           <div class="flex md:hidden flex-wrap gap-3 mt-4">
             <NuxtLink :to="item.url" target="_blank" v-for="item in medialist" :key="item.id" aria-label="social link">
-              <NuxtImg format="webp" @mouseover="hovered = item.id" @mouseleave="hovered = null" :alt="item.url"
-                :src="hovered === item.id ? item.img + '-active.png' : item.img + '.png'"
+              <NuxtImg format="webp" loading="lazy" @mouseover="hovered = item.id" @mouseleave="hovered = null"
+                :alt="item.url" :src="hovered === item.id ? item.img + '-active.png' : item.img + '.png'"
                 class="w-9 h-9 cursor-pointer" />
             </NuxtLink>
           </div>
@@ -53,7 +53,8 @@
                       <p class="text-white/80">Badges</p>
                       <p class="text-white/80">Quality Certification</p>
                       <div class="flex flex-wrap items-center gap-3 pt-1">
-                        <NuxtImg format="webp" v-for="(b, i) in badges" :key="i" :src="b" alt="badge" class="h-5" />
+                        <NuxtImg format="webp" loading="lazy" v-for="(b, i) in badges" :key="i" :src="b" alt="badge"
+                          class="h-5" />
                       </div>
                       <p class="text-white/80 pt-2">Payment Methods</p>
                     </div>
@@ -83,7 +84,8 @@
                 Certification
               </NuxtLink>
               <div class="flex flex-wrap items-center gap-3 mt-3">
-                <NuxtImg v-for="(b, i) in badges" :key="'bd-' + i" :src="b" alt="badge" class="h-5" />
+                <NuxtImg loading="lazy" format="webp" v-for="(b, i) in badges" :key="'bd-' + i" :src="b" alt="badge"
+                  class="h-5" />
               </div>
               <NuxtLink to="" class="block hover:text-primary mt-4 text-white/80 text-sm">Payment Methods
               </NuxtLink>
@@ -108,7 +110,8 @@
 
         <!-- 中间：语言 & 支付 -->
         <div class="flex flex-wrap items-center gap-2">
-          <NuxtImg format="webp" v-for="(item, idx) in payicons" :key="'pay-' + idx" :src="item" class="h-[26px]" />
+          <NuxtImg format="webp" loading="lazy" v-for="(item, idx) in payicons" :key="'pay-' + idx" :src="item"
+            class="h-[26px]" />
         </div>
 
         <!-- 右侧：保障 + 社媒 -->
@@ -119,8 +122,8 @@
           <div class="hidden md:flex items-center gap-2">
             <NuxtLink :to="item.url" target="_blank" v-for="item in medialist" :key="'s2-' + item.id"
               aria-label="social link">
-              <NuxtImg format="webp" @mouseover="hovered = item.id" @mouseleave="hovered = null" :alt="item.url"
-                :src="hovered === item.id ? item.img + '-active.png' : item.img + '.png'"
+              <NuxtImg format="webp" loading="lazy" @mouseover="hovered = item.id" @mouseleave="hovered = null"
+                :alt="item.url" :src="hovered === item.id ? item.img + '-active.png' : item.img + '.png'"
                 class="w-8 h-8 cursor-pointer" />
             </NuxtLink>
           </div>
@@ -146,7 +149,7 @@ const token = useCookie('token')
 const userType = useCookie('userType', { sameSite: 'lax', path: '/' })
 
 const isuserTokenValid = computed(() => {
-  const isMember = userType.value === 1 || userType.value === '1'
+  const isMember = userType.value != 2
   return !!token.value && isMember
 })
 

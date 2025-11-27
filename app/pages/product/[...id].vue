@@ -113,7 +113,8 @@
                           preload="metadata"></video>
                       </template>
                       <template v-else>
-                        <NuxtImg format="webp" loading="lazy" :src="item.url || '/images/empty.jpg'"
+                        <NuxtImg format="webp" loading="lazy" :fetchpriority="idx === 0 ? 'high' : 'auto'"
+                          :src="item.url || '/images/empty.jpg'"
                           :alt="item.altText || productinfo.productEnglishName || 'Product image'"
                           class="main-image w-full h-full object-cover transition-all duration-300"
                           :class="{ 'cursor-pointer': !isMobile }" @load="onMainImageLoaded" @mousemove="onMouseMove"
@@ -621,7 +622,15 @@
 
                   <template #item="{ item }">
                     <div class="text-[#4B5563] sm:text-base">
-                      <div class="content" v-oembed-to-iframe v-shadow-html="item.content"></div>
+                      <div v-if="shouldLoadHtmlContent(`faq-${item.key || item.label}`)" class="content"
+                        v-oembed-to-iframe v-shadow-html="item.content">
+                      </div>
+                      <div v-else :ref="(el) => el && setupHtmlContentLazyLoad(`faq-${item.key || item.label}`, el)"
+                        class="content min-h-[100px] bg-gray-50 animate-pulse rounded">
+                        <div class="h-4 bg-gray-200 rounded mb-2"></div>
+                        <div class="h-4 bg-gray-200 rounded mb-2 w-3/4"></div>
+                        <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+                      </div>
                     </div>
                   </template>
                 </UAccordion>
@@ -629,15 +638,25 @@
 
               <!-- 普通 HTML（Description / Specs / 自定义详情） -->
               <template v-else-if="item.type === 'html'">
-                <div v-oembed-to-iframe v-shadow-html="item.content"
+                <div v-if="shouldLoadHtmlContent(item.key)" v-oembed-to-iframe v-shadow-html="item.content"
                   class="prose max-w-none ck-content break-words whitespace-normal leading-relaxed"
-                  style="word-break: break-word; overflow-wrap: anywhere;"></div>
-
+                  style="word-break: break-word; overflow-wrap: anywhere;">
+                </div>
+                <div v-else :ref="(el) => el && setupHtmlContentLazyLoad(item.key, el)"
+                  class="prose max-w-none min-h-[200px] bg-gray-50 animate-pulse rounded p-4">
+                  <div class="space-y-3">
+                    <div class="h-4 bg-gray-200 rounded w-full"></div>
+                    <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+                    <div class="h-4 bg-gray-200 rounded w-4/6"></div>
+                    <div class="h-4 bg-gray-200 rounded w-full mt-4"></div>
+                    <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                  </div>
+                </div>
               </template>
 
               <!-- Reviews -->
               <template v-else-if="item.type === 'reviews'">
-                <div class="flex flex-col lg:flex-row gap-8">
+                <div ref="commentsRef" class="flex flex-col lg:flex-row gap-8">
                   <!-- 左侧：评分汇总（与示例图一致，固定宽度） -->
                   <aside class="w-full lg:w-[320px] xl:w-[360px] shrink-0">
                     <div class="bg-white rounded-lg">
@@ -760,7 +779,7 @@
 
 
       <!-- 推荐产品部分（原样） -->
-      <div class="mt-6 pb-4" v-if="products.length > 0">
+      <div ref="relatedProductsRef" class="mt-6 pb-4" v-if="products.length > 0">
         <h1 class="text-lg font-semibold mb-3 md:mb-4 dark:text-black">Similar item you might like</h1>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
           <NuxtLink :to="`/product/${product.id}/${slugify(product.productEnglishName)}`"
@@ -877,7 +896,17 @@
     <ClientOnly>
       <Drawer v-model:open="drawerVisible" :title="drawerTitle" placement="right" :width="500"
         @close="closeProposedDrawer">
-        <div class="prose max-w-none" v-shadow-html="drawerContent"></div>
+        <!-- Drawer 打开时才加载内容，提升初始性能 -->
+        <div v-if="drawerVisible && shouldLoadHtmlContent('drawer-content')" class="prose max-w-none"
+          v-shadow-html="drawerContent">
+        </div>
+        <div v-else-if="drawerVisible" class="prose max-w-none min-h-[200px] bg-gray-50 animate-pulse rounded p-4">
+          <div class="space-y-3">
+            <div class="h-4 bg-gray-200 rounded w-full"></div>
+            <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+            <div class="h-4 bg-gray-200 rounded w-4/6"></div>
+          </div>
+        </div>
       </Drawer>
     </ClientOnly>
 
@@ -1259,12 +1288,133 @@ const measureTargetIndex = ref(null)
 const measureDistances = ref([]) // anchor distances entered in Step 2, aligned with input labels
 const measureSides = ref([]) // numeric array reflecting needinput inputList length
 const productid = computed(() => route.params.id[0] ?? '29201')
-const { data: serverProductData, pending, error } = await useAsyncData('product-detail', () => {
-  return getProductSpuV2ById({
+// 优化：使用 getter 函数确保 key 唯一，并启用缓存
+const { data: serverProductData, pending, error, refresh: refreshProductData } = await useAsyncData(
+  `product-detail-${productid.value}`,
+  () => getProductSpuV2ById({
     id: productid.value,
-    needPublishSkuData: true
-  })
-})
+    needPublishSkuData: true,
+    needPropData: true
+  }),
+  {
+    // 启用服务端缓存，减少重复请求
+    server: true,
+    // 客户端也使用缓存，避免重复请求
+    default: () => null
+  }
+)
+
+// 优化：提取数据转换逻辑为独立函数，避免重复代码（提前定义，避免SSR错误）
+const transformProductData = (data) => {
+  if (!data) return
+
+  // Transform new API structure to old structure
+  if (!data.photoList && data.fileList) {
+    data.photoList = data.fileList.map((file) => ({
+      url: file.url,
+      type: file.type,
+      altText: file.altText
+    }))
+  }
+  // Cache original gallery after mapping + ensure fileList sync
+  if (Array.isArray(data.photoList)) {
+    originalPhotoList.value = data.photoList.map((it) => ({ ...it }))
+    data.fileList = data.photoList.map((it) => ({ url: it.url, type: it.type, altText: it.altText }))
+  }
+
+  // Map spu to productStyle for backward compatibility
+  if (data.spu && !data.productStyle) {
+    data.productStyle = data.spu
+  }
+
+  // Transform new API structure (propList) to old structure (normalPropertyList)
+  if (data.propList && !data.normalPropertyList) {
+    data.normalPropertyList = data.propList.map((prop) => {
+      const detailList = (prop.propValueList || []).map((propValue) => {
+        const groups = Array.isArray(propValue.groupList) ? propValue.groupList : []
+        const inputNames = groups.flatMap((g) => (g.inputList || []).map((i) => i.inputName))
+        const groupsMeta = []
+        const inputMeta = []
+        let start = 0
+        groups.forEach((g) => {
+          const len = (g.inputList || []).length
+          groupsMeta.push({ name: g.groupName, start, length: len })
+            ; (g.inputList || []).forEach((input) => {
+              inputMeta.push({
+                inputId: input.inputId,
+                inputName: input.inputName,
+                inputStart: input.inputStart,
+                inputEnd: input.inputEnd,
+                unit: input.unit || '',
+                viewType: input.viewType !== undefined ? input.viewType : 10,
+                ruleList: input.ruleList || []
+              })
+            })
+          start += len
+        })
+
+        return {
+          propertyDetailId: propValue.id,
+          detailName: propValue.enName,
+          propertyId: prop.id,
+          imageLink: propValue.imageUrlList?.[0] || '',
+          imageList: Array.isArray(propValue.imageUrlList) ? propValue.imageUrlList : [],
+          skuList: propValue.skuIdList || [],
+          isactive: true,
+          label: propValue.enName,
+          inputList: inputNames.length ? inputNames : null,
+          groupsMeta: groupsMeta.length ? groupsMeta : null,
+          inputMeta: inputMeta.length ? inputMeta : null
+        }
+      })
+
+      const hasAnyImg = detailList.some((d) => !!d.imageLink)
+      return {
+        propertyId: prop.id,
+        propertyName: prop.enName || prop.zhName,
+        propertyNameShop: prop.enName,
+        propertyType: prop.type,
+        specialRestrictionList: Array.isArray(prop.specialRestrictionList) ? prop.specialRestrictionList : [],
+        productPropertyDetailType: hasAnyImg ? 'image' : 'text',
+        desc: prop.desc || '',
+        proposedDesc: prop.proposedDesc || '',
+        proposedView: prop.proposedView || false,
+        proposedViewType: prop.proposedViewType || 10,
+        detailList: detailList,
+        selectedproperty: {},
+        showType: false
+      }
+    })
+  }
+
+  // Process normalPropertyList
+  if (data.normalPropertyList) {
+    data.normalPropertyList.forEach((element) => {
+      const noneedinputlist = []
+      const needinputlist = []
+      element.detailList.forEach((item) => {
+        item.isactive = true
+        item.label = item.detailName
+        if (item.inputList) {
+          const inputvalue = []
+          item.inputList.forEach(() => { inputvalue.push(null) })
+          item.inputvalue = inputvalue
+          element.isneedinput = true
+          needinputlist.push(item)
+        } else {
+          noneedinputlist.push(item)
+        }
+        element.needinputlist = needinputlist
+        element.noneedinputlist = noneedinputlist
+        element.chooseindex = 1
+        if (noneedinputlist.length == 0) { element.chooseindex = 2 }
+      })
+    })
+    if (data.normalPropertyList.length > 0) {
+      data.normalPropertyList[0].showType = true
+    }
+  }
+}
 
 const showDimensions = ref(true)
 const designimage = ref('')
@@ -1324,6 +1474,9 @@ if (productinfo.value.mainPic) {
   console.log('Main image set from mainPic:', mainImage.value)
 
 }
+// 优化：初始化时也使用统一的数据转换函数
+transformProductData(productinfo.value)
+
 // Initialize original photos from first load (prefer existing photoList, else derive from fileList)
 if (Array.isArray(productinfo.value?.photoList)) {
   originalPhotoList.value = productinfo.value.photoList.map(it => ({ ...it }))
@@ -1664,6 +1817,10 @@ const openProposedDrawer = (property) => {
   drawerTitle.value = property.propertyNameShop
   drawerContent.value = property.proposedDesc || ''
   drawerVisible.value = true
+  // 优化：Drawer 打开时标记内容需要加载
+  if (drawerContent.value) {
+    htmlContentLoaded.value.add('drawer-content')
+  }
 }
 
 const closeProposedDrawer = () => {
@@ -2594,140 +2751,39 @@ if (lastpage) {
 }
 const handleGetProudct = async () => {
   try {
-    isLoading.value = true // 保持你原有写法
-    let parmes = { id: productid.value, needPropData: true, needPublishSkuData: true }
-    let res = await getProductSpuV2ById(parmes)
+    isLoading.value = true
+    // 优化：使用 refreshProductData 刷新数据，而不是重新请求
+    await refreshProductData()
+
+    if (!serverProductData.value?.result) {
+      console.error('Failed to load product data')
+      return
+    }
+
+    const res = serverProductData.value
     // updateBreadcrumbProduct(res.result.productEnglishName);
     orginproductinfo.value = res.result
     productinfo.value = res.result
     skuprice.value = res.result.basePrice
 
-    // Transform new API structure to old structure
-    if (!productinfo.value.photoList && productinfo.value.fileList) {
-      // Transform fileList to photoList
-      productinfo.value.photoList = productinfo.value.fileList.map(file => ({
-        url: file.url,
-        type: file.type,
-        altText: file.altText
-      }))
-    }
-    // Cache original gallery after mapping + ensure fileList sync
-    if (Array.isArray(productinfo.value.photoList)) {
-      originalPhotoList.value = productinfo.value.photoList.map(it => ({ ...it }))
-      productinfo.value.fileList = productinfo.value.photoList.map(it => ({ url: it.url, type: it.type, altText: it.altText }))
-    }
+    // 优化：使用提取的转换函数
+    transformProductData(productinfo.value)
 
-    // Map spu to productStyle for backward compatibility
-    if (productinfo.value.spu && !productinfo.value.productStyle) {
-      productinfo.value.productStyle = productinfo.value.spu
-    }
-
-    // Transform new API structure (propList) to old structure (normalPropertyList)
-    if (productinfo.value.propList && !productinfo.value.normalPropertyList) {
-      productinfo.value.normalPropertyList = productinfo.value.propList.map(prop => {
-        // Transform propValueList to detailList
-        const detailList = (prop.propValueList || []).map(propValue => {
-          const groups = Array.isArray(propValue.groupList) ? propValue.groupList : []
-          const inputNames = groups.flatMap(g => (g.inputList || []).map(i => i.inputName))
-          const groupsMeta = []
-          const inputMeta = [] // 保留每个输入框的完整元数据（包括 inputStart/inputEnd）
-          let start = 0
-          groups.forEach(g => {
-            const len = (g.inputList || []).length
-            groupsMeta.push({ name: g.groupName, start, length: len })
-              // 保存每个输入框的元数据
-              ; (g.inputList || []).forEach(input => {
-                inputMeta.push({
-                  inputId: input.inputId,
-                  inputName: input.inputName,
-                  inputStart: input.inputStart,
-                  inputEnd: input.inputEnd,
-                  unit: input.unit || '',
-                  viewType: input.viewType !== undefined ? input.viewType : 10, // 默认为输入框
-                  ruleList: input.ruleList || []  // 下拉选择框的选项
-                })
-              })
-            start += len
-          })
-
-          return {
-            propertyDetailId: propValue.id,
-            detailName: propValue.enName,
-            propertyId: prop.id,
-            imageLink: propValue.imageUrlList?.[0] || '',
-            imageList: Array.isArray(propValue.imageUrlList) ? propValue.imageUrlList : [],
-            skuList: propValue.skuIdList || [], // Map skuIdList to skuList
-            isactive: true,
-            label: propValue.enName,
-            // Flattened input names for compatibility; keep group metadata for UI
-            inputList: inputNames.length ? inputNames : null,
-            groupsMeta: groupsMeta.length ? groupsMeta : null,
-            inputMeta: inputMeta.length ? inputMeta : null // 新增：保存输入框元数据
-          }
-        })
-
-        const hasAnyImg = detailList.some(d => !!d.imageLink)
-        return {
-          propertyId: prop.id,
-          propertyName: prop.enName || prop.zhName,
-          propertyNameShop: prop.enName,
-          propertyType: prop.type,
-          // carry special restrictions for downstream UI (e.g., measurement tool)
-          specialRestrictionList: Array.isArray(prop.specialRestrictionList) ? prop.specialRestrictionList : [],
-          productPropertyDetailType: hasAnyImg ? 'image' : 'text',
-          desc: prop.desc || '',
-          proposedDesc: prop.proposedDesc || '',
-          proposedView: prop.proposedView || false,
-          proposedViewType: prop.proposedViewType || 10,
-          detailList: detailList,
-          selectedproperty: {},
-          showType: false
-        }
-      })
-    }
-
-    productinfo.value.normalPropertyList.forEach(element => {
-      let noneedinputlist = ref([])
-      let needinputlist = ref([])
-      element.detailList.forEach(item => {
-        item.isactive = true
-        item.label = item.detailName
-        if (item.inputList) {
-          let inputvalue = []
-          item.inputList.forEach(() => { inputvalue.push(null) })
-          item.inputvalue = inputvalue
-          element.isneedinput = true
-          needinputlist.value.push(item)
-        } else {
-          noneedinputlist.value.push(item)
-        }
-        element.needinputlist = needinputlist.value
-        element.noneedinputlist = noneedinputlist.value
-        element.chooseindex = 1
-        if (noneedinputlist.value.length == 0) { element.chooseindex = 2 }
-      })
-    })
-    productinfo.value.normalPropertyList[0].showType = true
     mainImage.value = productinfo.value.mainPic
-    // Ensure original gallery cache
-    if (Array.isArray(productinfo.value.photoList)) {
-      originalPhotoList.value = productinfo.value.photoList.map(it => ({ ...it }))
-      productinfo.value.fileList = productinfo.value.photoList.map(it => ({ url: it.url, type: it.type, altText: it.altText }))
-    }
 
     // 新增：首次拉取后做一次全量双向可用性计算
     recomputeAvailabilityAndFix()
 
-    await fetchComments()
+    // 优化：不再在这里加载评论，改为延迟加载
+    // await fetchComments()
 
   } catch (error) {
     console.error(error)
   } finally {
-    // 确保相关产品也加载
-    handleGetrelated()
+    // 优化：不再在这里加载相关产品，改为延迟加载
+    // handleGetrelated()
     isLoading.value = false
     resetPropErrors()
-
   }
 }
 
@@ -3307,7 +3363,16 @@ const onVideoError = (index, review) => {
   if (review.videoUrlList) { review.videoUrlList[index] = '/placeholder-video.mp4' }
 }
 
-watch(() => route.query, () => { handleGetProudct() }, { deep: true })
+// 优化：只在路由参数变化时刷新数据，使用防抖避免频繁请求
+let refreshTimer = null
+watch(() => route.params.id, (newId, oldId) => {
+  if (newId && newId[0] !== oldId?.[0]) {
+    if (refreshTimer) clearTimeout(refreshTimer)
+    refreshTimer = setTimeout(() => {
+      refreshProductData()
+    }, 100)
+  }
+}, { immediate: false })
 watch(mainImageIndex, (newVal) => {
   const list = productinfo.value.photoList
   if (list && list[newVal]) { mainImage.value = list[newVal].url }
@@ -3317,12 +3382,66 @@ watch(sortOption, () => { sortReviews() })
 watch(swiperMain, (val) => {
   if (val) handleVideoPlayback()
 })
+// 优化：防抖滚动处理函数
+let scrollTimer = null
+const debouncedHandleScroll = () => {
+  if (scrollTimer) clearTimeout(scrollTimer)
+  scrollTimer = setTimeout(() => {
+    handleScroll()
+  }, 16) // ~60fps
+}
+
+// 优化：延迟加载非关键数据
+const commentsLoaded = ref(false)
+const relatedProductsLoaded = ref(false)
+
+// 使用 Intersection Observer 延迟加载评论
+const commentsObserver = ref(null)
+const commentsRef = ref(null)
+
+// 使用 Intersection Observer 延迟加载相关产品
+const relatedProductsObserver = ref(null)
+const relatedProductsRef = ref(null)
+
+// 优化：延迟加载 HTML 内容（v-shadow-html）
+const htmlContentLoaded = ref(new Set())
+const htmlContentObservers = ref(new Map())
+
+// 延迟加载 HTML 内容的函数
+const setupHtmlContentLazyLoad = (sectionKey, element) => {
+  if (!process.client) return
+  if (htmlContentLoaded.value.has(sectionKey)) return
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        htmlContentLoaded.value.add(sectionKey)
+        observer.disconnect()
+        htmlContentObservers.value.delete(sectionKey)
+      }
+    })
+  }, {
+    rootMargin: '100px' // 提前100px开始加载
+  })
+
+  observer.observe(element)
+  htmlContentObservers.value.set(sectionKey, observer)
+}
+
+// 检查 HTML 内容是否应该加载
+const shouldLoadHtmlContent = (sectionKey) => {
+  return htmlContentLoaded.value.has(sectionKey)
+}
+
 onMounted(() => {
-  handleGetrelated()
-  fetchComments()
-  reportViewItem()
   if (!process.client) return // ✅ SSR 保护
-  window.addEventListener('scroll', handleScroll, { passive: true })
+
+  // 立即执行的关键操作
+  reportViewItem()
+
+  // 优化：使用防抖的滚动事件
+  window.addEventListener('scroll', debouncedHandleScroll, { passive: true })
+
   // ✅ TikTok Pixel - ViewContent
   if (window.ttq && productinfo.value?.erpProduct) {
     const p = productinfo.value.erpProduct
@@ -3336,6 +3455,51 @@ onMounted(() => {
     })
     console.log('🟢 TikTok ViewContent sent:', productinfo.value.id)
   }
+
+  // 优化：延迟加载评论 - 使用 Intersection Observer
+  if (commentsRef.value) {
+    commentsObserver.value = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !commentsLoaded.value) {
+          commentsLoaded.value = true
+          fetchComments()
+          commentsObserver.value?.disconnect()
+        }
+      })
+    }, { rootMargin: '200px' }) // 提前200px开始加载
+    commentsObserver.value.observe(commentsRef.value)
+  } else {
+    // 如果没有评论区域引用，延迟500ms后加载
+    setTimeout(() => {
+      if (!commentsLoaded.value) {
+        commentsLoaded.value = true
+        fetchComments()
+      }
+    }, 500)
+  }
+
+  // 优化：延迟加载相关产品 - 使用 Intersection Observer
+  if (relatedProductsRef.value) {
+    relatedProductsObserver.value = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !relatedProductsLoaded.value) {
+          relatedProductsLoaded.value = true
+          handleGetrelated()
+          relatedProductsObserver.value?.disconnect()
+        }
+      })
+    }, { rootMargin: '200px' })
+    relatedProductsObserver.value.observe(relatedProductsRef.value)
+  } else {
+    // 如果没有相关产品区域引用，延迟800ms后加载
+    setTimeout(() => {
+      if (!relatedProductsLoaded.value) {
+        relatedProductsLoaded.value = true
+        handleGetrelated()
+      }
+    }, 800)
+  }
+
   nextTick(() => {
     window.dispatchEvent(new Event('resize'))
   })
@@ -3343,7 +3507,16 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (!process.client) return
-  window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('scroll', debouncedHandleScroll)
+  // 清理 Intersection Observer
+  commentsObserver.value?.disconnect()
+  relatedProductsObserver.value?.disconnect()
+  // 清理 HTML 内容 Observer
+  htmlContentObservers.value.forEach(observer => observer.disconnect())
+  htmlContentObservers.value.clear()
+  // 清理定时器
+  if (scrollTimer) clearTimeout(scrollTimer)
+  if (refreshTimer) clearTimeout(refreshTimer)
 })
 const slugify = (str) => {
   return str

@@ -83,6 +83,11 @@ function transformOembeds(root: HTMLElement) {
     })
 
     root.querySelectorAll('img').forEach((img) => {
+        const src = img.getAttribute('src')
+        if (src && !src.includes('?x-oss-process')) {
+            img.setAttribute('src', `${src}?x-oss-process=image/quality,q_70`)
+
+        }
 
         // 添加 lazyload 属性
         img.setAttribute('loading', 'lazy')
