@@ -5,7 +5,7 @@
 <template>
   <ULink data-pg-name="Logo" class="flex sm:flex-row" to="/">
     <div>
-      <img src="/images/incustom.png" alt="InCustom" class="h-8" />
+      <NuxtImg src="https://cdn.incustom.com/upload/web/incustom.png" loading="lazy" alt="InCustom" class="h-8" />
       <!-- <div class="text-xs mt-1">Unique but Affordable</div> -->
     </div>
 

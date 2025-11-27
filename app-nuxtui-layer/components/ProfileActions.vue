@@ -445,7 +445,7 @@ if (process.client) {
       :popper="{ placement: 'bottom' }">
       <template #default>
         <div class="flex items-center px-4 py-2  rounded-lg transition relative">
-          <NuxtImg src="/cart.png" alt="cart" class="h-9" />
+          <NuxtImg src="/cart.png" loading='lazy' alt="cart" class="h-9" />
           <UBadge v-if="cart.itemCount > 0" :label="cart.itemCount" color="primary" variant="solid"
             class="absolute top-2 right-4 w-4 h-4 flex items-center justify-center rounded-full ring-0 text-white text-xxs font-semibold" />
         </div>
@@ -562,7 +562,7 @@ if (process.client) {
 
     <!-- 登录按钮 / 用户信息（保留） -->
     <NuxtLink class="text-white cursor-pointer" @click.prevent="goLogin()" v-if="!isuserTokenValid">
-      <NuxtImg src="/user.png" alt="user" class="h-9" />
+      <NuxtImg src="https://cdn.incustom.com/upload/web/user.png" loading='lazy' alt="user" class="h-9" />
     </NuxtLink>
 
     <div class="text-white cursor-pointer" v-if="isuserTokenValid">

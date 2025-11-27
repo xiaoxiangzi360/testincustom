@@ -3,7 +3,6 @@ const route = useRoute()
 
 definePageMeta({
   title: 'category',
-  // 这里用一个静态 description，真正的 SEO description 在下面 useHead / useServerSeoMeta 和 getcateinfo 里覆盖
   description: 'Category page',
   hidden: true,
   navOrder: 1,
@@ -105,9 +104,14 @@ watch(selectedsort, () => {
   getlistlist(true)
 })
 
-// ====== 列表数据加载（SSR + 客户端分页/懒加载 共用） ======
+// ====== 列表数据加载（客户端分页/懒加载） ======
+// 将数据加载放到 onMounted 生命周期钩子中
+onMounted(async () => {
+  await getlistlist(true)
+  await getcateinfo()
+})
+
 const getlistlist = async (isReset = false) => {
-  // 防止重复触发
   if (loading.value || isBottomLoading.value || (!hasMore.value && !isReset)) return
 
   if (isReset) {
@@ -126,14 +130,10 @@ const getlistlist = async (isReset = false) => {
       pageSize,
     }
 
-    // 排序
     if (selectedsort.value) {
       parmes['sortKey'] = sortarraymapping[selectedsort.value].value
       parmes['sortOrder'] = sortarraymapping[selectedsort.value].sort
     }
-
-    // 过滤（如果后端支持，可以加上；此处保持你的原逻辑不动）
-    // if (selected.value) { parmes['tag'] = selected.value }
 
     const res = await getUserProductRollPage(parmes)
     const list = res.result?.list || []
@@ -165,34 +165,28 @@ const getcateinfo = async () => {
     const res = await getMallProductCatalogById(parmes)
     const result = res.result
     if (result) {
-      // 原有赋值逻辑保持不变
       categorybanner.value = result.contentConfigImageUrl || ''
-      categoryalt.value = result.contentConfigAltText || 'Outdoor Shade Solution' // 给 alt 加兜底值
+      categoryalt.value = result.contentConfigAltText || 'Outdoor Shade Solution'
       categorytitle.value = result.contentConfigTitle || result.catalogEnName || ''
       categorydesc.value = result.contentConfigSubtitle || result.desc || ''
       catename.value = result.catalogEnName || ''
       contentConfigView.value = result.contentConfigView || false
-      console.log('Category Info:', categorybanner.value, categorytitle.value, categorydesc.value, contentConfigView.value)
 
-      // ✅ 新增：监听 Banner 图片加载状态，控制骨架屏
       if (categorybanner.value) {
-        bannerLoading.value = true // 开始加载，显示骨架屏
+        bannerLoading.value = true
         const img = new Image()
         img.src = categorybanner.value
-        // 图片加载完成：隐藏骨架屏
         img.onload = () => {
           bannerLoading.value = false
         }
-        // 图片加载失败：隐藏骨架屏 + 显示兜底图
         img.onerror = () => {
           bannerLoading.value = false
-          categorybanner.value = '/images/empty.jpg' // 兜底图，避免空白
+          categorybanner.value = '/images/empty.jpg'
         }
       } else {
-        bannerLoading.value = false // 没有图片，直接隐藏骨架屏
+        bannerLoading.value = false
       }
 
-      // SEO 相关逻辑保持不变
       useHead({
         title: result.seoPageTitle || categorytitle.value || capitalize(String(rawCategory.value || 'Category')),
         meta: [
@@ -210,22 +204,11 @@ const getcateinfo = async () => {
     }
   } catch (error) {
     console.error('Load cateinfo failed:', error)
-    bannerLoading.value = false // 异常时也隐藏骨架屏
+    bannerLoading.value = false
   }
 }
 
-// ⚠️ 关键：在 SSR 阶段就等待首屏数据加载完成
-// 这样服务器返回的 HTML 里就已经有产品列表和分类文案了
-if (import.meta.env.SSR) {
-  // 服务端渲染时等待
-  await Promise.all([getlistlist(true), getcateinfo()])
-} else {
-  // 客户端首次进入（如切换路由）也等待一次，避免闪烁
-  await Promise.all([getlistlist(true), getcateinfo()])
-}
-
-
-// ✅ IntersectionObserver 懒加载更多
+// IntersectionObserver 懒加载更多
 const bottomRef = ref<HTMLElement | null>(null)
 const observer = ref<IntersectionObserver | null>(null)
 
@@ -258,9 +241,9 @@ const slugify = (str: string) => {
 }
 
 // ====================== 埋点：GA4 view_item_list / select_item ======================
+// 在商品点击时触发的函数
 const { viewItemList, selectItem } = useTrack()
 
-// 列表ID/名称（发给 GA4 的 item_list_id / item_list_name）
 const listId = computed(() => `cate_${cateid}`)
 const listName = computed(() => categorytitle.value || catename.value || 'Category')
 
@@ -305,6 +288,7 @@ watch([products, loading, selectedsort, () => selected.value], () => {
   if (!loading.value && products.value?.length) reportListImpression()
 })
 </script>
+
 
 <template>
   <div class="bg-white">

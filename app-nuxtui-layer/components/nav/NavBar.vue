@@ -226,7 +226,7 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
 
           <BaseIcon name="i-heroicons-user-circle" class="lg:!hidden w-7 h-7" width="28" height="28"
             @click="checklogin()" v-show="isuserTokenValid" />
-          <img v-show="!isuserTokenValid" @click="router.push('/login')" src="/user.png" alt="user"
+          <NuxtImg v-show="!isuserTokenValid" @click="router.push('/login')" loading='lazy'  src="https://cdn.incustom.com/upload/web/user.png" alt="user"
             class="lg:!hidden w-7 h-7 cursor-pointer" />
           <BaseIcon name="i-heroicons:shopping-cart" class="lg:!hidden w-7 h-7 ml-3" width="28" height="28"
             @click="goToCart" />
