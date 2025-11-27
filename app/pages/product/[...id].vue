@@ -96,7 +96,8 @@
                           playsinline preload="metadata"></video>
                       </template>
                       <template v-else>
-                        <NuxtImg format="webp" loading="lazy" :src="currentSkuImage.url || '/images/empty.jpg'"
+                        <NuxtImg format="webp" loading="lazy"
+                          :src="currentSkuImage.url + '?x-oss-process=image/auto-orient,1/resize,w_400,limit_0' || 'https://cdn.incustom.com/upload/web/empty.jpg'"
                           :alt="currentSkuImage.altText || productinfo.productEnglishName || 'Product image'"
                           class="main-image w-full h-full object-cover transition-all duration-300"
                           :class="{ 'cursor-pointer': !isMobile }" @load="onMainImageLoaded" @mousemove="onMouseMove"
@@ -114,7 +115,7 @@
                       </template>
                       <template v-else>
                         <NuxtImg format="webp" loading="lazy" :fetchpriority="idx === 0 ? 'high' : 'auto'"
-                          :src="item.url || '/images/empty.jpg'"
+                          :src="item.url + '?x-oss-process=image/auto-orient,1/resize,w_400,limit_0' || 'https://cdn.incustom.com/upload/web/empty.jpg'"
                           :alt="item.altText || productinfo.productEnglishName || 'Product image'"
                           class="main-image w-full h-full object-cover transition-all duration-300"
                           :class="{ 'cursor-pointer': !isMobile }" @load="onMainImageLoaded" @mousemove="onMouseMove"
@@ -157,7 +158,7 @@
                 <!-- 无图片时的占位显示 -->
                 <div v-else
                   class="w-full aspect-square overflow-hidden mb-4 relative rounded shadow-lg bg-[#F8F8F8] flex items-center justify-center">
-                  <NuxtImg loading="lazy" format="webp" src="/images/empty.jpg"
+                  <NuxtImg loading="lazy" format="webp" src="https://cdn.incustom.com/upload/web/empty.jpg"
                     :alt="productinfo.productEnglishName || 'Product image'" class="w-full h-full object-cover" />
                 </div>
 
@@ -184,7 +185,7 @@
                       </template>
                       <template v-else>
                         <NuxtImg width="80" height="80" loading="lazy"
-                          :src="(item.url || '/images/empty.jpg') + '?x-oss-process=image/auto-orient,1/resize,w_100,limit_0'"
+                          :src="(item.url || 'https://cdn.incustom.com/upload/web/empty.jpg') + '?x-oss-process=image/auto-orient,1/resize,w_100,limit_0'"
                           :alt="item.altText || productinfo.productEnglishName || 'Product thumbnail'"
                           class="w-full h-full object-cover" />
                       </template>
@@ -266,7 +267,7 @@
                       {{ index +
                         1 }}</UBadge>
                     <span class="truncate-1-lines font-medium text-sm md:text-base">{{ property.propertyNameShop
-                      }}</span>
+                    }}</span>
                     <!-- Proposed tip: Tooltip type (proposedViewType=10) -->
                     <Tooltip color="#000" :overlayInnerStyle="{ color: '#fff' }" placement="top"
                       v-if="property.proposedView && property.proposedViewType === 10 && property.proposedDesc"
@@ -328,7 +329,7 @@
                           : ''
                       ]" v-if="type.imageLink">
                         <NuxtImg
-                          :src="(type.imageLink || '/images/empty.jpg') + '?x-oss-process=image/auto-orient,1/resize,w_100,limit_0'"
+                          :src="(type.imageLink || 'https://cdn.incustom.com/upload/web/empty.jpg') + '?x-oss-process=image/auto-orient,1/resize,w_100,limit_0'"
                           class="w-full h-full object-contain rounded" format="webp" loading="lazy" :quality="80" />
                         <div
                           v-if="property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId"
@@ -465,7 +466,9 @@
                               @change="val => onChange(val, property, index)" option-label-prop="label">
                               <template #option="{ detailName, imageLink, disabled }">
                                 <div class="flex items-center gap-2" :class="{ 'opacity-50': disabled }">
-                                  <img v-if="imageLink" :src="imageLink || '/images/empty.jpg'" class="w-6 h-6 mr-2" />
+                                  <img v-if="imageLink"
+                                    :src="imageLink || 'https://cdn.incustom.com/upload/web/empty.jpg'"
+                                    class="w-6 h-6 mr-2" />
                                   <span>{{ detailName }}</span>
                                 </div>
                               </template>
@@ -508,8 +511,8 @@
                     </div>
                   </div>
                   <div class="w-full md:w-40 shrink-0 self-center">
-                    <img v-show="designimage" :src="designimage || '/images/empty.jpg'" alt="Dimension guide"
-                      class="rounded-xl border" />
+                    <img v-show="designimage" :src="designimage || 'https://cdn.incustom.com/upload/web/empty.jpg'"
+                      alt="Dimension guide" class="rounded-xl border" />
                   </div>
                 </div>
               </div>
@@ -787,13 +790,14 @@
             class="product-card rounded-lg transition-transform duration-300  hover:scale-[1.02] md:hover:-translate-y-0.5 cursor-pointer">
             <div class="relative overflow-hidden">
               <img :src="product.mainPic?.url
-                ? `${product.mainPic.url}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`
-                : '/images/empty.jpg'" :alt="product.mainPic?.altText || product.productEnglishName || 'Product image'"
+                ? `${product.mainPic.url}?x-oss-process=image/auto-orient,1/resize,w_400,limit_0`
+                : 'https://cdn.incustom.com/upload/web/empty.jpg'"
+                :alt="product.mainPic?.altText || product.productEnglishName || 'Product image'"
                 class="w-full h-full object-cover object-top rounded">
             </div>
             <div class="mt-2">
               <h3 class="text-sm font-normal mb-2 line-clamp-2 dark:text-black">{{ product.productEnglishName
-                }}
+              }}
               </h3>
               <p class="text-sm font-medium text-primary">
                 <span class="text-sm sm:text-base font-medium text-primary">
@@ -1468,7 +1472,7 @@ if (productinfo.value?.seoPageTitle || productinfo.value?.seoMetaDescription) {
 
 if (productinfo.value.mainPic) {
   if (!productinfo.value.mainPic.url) {
-    productinfo.value.mainPic.url = '/images/empty.jpg'
+    productinfo.value.mainPic.url = 'https://cdn.incustom.com/upload/web/empty.jpg'
   }
   mainImage.value = productinfo.value.mainPic
   console.log('Main image set from mainPic:', mainImage.value)

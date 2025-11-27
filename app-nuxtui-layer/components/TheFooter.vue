@@ -5,7 +5,8 @@
       <div class="flex flex-col md:flex-row gap-8 md:gap-12 justify-between">
         <!-- 左侧 Logo & 介绍 -->
         <div class="md:w-[28%] flex-shrink-0">
-          <NuxtImg format="webp" alt="incustom" loading="lazy" src="/images/footerlogo.png" class="h-8 md:h-10" />
+          <NuxtImg format="webp" alt="incustom" loading="lazy"
+            src="https://cdn.incustom.com/upload/icons/footerlogo.png" class="h-8 md:h-10" />
           <p class="text-sm mt-3 text-white">Fulfilling your ideas on demand</p>
           <p class="text-xs mt-2 text-white">Trusted to deliver 99.8M items since 2024</p>
 
@@ -185,21 +186,21 @@ const handleTrackingNavigation = () => {
 
 /** 社媒图标（保持你原来的 hover 切换） */
 const medialist = [
-  { id: 1, img: '/images/media1', url: 'https://www.instagram.com/incustom0505/' },
-  { id: 2, img: '/images/media2', url: 'https://www.facebook.com/profile.php?id=61578243120322' },
-  { id: 3, img: '/images/media3', url: 'https://www.linkedin.com/company/incustom/' },
-  { id: 5, img: '/images/media5', url: 'https://www.tiktok.com/@incustom8' },
-  { id: 6, img: '/images/media6', url: 'https://www.pinterest.com/incustomstore/' },
-  { id: 7, img: '/images/media7', url: 'https://www.youtube.com/channel/UCxL5KwbHQFg86qC_XwbNRtg' },
+  { id: 1, img: 'https://cdn.incustom.com/upload/icons/media1', url: 'https://www.instagram.com/incustom0505/' },
+  { id: 2, img: 'https://cdn.incustom.com/upload/icons/media2', url: 'https://www.facebook.com/profile.php?id=61578243120322' },
+  { id: 3, img: 'https://cdn.incustom.com/upload/icons/media3', url: 'https://www.linkedin.com/company/incustom/' },
+  { id: 5, img: 'https://cdn.incustom.com/upload/icons/media5', url: 'https://www.tiktok.com/@incustom8' },
+  { id: 6, img: 'https://cdn.incustom.com/upload/icons/media6', url: 'https://www.pinterest.com/incustomstore/' },
+  { id: 7, img: 'https://cdn.incustom.com/upload/icons/media7', url: 'https://www.youtube.com/channel/UCxL5KwbHQFg86qC_XwbNRtg' },
 ]
 const payicons = [
-  '/images/payicon1.png',
-  '/images/payicon2.png',
-  '/images/payicon3.png',
-  '/images/payicon4.png',
-  '/images/payicon5.png',
-  '/images/payicon6.png',
-  '/images/payicon7.png',
+  'https://cdn.incustom.com/upload/icons/payicon1.png',
+  'https://cdn.incustom.com/upload/icons/payicon2.png',
+  'https://cdn.incustom.com/upload/icons/payicon3.png',
+  'https://cdn.incustom.com/upload/icons/payicon4.png',
+  'https://cdn.incustom.com/upload/icons/payicon5.png',
+  'https://cdn.incustom.com/upload/icons/payicon6.png',
+  'https://cdn.incustom.com/upload/icons/payicon7.png',
 ]
 const hovered = ref(null)
 
@@ -236,14 +237,14 @@ const sections = [
 
 /** 认证徽章（示例路径，替换成你的实际图片） */
 const badges = [
-  '/images/trust/logo1.webp',
-  '/images/trust/logo2.webp',
-  '/images/trust/logo3.webp',
-  '/images/trust/logo4.webp',
-  '/images/trust/logo5.webp',
-  '/images/trust/logo6.webp',
-  // '/images/trust/logo7.webp',
-  '/images/trust/logo8.webp',
+  'https://cdn.incustom.com/upload/icons/logo1.webp',
+  'https://cdn.incustom.com/upload/icons/logo2.webp',
+  'https://cdn.incustom.com/upload/icons/logo3.webp',
+  'https://cdn.incustom.com/upload/icons/logo4.webp',
+  'https://cdn.incustom.com/upload/icons/logo5.webp',
+  'https://cdn.incustom.com/upload/icons/logo6.webp',
+  // 'https://cdn.incustom.com/upload/icons/logo7.webp',
+  'https://cdn.incustom.com/upload/icons/logo8.webp',
 ]
 
 /** 移动端手风琴数据 */

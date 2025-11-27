@@ -70,7 +70,7 @@
                                         ${{ product.customPriceStr }}
                                     </span>
                                     <!-- Crossed-out price -->
-                                    <span v-if="product.originPriceStr" class="text-sm text-gray-400 line-through ml-3">
+                                    <span v-if="product.originPrice" class="text-sm text-gray-400 line-through ml-3">
                                         ${{ product.originPriceStr }}
                                     </span>
                                 </div>
