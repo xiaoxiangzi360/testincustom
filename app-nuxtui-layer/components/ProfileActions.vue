@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
 import { message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { Tooltip, Select } from 'ant-design-vue'
@@ -187,7 +188,11 @@ const handleGetCart = async () => {
     console.error('Failed to refresh cart:', error)
   }
 };
-if (isTokenValid.value) { handleGetCart() }
+onMounted(() => {
+  if (isTokenValid.value) {
+    handleGetCart(); // 页面加载完成后请求购物车数据
+  }
+});
 const shipping = ref(0);
 const increaseproductQuantity = (index: number) => { cart.increaseQuantity(index) };
 const decreaseproductQuantity = (index: number) => { cart.decreaseQuantity(index) };

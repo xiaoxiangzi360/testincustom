@@ -28,7 +28,12 @@ export default defineNuxtConfig({
   future: {
     compatibilityVersion: 4,
   },
-
+  render: {
+    compressor: {
+      // 启用缓存压缩
+      gzip: true
+    },
+  },
   // Before Nuxt 4 migration
   // srcDir: 'app',
   // serverDir: fileURLToPath(new URL('server', import.meta.url)),
@@ -38,14 +43,27 @@ export default defineNuxtConfig({
   // },
 
   experimental: {
-    componentIslands: true,
+    componentIslands: false,
+  },
+  generate: {
+    fallback: true, // ✅ 自動生成404.html兜底
   },
   nitro: {
     // preset: 'netlify',
     preset: 'vercel',
+        // 优化：启用压缩和缓存
+    compressPublicAssets: true,
+    // 优化：启用服务端缓存
+    storage: {
+      cache: {
+        driver: 'memory',
+        max: 1000,
+        ttl: 60 * 60 * 1000, // 1小时
+      }
+    },
     devProxy: {
       '/api/': {
-        target: 'http://192.168.8.52:50500',
+        target: 'https://mallapi.incustom.com',
         // target: 'http://192.168.8.52:50500',
         changeOrigin: true,
         prependPath: false,
@@ -59,30 +77,61 @@ export default defineNuxtConfig({
     head: {
       meta: [{ charset: 'utf-8' }], // defaulted by nuxt
       script: [
+        // 优化：延迟加载 GTM，使用 defer 和延迟执行
         {
-          // ✅ 使用 children 而不是 innerHTML
-          children: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-          new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-          j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-          'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-          })(window,document,'script','dataLayer','GTM-WLSVXPKK');`,
-          type: 'text/javascript'
+          key: 'gtm-loader',
+          type: 'text/javascript',
+          defer: true,
+          children: `
+            // 延迟加载 GTM，等待页面交互或滚动
+            function loadGTM() {
+              if (window.dataLayer) return;
+              (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+              new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+              'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+              })(window,document,'script','dataLayer','GTM-WLSVXPKK');
+            }
+            // 页面加载完成后延迟 2 秒加载，或用户交互时立即加载
+            if (document.readyState === 'complete') {
+              setTimeout(loadGTM, 2000);
+            } else {
+              window.addEventListener('load', function() { setTimeout(loadGTM, 2000); });
+              ['mousedown', 'touchstart', 'scroll'].forEach(function(event) {
+                window.addEventListener(event, loadGTM, { once: true, passive: true });
+              });
+            }
+          `,
         },
+        // 优化：延迟加载 Meta Pixel
         {
           key: 'meta-pixel',
           type: 'text/javascript',
+          defer: true,
           children: `
-            !function(f,b,e,v,n,t,s){
-              if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-              n.queue=[];t=b.createElement(e);t.async=!0;
-              t.src=v;s=b.getElementsByTagName(e)[0];
-              s.parentNode.insertBefore(t,s)
-            }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
-
-            fbq('init', '1715265472507752');
-            fbq('track', 'PageView');
+            // 延迟加载 Meta Pixel
+            function loadMetaPixel() {
+              if (window.fbq) return;
+              !function(f,b,e,v,n,t,s){
+                if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+                n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+                if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+                n.queue=[];t=b.createElement(e);t.async=!0;
+                t.src=v;s=b.getElementsByTagName(e)[0];
+                s.parentNode.insertBefore(t,s)
+              }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+              fbq('init', '1715265472507752');
+              fbq('track', 'PageView');
+            }
+            // 页面加载完成后延迟 3 秒加载，或用户交互时立即加载
+            if (document.readyState === 'complete') {
+              setTimeout(loadMetaPixel, 3000);
+            } else {
+              window.addEventListener('load', function() { setTimeout(loadMetaPixel, 3000); });
+              ['mousedown', 'touchstart', 'scroll'].forEach(function(event) {
+                window.addEventListener(event, loadMetaPixel, { once: true, passive: true });
+              });
+            }
           `,
         },
       ],
@@ -134,22 +183,35 @@ export default defineNuxtConfig({
       })
     },
   ],
-  routeRules: {
+ routeRules: {
     '/.well-known/apple-developer-merchantid-domain-association': {
       headers: {
         'Content-Type': 'application/octet-stream',
         'Cache-Control': 'public, max-age=3600'
       }
-    }
+    },
+        '/product/**': {
+      ssr: true,
+      prerender: false,
+      // 启用 ISR（增量静态再生）缓存
+      isr: 3600, // 缓存1小时
+    },
+    // 首页预渲染
+    '/': {
+      prerender: true,
+      headers: { 'Cache-Control': 's-maxage=3600' }
+    },
+    // API 路由不缓存
+    '/api/**': { cors: true, headers: { 'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS' } },
   },
   colorMode: {
     preference: 'light',
   },
   runtimeConfig: {
     public: {
+    	 paypalClientId: 'AS0rf0QTNmoMKyMcTwzpF8BY-euIR3ipXSHaqLD2Yeb6WZSufWRB9LueT0HytkAY0DFJPGQURHCYdur8',
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://mallapi.incustom.com',
-      paypalClientId: 'AZEq1Z4PN2jcETI7JFSFvXGwe0dX8xHKlUOKh9N53ysbzHeJ6OonvPHFd1L5XJz90xX1SPP3X6Xp_P__',
-      airwallexEnv: process.env.NUXT_PUBLIC_AIRWALLEX_ENV || 'demo',
+      airwallexEnv: process.env.NUXT_PUBLIC_AIRWALLEX_ENV || 'prod',
       gmpApiKey: process.env.GMP_API_KEY,
       // apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://192.168.8.52:50500',
     }
@@ -184,7 +246,8 @@ export default defineNuxtConfig({
   icon: {
     componentName: 'NuxtIcon', // Instead of NuxtIcon, prefer using UIcon. Nuxt UI's UIcon is overridden with a local component `BaseIcon` that uses UnoCSS Preset-Icons which allows us to use any icons from the iconify iconsets and is very efficient in terms of automatic treeshaking.
     serverBundle: {
-      collections: ['heroicons'],
+      collections: ['heroicons', 'material-symbols'],
+
     },
   },
 
@@ -196,6 +259,9 @@ export default defineNuxtConfig({
   ],
   plugins: [
     { src: '~/plugins/clarity.js', mode: 'client' },
+    { src: '~/plugins/chaty.client.ts', mode: 'client' },
+    { src: '~/plugins/tiktok-pixel.client.ts', mode: 'client' }
+
   ],
   postcss: {
     plugins: {
@@ -204,13 +270,19 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
-
   image: {
-    // sizes: 'xs:100vw sm:100vw md:100vw lg:100vw xl:100vw', // Global sizes not yet supported, has to be specified in NuxtImg or NuxtPicture tags - https://github.com/nuxt/image/issues/216
-    // densities: [1,2], // default
-    // quality: 80, // can be overridden as NuxtImg prop
-    format: ['webp', 'png', 'jpg'], // default is ['webp']
-    // The screen sizes predefined by `@nuxt/image`:
+    // 优化：启用图片优化（如果支持的话）
+    format: ['webp', 'png', 'jpg'],
+    // 优化：设置默认质量
+    quality: 82,
+    // 优化：启用 IPX provider（如果可用）
+    // provider: 'ipx',
+    provider: 'none', // 如果 CDN 已经处理图片，保持 none
+    imgAttributes: {
+      loading: 'lazy',
+      decoding: 'async'
+    },
+    // 优化：添加默认 sizes
     screens: {
       xs: 320,
       sm: 640,
@@ -220,11 +292,6 @@ export default defineNuxtConfig({
       xxl: 1536,
       '2xl': 1536,
     },
-
-    // TODO: Currently image optimization is paused until some bugs in Nuxt Image modules are fixed
-    // provider: 'ipx',
-    provider: 'none',
-
     presets: {
       avatar: {
         modifiers: {
@@ -243,9 +310,7 @@ export default defineNuxtConfig({
       'res.cloudinary.com',
       'avatars.githubusercontent.com',
       'gravatar.com',
-      'erp.dropsure.com',
-      'image.distributetop.com',
-      's2.loli.net',
+      'cdn.incustom.com',
     ],
 
     alias: {
@@ -318,7 +383,6 @@ export default defineNuxtConfig({
     client: false,
     server: false,
   },
-
   // Used by all modules in the @nuxtjs/seo collection
   // https://nuxtseo.com/docs/nuxt-seo/guides/using-the-modules
   site: {

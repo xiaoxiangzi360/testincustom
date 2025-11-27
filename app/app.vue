@@ -30,6 +30,18 @@
 import { Spin, ConfigProvider } from 'ant-design-vue'
 
 const loading = useState<boolean>('global-loading')
+
+// 优化：预加载关键资源
+useHead({
+  link: [
+    // 预连接 CDN
+    { rel: 'preconnect', href: 'https://cdn.incustom.com', crossorigin: '' },
+    { rel: 'dns-prefetch', href: 'https://cdn.incustom.com' },
+    // 预连接 API
+    { rel: 'preconnect', href: 'https://mallapi.incustom.com', crossorigin: '' },
+    { rel: 'dns-prefetch', href: 'https://mallapi.incustom.com' },
+  ]
+})
 </script>
 <style>
 .global-loading {
