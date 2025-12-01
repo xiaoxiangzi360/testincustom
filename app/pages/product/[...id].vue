@@ -96,8 +96,7 @@
                           playsinline preload="metadata"></video>
                       </template>
                       <template v-else>
-                        <NuxtImg format="webp" loading="lazy"
-                          :src="currentSkuImage.url ? (currentSkuImage.url + '?x-oss-process=image/auto-orient,1/resize,w_400,limit_0') : 'https://cdn.incustom.com/upload/web/empty.webp'"
+                        <NuxtImg format="webp" :src="currentSkuImage.url || '/images/empty.jpg'"
                           :alt="currentSkuImage.altText || productinfo.productEnglishName || 'Product image'"
                           class="main-image w-full h-full object-cover transition-all duration-300"
                           :class="{ 'cursor-pointer': !isMobile }" @load="onMainImageLoaded" @mousemove="onMouseMove"
@@ -114,8 +113,7 @@
                           preload="metadata"></video>
                       </template>
                       <template v-else>
-                        <NuxtImg format="webp" loading="lazy" :fetchpriority="idx === 0 ? 'high' : 'auto'"
-                          :src="(item.url ? item.url + '?x-oss-process=image/auto-orient,1/resize,w_400,limit_0' : 'https://cdn.incustom.com/upload/web/empty.webp')"
+                        <NuxtImg format="webp" :src="item.url || '/images/empty.jpg'"
                           :alt="item.altText || productinfo.productEnglishName || 'Product image'"
                           class="main-image w-full h-full object-cover transition-all duration-300"
                           :class="{ 'cursor-pointer': !isMobile }" @load="onMainImageLoaded" @mousemove="onMouseMove"
@@ -158,7 +156,7 @@
                 <!-- 无图片时的占位显示 -->
                 <div v-else
                   class="w-full aspect-square overflow-hidden mb-4 relative rounded shadow-lg bg-[#F8F8F8] flex items-center justify-center">
-                  <NuxtImg loading="lazy" format="webp" src="https://cdn.incustom.com/upload/web/empty.webp"
+                  <NuxtImg format="webp" src="/images/empty.jpg"
                     :alt="productinfo.productEnglishName || 'Product image'" class="w-full h-full object-cover" />
                 </div>
 
@@ -184,8 +182,8 @@
                         </div>
                       </template>
                       <template v-else>
-                        <NuxtImg width="80" height="80" loading="lazy"
-                          :src="(item.url || 'https://cdn.incustom.com/upload/web/empty.webp') + '?x-oss-process=image/auto-orient,1/resize,w_100,limit_0'"
+                        <NuxtImg width="80" height="80" loading="eager"
+                          :src="(item.url || '/images/empty.jpg') + '?x-oss-process=image/auto-orient,1/resize,w_100,limit_0'"
                           :alt="item.altText || productinfo.productEnglishName || 'Product thumbnail'"
                           class="w-full h-full object-cover" />
                       </template>
@@ -329,8 +327,8 @@
                           : ''
                       ]" v-if="type.imageLink">
                         <NuxtImg
-                          :src="(type.imageLink || 'https://cdn.incustom.com/upload/web/empty.webp') + '?x-oss-process=image/auto-orient,1/resize,w_100,limit_0'"
-                          class="w-full h-full object-contain rounded" format="webp" loading="lazy" :quality="80" />
+                          :src="(type.imageLink || '/images/empty.jpg') + '?x-oss-process=image/auto-orient,1/resize,w_100,limit_0'"
+                          class="w-full h-full object-contain rounded" format="webp" :quality="80" />
                         <div
                           v-if="property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId"
                           class="absolute bottom-0 right-0 w-5 h-5">
@@ -380,61 +378,64 @@
                     <div class="flex-1">
                       <div class="text-base text-gray-800">
                         <div class="cursor-pointer block" :class="{ 'mt-3': needindex > 0 }"
-                          v-for="(needinput, needindex) in property.needinputlist.filter(item => !item.disabled)">
-                          <div class="flex items-center"
-                            v-show="property.needinputlist.filter(item => !item.disabled).length > 1">
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                              <input type="radio" v-model="property.chooseindex" :value="needindex + 2"
-                                @change="changeinputvalue(property, needindex + 2, index)" />
-                              <span class="font-semibold text-sm">{{ needinput.detailName }}</span>
-                            </label>
-                          </div>
-                          <!-- Inputs: horizontal with wrap; group headers take full width -->
-                          <div class="flex flex-wrap gap-x-3 gap-y-1">
-                            <template v-for="(inputitem, pindex) in needinput.inputList" :key="pindex">
-                              <!-- Group header: show only group name without range -->
-                              <div v-if="needinput.groupsMeta && needinput.groupsMeta.some(g => g.start === pindex)"
-                                class="w-full text-sm  text-gray-800">
-                                <!-- {{ getGroupName(needinput, pindex) }} -->
-                              </div>
-                              <div class="flex items-center">
-                                <ClientOnly>
-                                  <!-- 根据viewType显示不同的输入组件 -->
-                                  <template v-if="getInputConfig(needinput, pindex).viewType === 10">
-                                    <!-- 输入框 -->
-                                    <div>
-                                      <div class="text-sm  text-gray-800">{{ getInputConfig(needinput, pindex).inputName
-                                        || inputitem }} (<span v-if="getInputConfig(needinput, pindex).unit"> {{
-                                          getInputConfig(needinput,
-                                            pindex).unit
-                                        }}</span>)</div>
-                                      <InputNumber v-model:value="needinput.inputvalue[pindex]"
-                                        @blur="changeinputvalue(property, needindex + 2, index)"
-                                        class="custom-input rounded text-sm w-[250px] focus:outline-none focus:ring-0"
-                                        :min="getInputConfig(needinput, pindex).min"
-                                        :max="getInputConfig(needinput, pindex).max" :step="1"
-                                        :placeholder="formatInputRange(needinput, pindex)" />
-                                    </div>
+                          v-for="(needinput, needindex) in property.needinputlist">
+                          <div v-show="!needinput.disabled">
+                            <div class="flex items-center"
+                              v-show="property.needinputlist.filter(item => !item.disabled).length > 1">
+                              <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" v-model="property.chooseindex" :value="needindex + 2"
+                                  @change="changeinputvalue(property, needindex + 2, index)" />
+                                <span class="font-semibold text-sm">{{ needinput.detailName }}</span>
+                              </label>
+                            </div>
+                            <!-- Inputs: horizontal with wrap; group headers take full width -->
+                            <div class="flex flex-wrap gap-x-3 gap-y-1">
+                              <template v-for="(inputitem, pindex) in needinput.inputList" :key="pindex">
+                                <!-- Group header: show only group name without range -->
+                                <div v-if="needinput.groupsMeta && needinput.groupsMeta.some(g => g.start === pindex)"
+                                  class="w-full text-sm  text-gray-800">
+                                  <!-- {{ getGroupName(needinput, pindex) }} -->
+                                </div>
+                                <div class="flex items-center">
+                                  <ClientOnly>
+                                    <!-- 根据viewType显示不同的输入组件 -->
+                                    <template v-if="getInputConfig(needinput, pindex).viewType === 10">
+                                      <!-- 输入框 -->
+                                      <div>
+                                        <div class="text-sm  text-gray-800">{{ getInputConfig(needinput,
+                                          pindex).inputName
+                                          || inputitem }} (<span v-if="getInputConfig(needinput, pindex).unit"> {{
+                                            getInputConfig(needinput,
+                                              pindex).unit
+                                          }}</span>)</div>
+                                        <InputNumber v-model:value="needinput.inputvalue[pindex]"
+                                          @blur="changeinputvalue(property, needindex + 2, index)"
+                                          class="custom-input rounded text-sm w-[250px] focus:outline-none focus:ring-0"
+                                          :min="getInputConfig(needinput, pindex).min"
+                                          :max="getInputConfig(needinput, pindex).max" :step="1"
+                                          :placeholder="formatInputRange(needinput, pindex)" />
+                                      </div>
 
-                                  </template>
-                                  <template v-else-if="getInputConfig(needinput, pindex).viewType === 50">
-                                    <!-- 下拉选择框 -->
-                                    <div>
-                                      <div class="text-sm  text-gray-800">{{ getInputConfig(needinput, pindex).inputName
-                                        || inputitem }} (<span v-if="getInputConfig(needinput, pindex).unit"> {{
-                                          getInputConfig(needinput,
-                                            pindex).unit
-                                        }}</span>)</div>
-                                      <Select v-model:value="needinput.inputvalue[pindex]" allowClear
-                                        :options="getInputConfig(needinput, pindex).ruleList.map(rule => ({ label: rule.start, value: rule.start }))"
-                                        size="middle" style="width: 250px;" :dropdownStyle="{ lineHeight: '28px' }"
-                                        class="custom-select" placeholder="Please select"
-                                        @change="() => changeinputvalue(property, needindex + 2, index)" />
-                                    </div>
+                                    </template>
+                                    <template v-else-if="getInputConfig(needinput, pindex).viewType === 50">
+                                      <!-- 下拉选择框 -->
+                                      <div>
+                                        <div class="text-sm  text-gray-800">{{ getInputConfig(needinput,
+                                          pindex).inputName
+                                          || inputitem }} (<span v-if="getInputConfig(needinput, pindex).unit"> {{
+                                            getInputConfig(needinput,
+                                              pindex).unit
+                                          }}</span>)</div>
+                                        <Select v-model:value="needinput.inputvalue[pindex]" allowClear
+                                          :options="getInputConfig(needinput, pindex).ruleList.map(rule => ({ label: rule.start, value: rule.start }))"
+                                          size="middle" style="width: 250px;" :dropdownStyle="{ lineHeight: '28px' }"
+                                          class="custom-select" placeholder="Please select"
+                                          @change="() => changeinputvalue(property, needindex + 2, index)" />
+                                      </div>
 
-                                  </template>
-                                  <!-- 显示单位与输入范围 -->
-                                  <!-- <span
+                                    </template>
+                                    <!-- 显示单位与输入范围 -->
+                                    <!-- <span
                                     v-if="getInputConfig(needinput, pindex).unit || formatInputRange(needinput, pindex)"
                                     class="text-xs text-gray-500 ml-1">
                                     {{ formatInputRange(needinput, pindex) }}
@@ -442,13 +443,14 @@
                                       pindex).unit
                                       }}</span>
                                   </span> -->
-                                </ClientOnly>
-                              </div>
-                            </template>
+                                  </ClientOnly>
+                                </div>
+                              </template>
+                            </div>
+                            <div
+                              v-if="errorsize && lastTrialPropIndex === index && Number(property.chooseindex) === (needindex + 2)"
+                              class="text-red-500 text-sm mt-2">{{ errorsize }}</div>
                           </div>
-                          <div
-                            v-if="errorsize && lastTrialPropIndex === index && Number(property.chooseindex) === (needindex + 2)"
-                            class="text-red-500 text-sm mt-2">{{ errorsize }}</div>
                         </div>
                         <div v-if="property.noneedinputlist.length > 0"
                           class="flex items-center space-x-2 cursor-pointer mt-4">
@@ -466,9 +468,7 @@
                               @change="val => onChange(val, property, index)" option-label-prop="label">
                               <template #option="{ detailName, imageLink, disabled }">
                                 <div class="flex items-center gap-2" :class="{ 'opacity-50': disabled }">
-                                  <img v-if="imageLink"
-                                    :src="imageLink || 'https://cdn.incustom.com/upload/web/empty.webp'"
-                                    class="w-6 h-6 mr-2" />
+                                  <img v-if="imageLink" :src="imageLink || '/images/empty.jpg'" class="w-6 h-6 mr-2" />
                                   <span>{{ detailName }}</span>
                                 </div>
                               </template>
@@ -511,8 +511,8 @@
                     </div>
                   </div>
                   <div class="w-full md:w-40 shrink-0 self-center">
-                    <img v-show="designimage" :src="designimage || 'https://cdn.incustom.com/upload/web/empty.webp'"
-                      alt="Dimension guide" class="rounded-xl border" />
+                    <img v-show="designimage" :src="designimage || '/images/empty.jpg'" alt="Dimension guide"
+                      class="rounded-xl border" />
                   </div>
                 </div>
               </div>
@@ -625,15 +625,7 @@
 
                   <template #item="{ item }">
                     <div class="text-[#4B5563] sm:text-base">
-                      <div v-if="shouldLoadHtmlContent(`faq-${item.key || item.label}`)" class="content"
-                        v-oembed-to-iframe v-shadow-html="item.content">
-                      </div>
-                      <div v-else :ref="(el) => el && setupHtmlContentLazyLoad(`faq-${item.key || item.label}`, el)"
-                        class="content min-h-[100px] bg-gray-50 animate-pulse rounded">
-                        <div class="h-4 bg-gray-200 rounded mb-2"></div>
-                        <div class="h-4 bg-gray-200 rounded mb-2 w-3/4"></div>
-                        <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-                      </div>
+                      <div class="content" v-oembed-to-iframe v-shadow-html="item.content"></div>
                     </div>
                   </template>
                 </UAccordion>
@@ -641,25 +633,15 @@
 
               <!-- 普通 HTML（Description / Specs / 自定义详情） -->
               <template v-else-if="item.type === 'html'">
-                <div v-if="shouldLoadHtmlContent(item.key)" v-oembed-to-iframe v-shadow-html="item.content"
+                <div v-oembed-to-iframe v-shadow-html="item.content"
                   class="prose max-w-none ck-content break-words whitespace-normal leading-relaxed"
-                  style="word-break: break-word; overflow-wrap: anywhere;">
-                </div>
-                <div v-else :ref="(el) => el && setupHtmlContentLazyLoad(item.key, el)"
-                  class="prose max-w-none min-h-[200px] bg-gray-50 animate-pulse rounded p-4">
-                  <div class="space-y-3">
-                    <div class="h-4 bg-gray-200 rounded w-full"></div>
-                    <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-                    <div class="h-4 bg-gray-200 rounded w-4/6"></div>
-                    <div class="h-4 bg-gray-200 rounded w-full mt-4"></div>
-                    <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-                  </div>
-                </div>
+                  style="word-break: break-word; overflow-wrap: anywhere;"></div>
+
               </template>
 
               <!-- Reviews -->
               <template v-else-if="item.type === 'reviews'">
-                <div ref="commentsRef" class="flex flex-col lg:flex-row gap-8">
+                <div class="flex flex-col lg:flex-row gap-8">
                   <!-- 左侧：评分汇总（与示例图一致，固定宽度） -->
                   <aside class="w-full lg:w-[320px] xl:w-[360px] shrink-0">
                     <div class="bg-white rounded-lg">
@@ -707,7 +689,7 @@
                     <div v-for="review in reviews" :key="review.date" class="bg-white p-4 border-b border-[#D1D1D1]">
                       <div class="flex items-center">
                         <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3">
-                          <NuxtImg src="/reviewer.png" loading="lazy" class="w-11 h-11" />
+                          <NuxtImg src="/reviewer.png" class="w-11 h-11" />
                         </div>
                         <div>
                           <p class="text-sm font-semibold text-black">{{ review.name }}</p>
@@ -782,7 +764,7 @@
 
 
       <!-- 推荐产品部分（原样） -->
-      <div ref="relatedProductsRef" class="mt-6 pb-4" v-if="products.length > 0">
+      <div class="mt-6 pb-4" v-if="products.length > 0">
         <h1 class="text-lg font-semibold mb-3 md:mb-4 dark:text-black">Similar item you might like</h1>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
           <NuxtLink :to="`/product/${product.id}/${slugify(product.productEnglishName)}`"
@@ -790,9 +772,8 @@
             class="product-card rounded-lg transition-transform duration-300  hover:scale-[1.02] md:hover:-translate-y-0.5 cursor-pointer">
             <div class="relative overflow-hidden">
               <img :src="product.mainPic?.url
-                ? `${product.mainPic.url}?x-oss-process=image/auto-orient,1/resize,w_400,limit_0`
-                : 'https://cdn.incustom.com/upload/web/empty.webp'"
-                :alt="product.mainPic?.altText || product.productEnglishName || 'Product image'"
+                ? `${product.mainPic.url}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`
+                : '/images/empty.jpg'" :alt="product.mainPic?.altText || product.productEnglishName || 'Product image'"
                 class="w-full h-full object-cover object-top rounded">
             </div>
             <div class="mt-2">
@@ -900,17 +881,7 @@
     <ClientOnly>
       <Drawer v-model:open="drawerVisible" :title="drawerTitle" placement="right" :width="500"
         @close="closeProposedDrawer">
-        <!-- Drawer 打开时才加载内容，提升初始性能 -->
-        <div v-if="drawerVisible && shouldLoadHtmlContent('drawer-content')" class="prose max-w-none"
-          v-shadow-html="drawerContent">
-        </div>
-        <div v-else-if="drawerVisible" class="prose max-w-none min-h-[200px] bg-gray-50 animate-pulse rounded p-4">
-          <div class="space-y-3">
-            <div class="h-4 bg-gray-200 rounded w-full"></div>
-            <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-            <div class="h-4 bg-gray-200 rounded w-4/6"></div>
-          </div>
-        </div>
+        <div class="prose max-w-none" v-shadow-html="drawerContent"></div>
       </Drawer>
     </ClientOnly>
 
@@ -1001,22 +972,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch, nextTick, shallowRef } from 'vue'
 import { Image } from 'ant-design-vue'
+import 'swiper/css'
+import 'swiper/css/navigation'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Navigation, Controller } from 'swiper/modules'
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import { message, Tooltip, Select, InputNumber, Button, Drawer } from 'ant-design-vue'
 import { useCartStore } from '@/stores/cart'
 import { useRouter, useRoute } from 'vue-router'
 import { useFbq } from '~/composables/useFbq'
 import { Splide, SplideSlide } from '@splidejs/vue-splide'
-
-// 优化：延迟加载 CSS，减少初始 bundle
-if (process.client) {
-  import('swiper/css')
-  import('swiper/css/navigation')
-  import('@splidejs/vue-splide/css')
-}
+import '@splidejs/vue-splide/css'
 const { addToCartEvent, initiateCheckout } = useFbq({ currency: 'USD' })
 const { viewItem, addToCart: trackAddToCart, beginCheckout } = useTrack()
 const { getProductSpuV2ById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV4, erpTryToCreateSkuV2, propSideLengthTool } = ProductAuth()
@@ -1155,7 +1122,7 @@ const onMouseEnter = () => {
 // 当鼠标移动时，更新放大框的位置和显示内容（移动端不启用）
 const onMouseMove = (event) => {
   if (isMobile.value) return
-  if (process.dev) console.log('Mouse move - updating zoom position')
+  console.log('Mouse move - updating zoom position')
   const swiperSlide = event.target.closest('.swiper-slide');
   const { left, top, width, height } = swiperSlide.getBoundingClientRect();
   const x = event.clientX - left;
@@ -1206,7 +1173,7 @@ const onMouseMove = (event) => {
 // 当鼠标离开时，隐藏放大方块（移动端不启用）
 const onMouseLeave = () => {
   if (isMobile.value) return
-  if (process.dev) console.log('Mouse leave - hiding zoom box')
+  console.log('Mouse leave - hiding zoom box')
   showZoomBox.value = false;
 };
 // 主图切换时更新 index / 按钮状态 / mainImage（供其它逻辑用）
@@ -1296,139 +1263,17 @@ const measureTargetIndex = ref(null)
 const measureDistances = ref([]) // anchor distances entered in Step 2, aligned with input labels
 const measureSides = ref([]) // numeric array reflecting needinput inputList length
 const productid = computed(() => route.params.id[0] ?? '29201')
-// 优化：使用 getter 函数确保 key 唯一，并启用缓存
-const { data: serverProductData, pending, error, refresh: refreshProductData } = await useAsyncData(
-  `product-detail-${productid.value}`,
-  () => getProductSpuV2ById({
+const { data: serverProductData, pending, error } = await useAsyncData('product-detail', () => {
+  return getProductSpuV2ById({
     id: productid.value,
-    needPublishSkuData: true,
-    needPropData: true
-  }),
-  {
-    // 启用服务端缓存，减少重复请求
-    server: true,
-    // 客户端也使用缓存，避免重复请求
-    default: () => null
-  }
-)
-
-// 优化：提取数据转换逻辑为独立函数，避免重复代码（提前定义，避免SSR错误）
-const transformProductData = (data) => {
-  if (!data) return
-
-  // Transform new API structure to old structure
-  if (!data.photoList && data.fileList) {
-    data.photoList = data.fileList.map((file) => ({
-      url: file.url,
-      type: file.type,
-      altText: file.altText
-    }))
-  }
-  // Cache original gallery after mapping + ensure fileList sync
-  if (Array.isArray(data.photoList)) {
-    originalPhotoList.value = data.photoList.map((it) => ({ ...it }))
-    data.fileList = data.photoList.map((it) => ({ url: it.url, type: it.type, altText: it.altText }))
-  }
-
-  // Map spu to productStyle for backward compatibility
-  if (data.spu && !data.productStyle) {
-    data.productStyle = data.spu
-  }
-
-  // Transform new API structure (propList) to old structure (normalPropertyList)
-  if (data.propList && !data.normalPropertyList) {
-    data.normalPropertyList = data.propList.map((prop) => {
-      const detailList = (prop.propValueList || []).map((propValue) => {
-        const groups = Array.isArray(propValue.groupList) ? propValue.groupList : []
-        const inputNames = groups.flatMap((g) => (g.inputList || []).map((i) => i.inputName))
-        const groupsMeta = []
-        const inputMeta = []
-        let start = 0
-        groups.forEach((g) => {
-          const len = (g.inputList || []).length
-          groupsMeta.push({ name: g.groupName, start, length: len })
-            ; (g.inputList || []).forEach((input) => {
-              inputMeta.push({
-                inputId: input.inputId,
-                inputName: input.inputName,
-                inputStart: input.inputStart,
-                inputEnd: input.inputEnd,
-                unit: input.unit || '',
-                viewType: input.viewType !== undefined ? input.viewType : 10,
-                ruleList: input.ruleList || []
-              })
-            })
-          start += len
-        })
-
-        return {
-          propertyDetailId: propValue.id,
-          detailName: propValue.enName,
-          propertyId: prop.id,
-          imageLink: propValue.imageUrlList?.[0] || '',
-          imageList: Array.isArray(propValue.imageUrlList) ? propValue.imageUrlList : [],
-          skuList: propValue.skuIdList || [],
-          isactive: true,
-          label: propValue.enName,
-          inputList: inputNames.length ? inputNames : null,
-          groupsMeta: groupsMeta.length ? groupsMeta : null,
-          inputMeta: inputMeta.length ? inputMeta : null
-        }
-      })
-
-      const hasAnyImg = detailList.some((d) => !!d.imageLink)
-      return {
-        propertyId: prop.id,
-        propertyName: prop.enName || prop.zhName,
-        propertyNameShop: prop.enName,
-        propertyType: prop.type,
-        specialRestrictionList: Array.isArray(prop.specialRestrictionList) ? prop.specialRestrictionList : [],
-        productPropertyDetailType: hasAnyImg ? 'image' : 'text',
-        desc: prop.desc || '',
-        proposedDesc: prop.proposedDesc || '',
-        proposedView: prop.proposedView || false,
-        proposedViewType: prop.proposedViewType || 10,
-        detailList: detailList,
-        selectedproperty: {},
-        showType: false
-      }
-    })
-  }
-
-  // Process normalPropertyList
-  if (data.normalPropertyList) {
-    data.normalPropertyList.forEach((element) => {
-      const noneedinputlist = []
-      const needinputlist = []
-      element.detailList.forEach((item) => {
-        item.isactive = true
-        item.label = item.detailName
-        if (item.inputList) {
-          const inputvalue = []
-          item.inputList.forEach(() => { inputvalue.push(null) })
-          item.inputvalue = inputvalue
-          element.isneedinput = true
-          needinputlist.push(item)
-        } else {
-          noneedinputlist.push(item)
-        }
-        element.needinputlist = needinputlist
-        element.noneedinputlist = noneedinputlist
-        element.chooseindex = 1
-        if (noneedinputlist.length == 0) { element.chooseindex = 2 }
-      })
-    })
-    if (data.normalPropertyList.length > 0) {
-      data.normalPropertyList[0].showType = true
-    }
-  }
-}
+    needPublishSkuData: true
+  })
+})
 
 const showDimensions = ref(true)
 const designimage = ref('')
 const mainImage = ref('')
-// 优化：使用 shallowRef 优化大对象响应式性能，减少深度响应式追踪开销
-const productinfo = shallowRef(serverProductData.value?.result ?? {})
+const productinfo = ref(serverProductData.value?.result ?? {})
 
 // 检查产品是否有效
 const isProductValid = productinfo.value.id && productinfo.value.productState === 'published'
@@ -1477,15 +1322,12 @@ if (productinfo.value?.seoPageTitle || productinfo.value?.seoMetaDescription) {
 
 if (productinfo.value.mainPic) {
   if (!productinfo.value.mainPic.url) {
-    productinfo.value.mainPic.url = 'https://cdn.incustom.com/upload/web/empty.webp'
+    productinfo.value.mainPic.url = '/images/empty.jpg'
   }
   mainImage.value = productinfo.value.mainPic
   console.log('Main image set from mainPic:', mainImage.value)
 
 }
-// 优化：初始化时也使用统一的数据转换函数
-transformProductData(productinfo.value)
-
 // Initialize original photos from first load (prefer existing photoList, else derive from fileList)
 if (Array.isArray(productinfo.value?.photoList)) {
   originalPhotoList.value = productinfo.value.photoList.map(it => ({ ...it }))
@@ -1826,10 +1668,6 @@ const openProposedDrawer = (property) => {
   drawerTitle.value = property.propertyNameShop
   drawerContent.value = property.proposedDesc || ''
   drawerVisible.value = true
-  // 优化：Drawer 打开时标记内容需要加载
-  if (drawerContent.value) {
-    htmlContentLoaded.value.add('drawer-content')
-  }
 }
 
 const closeProposedDrawer = () => {
@@ -1984,83 +1822,355 @@ function getAllOptionsOfProp(prop) {
   }
   return prop.detailList || []
 }
+/** 重置所有禁用状态 */
+function resetAllDisabledStates(prop) {
+  if (!prop) return
 
-/** 取某属性当前生效的 skuList（若未选则返回该属性“可用候选项”的并集） */
-function getCurrentSkusOfProp(prop) {
-  if (!prop) return []
-  // 自定义输入模式
-  if (prop.isneedinput && prop.chooseindex === 2) {
-    const picked = (prop.needinputlist || []).find(i =>
-      prop.selectedproperty?.detailName ? i.detailName === prop.selectedproperty.detailName : false
-    )
-    if (picked?.skuList?.length) return picked.skuList
-    const actives = (prop.needinputlist || []).filter(i => i.isactive !== false && i.disabled !== true)
-    const union = new Set()
-    actives.forEach(i => (i.skuList || []).forEach(s => union.add(s)))
-    return Array.from(union)
+  console.log(`Resetting disabled states for ${prop.propertyNameShop}`)
+
+  // 重置 detailList
+  if (prop.detailList && Array.isArray(prop.detailList)) {
+    prop.detailList.forEach(opt => {
+      opt.disabled = false
+    })
+    console.log(`  Reset ${prop.detailList.length} detailList options`)
   }
 
-  // 普通模式
-  if (prop.selectedproperty?.skuList?.length) return prop.selectedproperty.skuList
+  // 重置 noneedinputlist
+  if (prop.noneedinputlist && Array.isArray(prop.noneedinputlist)) {
+    prop.noneedinputlist.forEach(opt => {
+      opt.disabled = false
+    })
+    console.log(`  Reset ${prop.noneedinputlist.length} noneedinputlist options`)
+  }
 
-  // 未选择：返回可用候选项并集
-  const union = new Set()
-  getAllOptionsOfProp(prop)
-    .filter(o => o.isactive !== false && o.disabled !== true)
-    .forEach(o => (o.skuList || []).forEach(s => union.add(s)))
-  return Array.from(union)
+  // 重置 needinputlist
+  if (prop.needinputlist && Array.isArray(prop.needinputlist)) {
+    prop.needinputlist.forEach(opt => {
+      opt.disabled = false
+    })
+    console.log(`  Reset ${prop.needinputlist.length} needinputlist options`)
+  }
 }
 
-/** 计算除第 i 个属性外，其它属性联合允许的 SKU 交集 */
-function getAcceptableSkusExcept(indexToSkip) {
-  const props = productinfo.value.normalPropertyList || []
-  const others = props.filter((_, idx) => idx !== indexToSkip)
+/** 取某属性当前生效的 skuList - 修复版 */
+function getCurrentSkusOfProp(prop) {
+  if (!prop) return []
 
-  // ✅ 单属性或“除自己外没有其它属性” → 返回 null 表示“无约束”
-  if (others.length === 0) return null
-
-  let acc = null
-  others.forEach((p) => {
-    const skus = getCurrentSkusOfProp(p)
-    if (!acc) acc = skus.slice(0)
-    else acc = acc.filter(s => skus.includes(s))
+  console.log(`Getting skus for ${prop.propertyNameShop}:`, {
+    hasSelection: !!(prop.selectedproperty && Object.keys(prop.selectedproperty).length > 0),
+    selection: prop.selectedproperty?.detailName
   })
-  return acc || []
-}
 
-
-/** 依据其它属性约束，重算每个属性每个候选项是否可选（disabled） */
-function recomputeAvailability() {
-  const props = productinfo.value.normalPropertyList || []
-  props.forEach((prop, i) => {
-    const others = getAcceptableSkusExcept(i)
-    const unconstrained = (others === null)               // ✅ 无其它属性 → 无约束
-    const othersOk = new Set(Array.isArray(others) ? others : [])
-
+  // ✅ 重要修复：如果这个属性没有选择，返回该属性所有可用选项的SKU并集
+  if (!prop.selectedproperty || Object.keys(prop.selectedproperty).length === 0) {
     const options = getAllOptionsOfProp(prop)
-    options.forEach(opt => {
-      const skus = opt.skuList || []
-      const isSelected =
-        prop.selectedproperty?.propertyDetailId === opt.propertyDetailId
+    const availableOptions = options.filter(o => o.isactive !== false)
+    const union = new Set()
 
-      // ✅ 无约束：只要自己有 sku 就可选
-      const hasValidSku = unconstrained ? (skus.length > 0) : skus.some(s => othersOk.has(s))
-
-      // 不是当前选中项时，按有效性与 isactive 决定是否禁用
-      opt.disabled = !isSelected && (opt.isactive === false || !hasValidSku)
+    availableOptions.forEach(o => {
+      if (o.skuList && Array.isArray(o.skuList)) {
+        o.skuList.forEach(s => union.add(s))
+      }
     })
 
-    if (prop.isneedinput && prop.needinputlist?.length) {
-      prop.needinputlist.forEach(ni => {
-        const skus = ni.skuList || []
-        const isSelected = prop.selectedproperty?.detailName === ni.detailName && prop.chooseindex === 2
-        const hasValidSku = unconstrained ? (skus.length > 0) : skus.some(s => othersOk.has(s))
-        ni.disabled = !isSelected && (ni.isactive === false || !hasValidSku)
+    const result = Array.from(union)
+    console.log(`  No selection - returning union of all options: ${result.length} SKUs`)
+    return result
+  }
+
+  // 自定义输入模式
+  if (prop.isneedinput && Number(prop.chooseindex) === 2) {
+    const picked = (prop.needinputlist || []).find(i =>
+      i.detailName === prop.selectedproperty.detailName
+    )
+    if (picked?.skuList?.length) {
+      console.log(`  Custom input: ${picked.detailName}, ${picked.skuList.length} SKUs`)
+      return picked.skuList
+    }
+  }
+
+  // 普通模式 - 有选中项
+  if (prop.selectedproperty.skuList?.length) {
+    console.log(`  Selected: ${prop.selectedproperty.detailName}, ${prop.selectedproperty.skuList.length} SKUs`)
+    return prop.selectedproperty.skuList
+  }
+
+  // 回退：返回空数组
+  console.log(`  Fallback: no SKUs found`)
+  return []
+}
+
+/** 检查选项是否被选中 */
+function isOptionSelected(prop, opt) {
+  if (!prop.selectedproperty || !opt) return false
+
+  // 对于普通选项，比较 propertyDetailId
+  if (opt.propertyDetailId && prop.selectedproperty.propertyDetailId) {
+    return opt.propertyDetailId === prop.selectedproperty.propertyDetailId
+  }
+
+  // 对于自定义输入选项，比较 detailName
+  if (opt.detailName && prop.selectedproperty.detailName) {
+    return opt.detailName === prop.selectedproperty.detailName
+  }
+
+  return false
+}
+/** 清晰的单向联动逻辑 - 完整版本 */
+function recomputeAvailability() {
+  const props = productinfo.value.normalPropertyList || []
+
+  // ✅ 重置所有状态
+  props.forEach(prop => {
+    resetAllDisabledStates(prop)
+  })
+
+  const normalProps = props.filter(p => !p.isneedinput)
+  const customProps = props.filter(p => p.isneedinput)
+
+  // ✅ 第一步：常规属性之间的双向联动
+  computeNormalToNormalLinking(normalProps)
+
+  // ✅ 第二步：常规属性 → 定制属性的单向联动
+  computeNormalToCustomLinking(normalProps, customProps)
+
+  // ✅ 第三步：检查并修复无效的定制属性选择
+  fixInvalidCustomSelections(normalProps, customProps)
+}
+
+/** 常规属性 → 定制属性的单向联动 */
+function computeNormalToCustomLinking(normalProps, customProps) {
+  const selectedNormalProps = normalProps.filter(p => p.selectedproperty && Object.keys(p.selectedproperty).length > 0)
+
+  if (selectedNormalProps.length === 0) {
+    // 如果没有选择常规属性，禁用所有定制属性选项
+    customProps.forEach(customProp => {
+      getAllOptionsOfProp(customProp).forEach(opt => {
+        opt.disabled = true
       })
+    })
+    return
+  }
+
+  console.log(`Normal-to-custom linking with ${selectedNormalProps.length} selected normal properties`)
+
+  const constraintSkus = getPropertiesSkusIntersection(selectedNormalProps)
+
+  if (!constraintSkus || constraintSkus.size === 0) {
+    // 如果没有有效的SKU，禁用所有定制属性选项
+    customProps.forEach(customProp => {
+      getAllOptionsOfProp(customProp).forEach(opt => {
+        opt.disabled = true
+      })
+    })
+    return
+  }
+
+  // ✅ 关键修复：对包括当前选中项在内的所有选项都计算disabled状态
+  customProps.forEach(customProp => {
+    let hasAnyEnabledOption = false
+
+    getAllOptionsOfProp(customProp).forEach(opt => {
+      const skus = opt.skuList || []
+      const hasValidSku = skus.some(s => constraintSkus.has(s))
+
+      // ✅ 不再跳过当前选中项，所有选项都计算disabled状态
+      opt.disabled = !hasValidSku
+
+      if (!opt.disabled) {
+        hasAnyEnabledOption = true
+        console.log(`  Enabled custom option ${opt.detailName}`)
+      } else {
+        console.log(`  Disabled custom option ${opt.detailName}`)
+      }
+    })
+
+    // 如果没有可用的选项，确保清除选择
+    if (!hasAnyEnabledOption && customProp.selectedproperty && Object.keys(customProp.selectedproperty).length > 0) {
+      console.log(`No enabled options for ${customProp.propertyNameShop}, clearing selection`)
+      customProp.selectedproperty = {}
+      customProp.chooseindex = 1
+      resetCustomInputValues(customProp)
     }
   })
 }
 
+/** 检查并修复无效的定制属性选择 */
+function fixInvalidCustomSelections(normalProps, customProps) {
+  const selectedNormalProps = normalProps.filter(p => p.selectedproperty && Object.keys(p.selectedproperty).length > 0)
+
+  if (selectedNormalProps.length === 0 || customProps.length === 0) {
+    return
+  }
+
+  console.log('Checking for invalid custom selections...')
+
+  // 获取当前常规属性的约束SKU
+  const constraintSkus = getPropertiesSkusIntersection(selectedNormalProps)
+
+  if (!constraintSkus || constraintSkus.size === 0) {
+    // 如果没有约束SKU，清除所有定制属性的选择
+    clearAllCustomSelections(customProps)
+    return
+  }
+
+  // 检查每个定制属性的选择是否有效
+  customProps.forEach(customProp => {
+    if (!customProp.selectedproperty || Object.keys(customProp.selectedproperty).length === 0) {
+      return
+    }
+
+    const allOptions = getAllOptionsOfProp(customProp)
+    const matchedOption = allOptions.find(opt => isOptionSelected(customProp, opt))
+
+    if (matchedOption) {
+      const skus = matchedOption.skuList || []
+      const isValidSelection = skus.some(s => constraintSkus.has(s))
+
+      if (!isValidSelection) {
+        console.log(`Invalid custom selection: ${matchedOption.detailName}, clearing selection`)
+        customProp.selectedproperty = {}
+        customProp.chooseindex = 1
+        resetCustomInputValues(customProp)
+      }
+    } else {
+      // 如果找不到对应的选项，也清除选择
+      console.log(`Clearing orphaned custom selection in ${customProp.propertyNameShop}`)
+      customProp.selectedproperty = {}
+      customProp.chooseindex = 1
+      resetCustomInputValues(customProp)
+    }
+  })
+}
+
+/** 清除所有定制属性的选择 */
+function clearAllCustomSelections(customProps) {
+  customProps.forEach(customProp => {
+    if (customProp.selectedproperty && Object.keys(customProp.selectedproperty).length > 0) {
+      console.log(`Clearing custom selection for ${customProp.propertyNameShop}`)
+      customProp.selectedproperty = {}
+      customProp.chooseindex = 1
+      resetCustomInputValues(customProp)
+    }
+  })
+}
+
+/** 重置定制属性的输入值 */
+function resetCustomInputValues(customProp) {
+  if (customProp.needinputlist && Array.isArray(customProp.needinputlist)) {
+    customProp.needinputlist.forEach(item => {
+      if (Array.isArray(item.inputvalue)) {
+        item.inputvalue = item.inputvalue.map(() => null)
+      }
+    })
+  }
+}
+
+
+/** 自动修复无效的选择 */
+function autoFixInvalidSelections(normalProps, customProps) {
+  const selectedNormalProps = normalProps.filter(p => p.selectedproperty && Object.keys(p.selectedproperty).length > 0)
+
+  if (selectedNormalProps.length === 0) {
+    // 如果没有选择常规属性，清除所有定制属性的选择
+    clearAllCustomSelections(customProps)
+    return
+  }
+
+  // 获取当前常规属性的约束SKU
+  const constraintSkus = getPropertiesSkusIntersection(selectedNormalProps)
+
+  if (!constraintSkus || constraintSkus.size === 0) {
+    // 如果没有有效的SKU组合，清除所有选择
+    clearAllCustomSelections(customProps)
+    return
+  }
+
+  // 检查定制属性的选择有效性
+  validateAndFixCustomSelections(customProps, constraintSkus)
+}
+
+
+/** 验证并修复定制属性的选择 */
+function validateAndFixCustomSelections(customProps, constraintSkus) {
+  customProps.forEach(customProp => {
+    if (!customProp.selectedproperty || Object.keys(customProp.selectedproperty).length === 0) {
+      return
+    }
+
+    const allOptions = getAllOptionsOfProp(customProp)
+    const selectedOption = allOptions.find(opt => isOptionSelected(customProp, opt))
+
+    if (selectedOption) {
+      const skus = selectedOption.skuList || []
+      const isValidSelection = skus.some(s => constraintSkus.has(s))
+
+      if (!isValidSelection) {
+        console.log(`Fixing invalid custom selection: ${selectedOption.detailName} in ${customProp.propertyNameShop}`)
+        customProp.selectedproperty = {}
+        customProp.chooseindex = 1
+        resetCustomInputValues(customProp)
+      }
+    } else {
+      // 如果找不到对应的选项，也清除选择
+      console.log(`Clearing orphaned custom selection in ${customProp.propertyNameShop}`)
+      customProp.selectedproperty = {}
+      customProp.chooseindex = 1
+      resetCustomInputValues(customProp)
+    }
+  })
+}
+/** 常规属性之间的双向联动 */
+function computeNormalToNormalLinking(normalProps) {
+  const selectedNormalProps = normalProps.filter(p => p.selectedproperty && Object.keys(p.selectedproperty).length > 0)
+
+  if (selectedNormalProps.length < 2) {
+    console.log(`Only ${selectedNormalProps.length} normal properties selected, skipping normal-to-normal linking`)
+    return
+  }
+
+  console.log(`Normal-to-normal linking with ${selectedNormalProps.length} selected properties`)
+
+  normalProps.forEach(prop => {
+    if (!prop.selectedproperty) return
+
+    const otherNormalProps = normalProps.filter(p => p !== prop)
+    const constraintSkus = getPropertiesSkusIntersection(otherNormalProps)
+
+    if (!constraintSkus || constraintSkus.size === 0) return
+
+    getAllOptionsOfProp(prop).forEach(opt => {
+      if (!isOptionSelected(prop, opt)) {
+        const hasValidSku = (opt.skuList || []).some(s => constraintSkus.has(s))
+        opt.disabled = !hasValidSku
+      }
+    })
+  })
+}
+
+/** 获取属性集合的SKU交集 */
+function getPropertiesSkusIntersection(props) {
+  let intersection = null
+
+  props.forEach(p => {
+    const skus = getCurrentSkusOfProp(p)
+
+    if (intersection === null) {
+      intersection = new Set(skus)
+    } else {
+      const newIntersection = new Set()
+      intersection.forEach(s => {
+        if (skus.includes(s)) {
+          newIntersection.add(s)
+        }
+      })
+      intersection = newIntersection
+    }
+  })
+
+  return intersection
+}
 
 /** 如果某属性已选项被禁用，清空之，避免停留在无效状态 */
 function fixInvalidSelections() {
@@ -2091,8 +2201,6 @@ function recomputeAvailabilityAndFix() {
 let joinsku = []
 const getbasePrice = async (trialPropIndex = null) => {
   try {
-    console.log('Calculating base price with current selections...')
-    console.log('Calculating base trialPropIndex', trialPropIndex)
     // Build skuPropList from current selections
     const skuPropList = []
     const originProps = Array.isArray(productinfo.value?.propList) ? productinfo.value.propList : []
@@ -2199,20 +2307,7 @@ const selectproperty = (index, type) => {
   // 设置当前选择
   productinfo.value.normalPropertyList[index]['selectedproperty'] = type;
 
-  // 更新 joinsku 用于价格计算
-  joinsku = [];
-  productinfo.value.normalPropertyList.forEach((element, index1) => {
-    if (index1 <= index && element.selectedproperty?.skuList?.length) {
-      if (index1 === 0) {
-        joinsku = element.selectedproperty.skuList || [];
-      } else {
-        joinsku = joinsku.filter(item => element.selectedproperty.skuList.includes(item));
-      }
-    }
-  });
-
-  // 统一调用双向联动计算可用性
-  recomputeAvailabilityAndFix();
+  recomputeAvailability()
 
   // 价格计算逻辑
   let inputvalue = []
@@ -2243,7 +2338,6 @@ const selectproperty = (index, type) => {
   })
   // ✅ 仅在“输入全部完成后”才进行价格试算
   if (needinputproperty) {
-    console.log('needinputproperty', needinputproperty);
 
     if (ischoose && !hasEmpty) {
       // Custom input mode: we may still have a uniquely resolved SKU from non-custom props.
@@ -2310,27 +2404,14 @@ const selectproperty = (index, type) => {
 // Function to update SKU price based on current selection
 const updateSkuPrice = () => {
   const currentSkuData = currentSku.value;
-  console.log('更新SKU价格:', {
-    currentSku: currentSkuData,
-    skuBasePrice: currentSkuData?.basePrice,
-    productBasePrice: productinfo.value?.basePrice,
-    oldPrice: skuprice.value
-  });
   if (currentSkuData && currentSkuData.basePrice) {
     // 确定了SKU，使用SKU的basePrice
     skuprice.value = currentSkuData.basePrice;
-    console.log('使用SKU价格:', skuprice.value);
   } else {
     // 未确定SKU，使用产品的basePrice
     skuprice.value = productinfo.value?.basePrice ?? 0.1;
-    console.log('使用产品基础价格:', skuprice.value);
   }
 };
-
-const getskuprice = async (sku) => {
-  // Price fetching via mapping API is deprecated; keep as no-op unless backend exposes price in product.skuList
-  return
-}
 
 const opencartloding = () => { cartloding.value = true }
 const openorderloding = () => { orderloding.value = true }
@@ -2760,39 +2841,140 @@ if (lastpage) {
 }
 const handleGetProudct = async () => {
   try {
-    isLoading.value = true
-    // 优化：使用 refreshProductData 刷新数据，而不是重新请求
-    await refreshProductData()
-
-    if (!serverProductData.value?.result) {
-      console.error('Failed to load product data')
-      return
-    }
-
-    const res = serverProductData.value
+    isLoading.value = true // 保持你原有写法
+    let parmes = { id: productid.value, needPropData: true, needPublishSkuData: true }
+    let res = await getProductSpuV2ById(parmes)
     // updateBreadcrumbProduct(res.result.productEnglishName);
     orginproductinfo.value = res.result
     productinfo.value = res.result
     skuprice.value = res.result.basePrice
 
-    // 优化：使用提取的转换函数
-    transformProductData(productinfo.value)
+    // Transform new API structure to old structure
+    if (!productinfo.value.photoList && productinfo.value.fileList) {
+      // Transform fileList to photoList
+      productinfo.value.photoList = productinfo.value.fileList.map(file => ({
+        url: file.url,
+        type: file.type,
+        altText: file.altText
+      }))
+    }
+    // Cache original gallery after mapping + ensure fileList sync
+    if (Array.isArray(productinfo.value.photoList)) {
+      originalPhotoList.value = productinfo.value.photoList.map(it => ({ ...it }))
+      productinfo.value.fileList = productinfo.value.photoList.map(it => ({ url: it.url, type: it.type, altText: it.altText }))
+    }
 
+    // Map spu to productStyle for backward compatibility
+    if (productinfo.value.spu && !productinfo.value.productStyle) {
+      productinfo.value.productStyle = productinfo.value.spu
+    }
+
+    // Transform new API structure (propList) to old structure (normalPropertyList)
+    if (productinfo.value.propList && !productinfo.value.normalPropertyList) {
+      productinfo.value.normalPropertyList = productinfo.value.propList.map(prop => {
+        // Transform propValueList to detailList
+        const detailList = (prop.propValueList || []).map(propValue => {
+          const groups = Array.isArray(propValue.groupList) ? propValue.groupList : []
+          const inputNames = groups.flatMap(g => (g.inputList || []).map(i => i.inputName))
+          const groupsMeta = []
+          const inputMeta = [] // 保留每个输入框的完整元数据（包括 inputStart/inputEnd）
+          let start = 0
+          groups.forEach(g => {
+            const len = (g.inputList || []).length
+            groupsMeta.push({ name: g.groupName, start, length: len })
+              // 保存每个输入框的元数据
+              ; (g.inputList || []).forEach(input => {
+                inputMeta.push({
+                  inputId: input.inputId,
+                  inputName: input.inputName,
+                  inputStart: input.inputStart,
+                  inputEnd: input.inputEnd,
+                  unit: input.unit || '',
+                  viewType: input.viewType !== undefined ? input.viewType : 10, // 默认为输入框
+                  ruleList: input.ruleList || []  // 下拉选择框的选项
+                })
+              })
+            start += len
+          })
+
+          return {
+            propertyDetailId: propValue.id,
+            detailName: propValue.enName,
+            propertyId: prop.id,
+            imageLink: propValue.imageUrlList?.[0] || '',
+            imageList: Array.isArray(propValue.imageUrlList) ? propValue.imageUrlList : [],
+            skuList: propValue.skuIdList || [], // Map skuIdList to skuList
+            isactive: true,
+            label: propValue.enName,
+            // Flattened input names for compatibility; keep group metadata for UI
+            inputList: inputNames.length ? inputNames : null,
+            groupsMeta: groupsMeta.length ? groupsMeta : null,
+            inputMeta: inputMeta.length ? inputMeta : null // 新增：保存输入框元数据
+          }
+        })
+
+        const hasAnyImg = detailList.some(d => !!d.imageLink)
+        return {
+          propertyId: prop.id,
+          propertyName: prop.enName || prop.zhName,
+          propertyNameShop: prop.enName,
+          propertyType: prop.type,
+          // carry special restrictions for downstream UI (e.g., measurement tool)
+          specialRestrictionList: Array.isArray(prop.specialRestrictionList) ? prop.specialRestrictionList : [],
+          productPropertyDetailType: hasAnyImg ? 'image' : 'text',
+          desc: prop.desc || '',
+          proposedDesc: prop.proposedDesc || '',
+          proposedView: prop.proposedView || false,
+          proposedViewType: prop.proposedViewType || 10,
+          detailList: detailList,
+          selectedproperty: {},
+          showType: false
+        }
+      })
+    }
+
+    productinfo.value.normalPropertyList.forEach(element => {
+      let noneedinputlist = ref([])
+      let needinputlist = ref([])
+      element.detailList.forEach(item => {
+        item.isactive = true
+        item.label = item.detailName
+        if (item.inputList) {
+          let inputvalue = []
+          item.inputList.forEach(() => { inputvalue.push(null) })
+          item.inputvalue = inputvalue
+          element.isneedinput = true
+          needinputlist.value.push(item)
+        } else {
+          noneedinputlist.value.push(item)
+        }
+        element.needinputlist = needinputlist.value
+        element.noneedinputlist = noneedinputlist.value
+        element.chooseindex = 1
+        if (noneedinputlist.value.length == 0) { element.chooseindex = 2 }
+      })
+    })
+    productinfo.value.normalPropertyList[0].showType = true
     mainImage.value = productinfo.value.mainPic
+    // Ensure original gallery cache
+    if (Array.isArray(productinfo.value.photoList)) {
+      originalPhotoList.value = productinfo.value.photoList.map(it => ({ ...it }))
+      productinfo.value.fileList = productinfo.value.photoList.map(it => ({ url: it.url, type: it.type, altText: it.altText }))
+    }
 
     // 新增：首次拉取后做一次全量双向可用性计算
     recomputeAvailabilityAndFix()
 
-    // 优化：不再在这里加载评论，改为延迟加载
-    // await fetchComments()
+    await fetchComments()
 
   } catch (error) {
     console.error(error)
   } finally {
-    // 优化：不再在这里加载相关产品，改为延迟加载
-    // handleGetrelated()
+    // 确保相关产品也加载
+    handleGetrelated()
     isLoading.value = false
     resetPropErrors()
+
   }
 }
 
@@ -2939,14 +3121,12 @@ const organizeproduct = () => {
       const firstActive = options.find(o => {
         const hasValidSkus = o.skuList && Array.isArray(o.skuList) && o.skuList.length > 0
         const notDisabled = !o.disabled
-        console.log('Checking option:', o.detailName, 'hasValidSkus:', hasValidSkus, 'notDisabled:', notDisabled, 'skuList:', o.skuList)
         return notDisabled && hasValidSkus
       })
-      console.log('Auto-select prop index', i, 'firstActive:', firstActive)
 
-      // ④ 如果能选，就执行选中；否则直接退出循环（停止后续属性选中）
+      // ④ 如果能选，就执行选中；否则直接退出循环（停止后续属性选中）,默认选中第一个可用的选项
       if (firstActive) {
-        selectproperty(i, firstActive)
+        // selectproperty(i, firstActive)
       } else {
         console.log('No valid option found for prop index', i, 'stopping auto-select')
         break
@@ -3372,16 +3552,7 @@ const onVideoError = (index, review) => {
   if (review.videoUrlList) { review.videoUrlList[index] = '/placeholder-video.mp4' }
 }
 
-// 优化：只在路由参数变化时刷新数据，使用防抖避免频繁请求
-let refreshTimer = null
-watch(() => route.params.id, (newId, oldId) => {
-  if (newId && newId[0] !== oldId?.[0]) {
-    if (refreshTimer) clearTimeout(refreshTimer)
-    refreshTimer = setTimeout(() => {
-      refreshProductData()
-    }, 100)
-  }
-}, { immediate: false })
+watch(() => route.query, () => { handleGetProudct() }, { deep: true })
 watch(mainImageIndex, (newVal) => {
   const list = productinfo.value.photoList
   if (list && list[newVal]) { mainImage.value = list[newVal].url }
@@ -3391,66 +3562,12 @@ watch(sortOption, () => { sortReviews() })
 watch(swiperMain, (val) => {
   if (val) handleVideoPlayback()
 })
-// 优化：防抖滚动处理函数
-let scrollTimer = null
-const debouncedHandleScroll = () => {
-  if (scrollTimer) clearTimeout(scrollTimer)
-  scrollTimer = setTimeout(() => {
-    handleScroll()
-  }, 16) // ~60fps
-}
-
-// 优化：延迟加载非关键数据
-const commentsLoaded = ref(false)
-const relatedProductsLoaded = ref(false)
-
-// 使用 Intersection Observer 延迟加载评论
-const commentsObserver = ref(null)
-const commentsRef = ref(null)
-
-// 使用 Intersection Observer 延迟加载相关产品
-const relatedProductsObserver = ref(null)
-const relatedProductsRef = ref(null)
-
-// 优化：延迟加载 HTML 内容（v-shadow-html）
-const htmlContentLoaded = ref(new Set())
-const htmlContentObservers = ref(new Map())
-
-// 延迟加载 HTML 内容的函数
-const setupHtmlContentLazyLoad = (sectionKey, element) => {
-  if (!process.client) return
-  if (htmlContentLoaded.value.has(sectionKey)) return
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        htmlContentLoaded.value.add(sectionKey)
-        observer.disconnect()
-        htmlContentObservers.value.delete(sectionKey)
-      }
-    })
-  }, {
-    rootMargin: '100px' // 提前100px开始加载
-  })
-
-  observer.observe(element)
-  htmlContentObservers.value.set(sectionKey, observer)
-}
-
-// 检查 HTML 内容是否应该加载
-const shouldLoadHtmlContent = (sectionKey) => {
-  return htmlContentLoaded.value.has(sectionKey)
-}
-
 onMounted(() => {
-  if (!process.client) return // ✅ SSR 保护
-
-  // 立即执行的关键操作
+  handleGetrelated()
+  fetchComments()
   reportViewItem()
-
-  // 优化：使用防抖的滚动事件
-  window.addEventListener('scroll', debouncedHandleScroll, { passive: true })
-
+  if (!process.client) return // ✅ SSR 保护
+  window.addEventListener('scroll', handleScroll, { passive: true })
   // ✅ TikTok Pixel - ViewContent
   if (window.ttq && productinfo.value?.erpProduct) {
     const p = productinfo.value.erpProduct
@@ -3464,51 +3581,6 @@ onMounted(() => {
     })
     console.log('🟢 TikTok ViewContent sent:', productinfo.value.id)
   }
-
-  // 优化：延迟加载评论 - 使用 Intersection Observer
-  if (commentsRef.value) {
-    commentsObserver.value = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && !commentsLoaded.value) {
-          commentsLoaded.value = true
-          fetchComments()
-          commentsObserver.value?.disconnect()
-        }
-      })
-    }, { rootMargin: '200px' }) // 提前200px开始加载
-    commentsObserver.value.observe(commentsRef.value)
-  } else {
-    // 如果没有评论区域引用，延迟500ms后加载
-    setTimeout(() => {
-      if (!commentsLoaded.value) {
-        commentsLoaded.value = true
-        fetchComments()
-      }
-    }, 500)
-  }
-
-  // 优化：延迟加载相关产品 - 使用 Intersection Observer
-  if (relatedProductsRef.value) {
-    relatedProductsObserver.value = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && !relatedProductsLoaded.value) {
-          relatedProductsLoaded.value = true
-          handleGetrelated()
-          relatedProductsObserver.value?.disconnect()
-        }
-      })
-    }, { rootMargin: '200px' })
-    relatedProductsObserver.value.observe(relatedProductsRef.value)
-  } else {
-    // 如果没有相关产品区域引用，延迟800ms后加载
-    setTimeout(() => {
-      if (!relatedProductsLoaded.value) {
-        relatedProductsLoaded.value = true
-        handleGetrelated()
-      }
-    }, 800)
-  }
-
   nextTick(() => {
     window.dispatchEvent(new Event('resize'))
   })
@@ -3516,16 +3588,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (!process.client) return
-  window.removeEventListener('scroll', debouncedHandleScroll)
-  // 清理 Intersection Observer
-  commentsObserver.value?.disconnect()
-  relatedProductsObserver.value?.disconnect()
-  // 清理 HTML 内容 Observer
-  htmlContentObservers.value.forEach(observer => observer.disconnect())
-  htmlContentObservers.value.clear()
-  // 清理定时器
-  if (scrollTimer) clearTimeout(scrollTimer)
-  if (refreshTimer) clearTimeout(refreshTimer)
+  window.removeEventListener('scroll', handleScroll)
 })
 const slugify = (str) => {
   return str
