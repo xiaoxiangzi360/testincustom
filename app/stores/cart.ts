@@ -73,7 +73,8 @@ export const useCartStore = defineStore('cart', {
                         // 保留原始数据
                         product: item.product,
                         skuData: item.product?.skuData,
-                        materialInfo: item.materialInfo
+                        materialInfo: item.materialInfo,
+                        selected: true,
                     }))
                 } else {
                     this.items = []

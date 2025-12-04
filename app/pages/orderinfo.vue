@@ -292,7 +292,7 @@ const orderNumber = route.query.orderNumber ?? '2507051715427353680'
 const { createPayment } = PayAuth()
 const { getUserOrderDocByOrderNumber, cancleOrder, groupOrderTrackInfo } = OrderAuth()
 const userType = useCookie('userType');
-const isLoggedIn = computed(() => userType.value === 1 || userType.value === '1');
+const isLoggedIn = computed(() => userType.value != 2);
 const itemstimeline = ref([])
 const currentstatustitle = ref('')
 const currentstatusdesc = ref('')

@@ -698,7 +698,7 @@ const togglePassword = () => (showPassword.value = !showPassword.value);
 
 // 登录判断
 const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' });
-const isLoggedIn = computed(() => userType.value === 1 || userType.value === '1');
+const isLoggedIn = computed(() => userType.value != 2);
 
 const locationinfo = useCookie('locationinfo') as any;
 const userinfoCookie = useCookie<any | null>('userinfo', { sameSite: 'lax', path: '/' });
@@ -1286,8 +1286,7 @@ const paynow = async () => {
             (addressinfo.value as any).countryName = countryName;
 
             const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' });
-            if (userType.value == 1 || userType.value === '1') {
-
+            if (userType.value != 2) {
                 const res = await addaddress();
                 if (!res) return;
                 getAddresslist();
@@ -1976,7 +1975,7 @@ async function handleAirwallexPay() {
                 countryarr.value.find((c: any) => c.countryCode === form.value.country)?.countryName || ''
             addressinfo.value.countryName = countryName
             const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' })
-            if (userType.value == 1 || userType.value === '1') {
+            if (userType.value != 2) {
 
                 const ok = await addaddress()
                 if (!ok) return

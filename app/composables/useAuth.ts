@@ -70,7 +70,7 @@ export const useAuth = () => {
             if (response.code === 0) {
                 token.value = response.result.token
                 userinfo.value = JSON.stringify(response.result.user || null)
-                userType.value = '1'
+                userType.value = response.result.user.userType
             }
             return response
         } catch (error) {
@@ -80,22 +80,18 @@ export const useAuth = () => {
     }
 
     // ✅ 注册（并登录）→ userType=1
-    const register = async (
-        fullName: string,
-        email: string,
-        password: string,
-        numberAreaCode: string,
-        number: number
+    const register = async (params: any
     ) => {
         try {
             const response = await $api('/user/user/createWithLogin', {
                 method: 'POST',
-                body: { fullName, email, password, numberAreaCode, number },
+                body: params,
             })
             if (response.code === 0) {
                 token.value = response.result.token
                 userinfo.value = JSON.stringify(response.result.user || null)
-                userType.value = '1'
+                userType.value = response.result.user.userType
+
             }
             return response
         } catch (error) {
@@ -103,7 +99,63 @@ export const useAuth = () => {
             throw error
         }
     }
+    const createBSideWithLogin = async (params: any
+    ) => {
+        try {
+            const response = await $api('/user/user/createBSideWithLogin', {
+                method: 'POST',
+                body: params,
+            })
+            if (response.code === 0) {
+                token.value = response.result.token
+                userinfo.value = JSON.stringify(response.result.user || null)
+                userType.value = response.result.user.userType
 
+            }
+            return response
+        } catch (error) {
+            console.error('登录失败:', error)
+            throw error
+        }
+    }
+    const googleRegister = async (params: any
+    ) => {
+        try {
+            const response = await $api('/user/oauth/google/googleRegister', {
+                method: 'POST',
+                body: params,
+            })
+            if (response.code === 0) {
+                token.value = response.result.token
+                userinfo.value = JSON.stringify(response.result.user || null)
+                userType.value = response.result.user.userType
+
+            }
+            return response
+        } catch (error) {
+            console.error('登录失败:', error)
+            throw error
+        }
+    }
+    const facebookRegister = async (params: any
+    ) => {
+        try {
+            const response = await $api('/user/oauth/facebook/facebookRegister', {
+                method: 'POST',
+                body: params,
+            })
+            if (response.code === 0) {
+                token.value = response.result.token
+                userinfo.value = JSON.stringify(response.result.user || null)
+                userType.value = response.result.user.userType
+
+            }
+            return response
+        } catch (error) {
+            console.error('登录失败:', error)
+            throw error
+        }
+    }
     // 仅创建账户（不登录），若返回 token 也写入；不一定代表已注册登录态，视后端而定
     const register1 = async (
         fullName: string,
@@ -141,6 +193,30 @@ export const useAuth = () => {
         }
     }
 
+    const sendUserRegisterEmail = async (email: string, tokenStr: string) => {
+        try {
+            const response = await $api('/user/user/sendUserRegisterEmail', {
+                method: 'POST',
+                body: { email, token: tokenStr },
+            })
+            return response
+        } catch (error) {
+            console.error('发送失败:', error)
+            throw error
+        }
+    }
+    const checkCreateUserCodeByEmail = async (email: string, code: string) => {
+        try {
+            const response = await $api('/user/user/checkCreateUserCodeByEmail', {
+                method: 'POST',
+                body: { email, code },
+            })
+            return response
+        } catch (error) {
+            console.error('发送失败:', error)
+            throw error
+        }
+    }
     const updatepassword = async (email: string, code: string, newPassword: string) => {
         try {
             const response = await $api('/user/user/retrievePassword', {
@@ -180,12 +256,14 @@ export const useAuth = () => {
 
     const googleLogin = async (params: Record<string, string>) => {
         try {
-            const query = new URLSearchParams(params).toString()
-            const response = await $api(`/user/oauth/google/googleLogin?${query}`, { method: 'GET' })
+            const response = await $api(`/user/oauth/google/googleLogin`, { method: 'POST', body: params })
             if (response.code === 0) {
-                token.value = response.result.token
-                userinfo.value = JSON.stringify(response.result.user || null)
-                userType.value = '1'
+                if (response.result) {
+                    token.value = response.result.token
+                    userinfo.value = JSON.stringify(response.result.user || null)
+                    userType.value = response.result.user.userType
+                }
+
                 return response
             } else {
                 navigateTo('/login')
@@ -197,12 +275,19 @@ export const useAuth = () => {
 
     const facebookLogin = async (params: Record<string, string>) => {
         try {
-            const query = new URLSearchParams(params).toString()
-            const response = await $api(`/user/oauth/facebook/facebookLogin?${query}`, { method: 'GET' })
+            const response = await $api(`/user/oauth/facebook/facebookLogin`, { method: 'POST', body: params })
             if (response.code === 0) {
-                token.value = response.result.token
-                userinfo.value = JSON.stringify(response.result.user || null)
-                userType.value = '1'
+                if (!response.result) {
+                    navigateTo({
+                        path: '/registerbusiness',
+                        query: { step: 2, code: params.code, type: 'facebook', }
+                    }, { replace: true })
+                } else {
+                    token.value = response.result.token
+                    userinfo.value = JSON.stringify(response.result.user || null)
+                    userType.value = response.result.user.userType
+                }
+
                 return response
             } else {
                 navigateTo('/login')
@@ -299,6 +384,11 @@ export const useAuth = () => {
         token,
         userinfo,
         userType,
-        updateUserInfo
+        updateUserInfo,
+        sendUserRegisterEmail,
+        createBSideWithLogin,
+        googleRegister,
+        facebookRegister,
+        checkCreateUserCodeByEmail
     }
 }

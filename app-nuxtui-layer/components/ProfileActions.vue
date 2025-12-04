@@ -103,13 +103,14 @@ const nowCountry = ref({ countryCode: nowLocation.value.countryCode, countryName
 const token = useCookie('token')
 const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' })
 const isuserTokenValid = computed(() => {
-  const isMember = userType.value === 1 || userType.value === '1'
+  const isMember = userType.value != 2
   return !!token.value && isMember
 })
 const isTokenValid = computed(() => !!token.value)
 
 const menuOpen = ref(false);
 const infoOpen = ref(false);
+const signUpOpen = ref(false);
 // ✅ langOpen 改为控制 UModal
 const langOpen = ref(false);
 
@@ -431,6 +432,11 @@ function goLogin(overrideTarget?: string) {
   navigateTo('/login')
 }
 
+function goRegister(path: string) {
+  redirectPath.value = null
+  navigateTo(path)
+}
+
 // ========= 启动 =========
 if (process.client) {
   await initLocation()
@@ -445,7 +451,7 @@ if (process.client) {
       :popper="{ placement: 'bottom' }">
       <template #default>
         <div class="flex items-center px-4 py-2  rounded-lg transition relative">
-          <NuxtImg src="/cart.png" loading='lazy' alt="cart" class="h-9" />
+          <NuxtImg src="/cart.png" alt="cart" class="h-9" />
           <UBadge v-if="cart.itemCount > 0" :label="cart.itemCount" color="primary" variant="solid"
             class="absolute top-2 right-4 w-4 h-4 flex items-center justify-center rounded-full ring-0 text-white text-xxs font-semibold" />
         </div>
@@ -561,9 +567,35 @@ if (process.client) {
     </UPopover>
 
     <!-- 登录按钮 / 用户信息（保留） -->
-    <NuxtLink class="text-white cursor-pointer" @click.prevent="goLogin()" v-if="!isuserTokenValid">
-      <NuxtImg src="https://cdn.incustom.com/upload/web/user.png" loading='lazy' alt="user" class="h-9" />
-    </NuxtLink>
+    <div v-if="!isuserTokenValid" class="flex items-center text-white text-sm gap-1">
+      <div class="py-1 hover:text-primary transition-colors font-medium cursor-pointer" @click.prevent="goLogin()">Sign
+        In
+      </div>
+      <span>|</span>
+      <div @click.prevent="goRegister('/register')"
+        class="py-1 hover:text-primary transition-colors font-medium cursor-pointer">Sign
+        Up
+      </div>
+
+      <!-- <UPopover v-model:open="signUpOpen" mode="hover" :popper="{ placement: 'bottom' }"
+        :ui="{ base: 'border-none shadow-2xl bg-white rounded-md focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow' }">
+        <template #default>
+          <div class="py-1 hover:text-primary transition-colors font-medium">Sign Up</div>
+        </template>
+        <template #panel>
+          <div class="flex flex-col text-gray-400 min-w-[180px]">
+            <div class="text-left px-4 py-2 hover:bg-primary-50 hover:text-primary-600 cursor-pointer"
+              @click.prevent="goRegister('/register')">
+              Sign Up For Personal
+            </div>
+            <div class="text-left px-4 py-2 hover:bg-primary-50 hover:text-primary-600 cursor-pointer"
+              @click.prevent="goRegister('/registerbusiness')">
+              Sign Up For Business
+            </div>
+          </div>
+        </template>
+      </UPopover> -->
+    </div>
 
     <div class="text-white cursor-pointer" v-if="isuserTokenValid">
       <UPopover color="white" v-model:open="infoOpen" mode="hover"
@@ -600,7 +632,7 @@ if (process.client) {
       @click="langOpen = true">
       <UTooltip :text="displayLocationLabel || 'Select location'">
         <div class="truncate max-w-[120px] text-sm cursor-pointer text-left">
-          <div class="text-gray-100">Delivering to</div>
+          <div class="text-gray-100">Delivery to</div>
           <div class="truncate">
             {{ displayLocationLabel || 'Select location' }}
           </div>

@@ -2832,13 +2832,43 @@ let lastLabel = null
 let lastTo = null
 const breadcrumbLinks = ref([{ label: 'Home', to: '/', title: 'Home' }])
 if (lastpage) {
-  const decodedPath = decodeURIComponent(lastpage)
-  const categoryMatch = decodedPath.match(/^\/(.+?)-(\d+)(\/)?$/)
-  if (categoryMatch) { lastLabel = categoryMatch[1]; lastTo = lastpage }
-  const collectionMatch = decodedPath.match(/^\/collections\/[^/?#]+/)
-  if (collectionMatch) { lastLabel = collectionMatch[0].split('/')[2]; lastTo = lastpage }
-  if (lastLabel && lastTo) { breadcrumbLinks.value.push({ label: lastLabel, to: lastTo, title: lastLabel }) }
+  const decodedPath = decodeURIComponent(lastpage);
+
+  let lastLabel = "";
+  let lastTo = "";
+
+  // 1. 匹配普通分类 /abc-123
+  const categoryMatch = decodedPath.match(/^\/(.+?)-(\d+)(\/)?$/);
+  if (categoryMatch) {
+    lastLabel = categoryMatch[1];
+    lastTo = lastpage;
+  }
+
+  // 2. 匹配 collections
+  const collectionMatch = decodedPath.match(/^\/collections\/([^/?#]+)/);
+  if (collectionMatch) {
+    const fullSlug = collectionMatch[1];
+    // Outdoor-Shade-Solutions-dbf1f7231114cafb50f4e5d4bec84d85
+
+    const parts = fullSlug.split("-");
+    parts.pop(); // 去除最后一段 tagid
+
+    // 组合为 collection 名称并格式化
+    const collectionName = parts.join(" ");
+    lastLabel = collectionName;
+    lastTo = lastpage;
+  }
+
+  // 3. 推入面包屑
+  if (lastLabel && lastTo) {
+    breadcrumbLinks.value.push({
+      label: lastLabel,
+      to: lastTo,
+      title: lastLabel,
+    });
+  }
 }
+
 const handleGetProudct = async () => {
   try {
     isLoading.value = true // 保持你原有写法
@@ -2928,7 +2958,7 @@ const handleGetProudct = async () => {
           proposedViewType: prop.proposedViewType || 10,
           detailList: detailList,
           selectedproperty: {},
-          showType: false
+          showType: true
         }
       })
     }
@@ -2954,7 +2984,7 @@ const handleGetProudct = async () => {
         if (noneedinputlist.value.length == 0) { element.chooseindex = 2 }
       })
     })
-    productinfo.value.normalPropertyList[0].showType = true
+    // productinfo.value.normalPropertyList[0].showType = true
     mainImage.value = productinfo.value.mainPic
     // Ensure original gallery cache
     if (Array.isArray(productinfo.value.photoList)) {
@@ -3058,7 +3088,7 @@ const organizeproduct = () => {
           proposedViewType: prop.proposedViewType || 10,
           detailList: detailList,
           selectedproperty: {},
-          showType: false
+          showType: true
         }
       })
     }    // updateBreadcrumbProduct(productinfo.value.productEnglishName);
@@ -3083,7 +3113,7 @@ const organizeproduct = () => {
         if (noneedinputlist.value.length == 0) { element.chooseindex = 2 }
       })
     })
-    productinfo.value.normalPropertyList[0].showType = true
+    // productinfo.value.normalPropertyList[0].showType = true
 
     // ✅ 清空所有已有的选择，确保从干净状态开始自动选择
     productinfo.value.normalPropertyList.forEach(prop => {
@@ -3126,7 +3156,7 @@ const organizeproduct = () => {
 
       // ④ 如果能选，就执行选中；否则直接退出循环（停止后续属性选中）,默认选中第一个可用的选项
       if (firstActive) {
-        // selectproperty(i, firstActive)
+        selectproperty(i, firstActive)
       } else {
         console.log('No valid option found for prop index', i, 'stopping auto-select')
         break
@@ -3352,9 +3382,10 @@ const customFilter = (input, option) => {
   return option.detailName?.toLowerCase().includes(input.toLowerCase())
 }
 const changeshow = (index) => {
-  productinfo.value.normalPropertyList.forEach((item, i) => {
-    item.showType = i === index ? !item.showType : false
-  })
+  productinfo.value.normalPropertyList[index].showType = !productinfo.value.normalPropertyList[index].showType
+  // productinfo.value.normalPropertyList.forEach((item, i) => {
+  //   item.showType = i === index ? !item.showType : false
+  // })
 }
 
 const handleScroll = () => {

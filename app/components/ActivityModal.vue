@@ -11,7 +11,7 @@
 
             <!-- Left image - only on desktop -->
             <div class="hidden md:block md:w-1/2">
-                <img src="https://cdn.incustom.com/upload/web/activity.png" alt="Promo Image"
+                <NuxtImg src="https://cdn.incustom.com/upload/web/activity.png" alt="Promo Image"
                     class="w-full h-full object-cover" />
             </div>
 
@@ -19,7 +19,7 @@
             <div class="w-full md:w-1/2 p-6 flex flex-col relative">
                 <!-- Mobile background image -->
                 <div class="md:hidden absolute inset-0 z-0 opacity-20 pointer-events-none">
-                    <img src="https://cdn.incustom.com/upload/web/activity.png" alt="Promo Background"
+                    <NuxtImg src="https://cdn.incustom.com/upload/web/activity.png" alt="Promo Background"
                         class="w-full h-full object-cover" />
                 </div>
 
@@ -65,11 +65,13 @@
             <!-- SALE background text -->
             <div
                 class="w-[90%] mx-auto relative flex items-center justify-center font-bold text-[#00000010] pointer-events-none">
-                <img src="https://cdn.incustom.com/upload/web/acticitybg.png" alt="bg" />
-                <div class="absolute inset-0 flex items-center justify-center text-base text-white">
+                <NuxtImg
+                    :src="isMobile ? 'https://cdn.incustom.com/upload/web/acticitybg2.png' : 'https://cdn.incustom.com/upload/web/acticitybg.png'"
+                    alt="bg" />
+                <div class="absolute inset-0 flex items-center justify-center text-base text-white text-xs md:text-xl">
                     <div>
                         <div>incustom</div>
-                        <div class="mt-2 text-xl">{{ offdesc }}</div>
+                        <div class="mt-1 md:mt-2">{{ offdesc }}</div>
                     </div>
                 </div>
             </div>
@@ -141,6 +143,7 @@ const offvalue = ref('')
 const loading = ref(false)
 const promoCode = ref([])
 const showButtons = ref(false)
+const isMobile = ref(false)
 
 /** ========== Cookie 工具 ========== */
 const getCookieName = () => 'hideactivity_' + (props.curactivity?.id || '')
@@ -257,12 +260,19 @@ const handleBeforeUnload = (event) => {
     }
 }
 
+const checkScreenSize = () => {
+    isMobile.value = window.innerWidth < 1024
+}
+
 onMounted(() => {
     window.addEventListener('beforeunload', handleBeforeUnload)
+    window.addEventListener('resize', checkScreenSize)
+    checkScreenSize()
 })
 
 onBeforeUnmount(() => {
     window.removeEventListener('beforeunload', handleBeforeUnload)
+    window.removeEventListener('resize', checkScreenSize)
 })
 
 watch(

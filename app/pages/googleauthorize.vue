@@ -17,6 +17,7 @@ const route = useRoute()
 
 onMounted(async () => {
     const code = route.query.code as string
+    const state = route.query.state as string
 
     if (!code) {
         router.replace('/login') // 如果没有 code，返回首页或登录页
@@ -25,11 +26,19 @@ onMounted(async () => {
 
     try {
         // 传递 code 给后端
-        const res = await googleLogin({ code })
-        const redirectCookie = useCookie('redirectPath')
-        const backTo = redirectCookie.value || '/myorders'   // 没有就回首页
-        redirectCookie.value = null                  // 清除，避免下次误跳
-        await navigateTo(backTo, { replace: true })
+        const res = await googleLogin({ code, state })
+        if (!res.result) {
+            navigateTo({
+                path: '/registerbusiness',
+                query: { step: 2, code: code, type: 'google', }
+            }, { replace: true })
+        } else {
+            const redirectCookie = useCookie('redirectPath')
+            const backTo = redirectCookie.value || '/myorders'
+            redirectCookie.value = null
+            await navigateTo(backTo, { replace: true })
+        }
+
 
     } catch (error) {
         router.replace('/login')

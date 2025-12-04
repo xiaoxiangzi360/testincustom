@@ -18,7 +18,7 @@
                 <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 h-full flex flex-col justify-center sm:items-start"
                     style="text-shadow: 0px 2px 4px rgba(34,34,34,0.6);">
                     <h1 class="text-xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 leading-snug">
-                        {{ decodeURIComponent(collection) }}
+                        {{ decodeURIComponent(collectionName) }}
                     </h1>
                     <p class="text-sm sm:text-xl text-white max-w-md sm:max-w-none">
                         Discover our best picks for this collection
@@ -156,10 +156,17 @@ const hasMore = ref(true)
 const { getUserProductRollPage } = ProductAuth()
 const route = useRoute()
 const collection = route.params.collection[0].replace(/-/g, ' ')
+// Get collection name and tagid from the URL
+const collectionFull = route.params.collection[0] // "Outdoor-Shade-Solutions-dbf1f7231114cafb50f4e5d4bec84d85"
+
+// Extract the collection name (everything before the last hyphen) and tagid (after the last hyphen)
+const splitCollection = collectionFull.split('-')
+const collectionName = splitCollection.slice(0, -1).join('-').replace(/-/g, ' ')
+const tagId = splitCollection.pop() // Tagid (the last part)
 
 const breadcrumbLinks = [
     { label: 'Home', to: '/', title: 'Home' },
-    { label: decodeURIComponent(collection), to: '/collections/' + collection, title: collection },
+    { label: decodeURIComponent(collectionName), to: '/collections/' + collectionFull, title: collectionName },
 ]
 
 const handleChange = (value: string) => {
@@ -181,8 +188,7 @@ const getlistlist = async (isReset = false) => {
     }
 
     try {
-        // 获取 tagIdList
-        const tagId = collectionobj[collection]
+
         const tagIdList = tagId ? [tagId] : []
 
         const parmes: any = {

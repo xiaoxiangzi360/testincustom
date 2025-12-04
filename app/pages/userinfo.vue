@@ -21,14 +21,7 @@
                 <a href="#" class="text-primary-500 hover:underline">Set New Password</a>
               </div>
             </div>
-            <div>
-              <span class="text-blackcolor/50 mb-2">Full name</span>
-              <div class="font-medium mt-1">{{ userinfo.fullName }}</div>
-            </div>
-            <div>
-              <span class="text-blackcolor/50 mb-2">Number</span>
-              <div class="font-medium mt-1">{{ userinfo.numberAreaCode }} {{ userinfo.number }}</div>
-            </div>
+
           </div>
         </section>
 

@@ -8,7 +8,7 @@ const token = useCookie('token')
 const userType = useCookie('userType', { sameSite: 'lax', path: '/' })
 
 const isuserTokenValid = computed(() => {
-  const isMember = userType.value === 1 || userType.value === '1'
+  const isMember = userType.value != 2
   return !!token.value && isMember
 })
 

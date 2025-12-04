@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, defineEmits, computed, watch } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, defineEmits, computed, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { Select } from 'ant-design-vue'
 import { useCookie } from '#app'
@@ -9,24 +9,46 @@ const router = useRouter()
 const { isMobileMenuOpen, openMobileMenu } = useMobileMenu()
 
 // ============ 类型 ============
-interface CatalogItem {
-  id: number;
+interface CatalogInfo {
+  id: string;
   catalogEnName: string;
-  catalogName: string;
-  children?: CatalogItem[];
-  recommend?: boolean;
+}
+
+interface TagInfo {
+  id: string;
+  tagName: string;
+}
+
+interface NavItem {
+  id: string;
+  enName: string;
+  type: number;
+  sort: number;
+  view: boolean;
+  parentId: string;
+  level: number;
+  catalogId: string;
+  tagId: string;
+  url: string | null;
+  children?: NavItem[];
+  catalog?: CatalogInfo | null;
+  tag?: TagInfo | null;
 }
 
 // emits
 const emit = defineEmits<{ (e: 'closeSlideover'): void }>()
 
 // API（你原有）
-const { listOnlineMallProductCatalogTree } = ProductAuth();
+const { listGuidingStarPublishTree } = ProductAuth();
 
 // ============ 分类数据 ============
-const catemenu = ref<CatalogItem[]>([])
-const menuData = ref<CatalogItem[]>([])
-const recommendData = ref<CatalogItem[]>([])
+const catemenu = ref<NavItem[]>([])
+const menuData = ref<NavItem[]>([])
+const recommendData = ref<NavItem[]>([])
+
+// ⭐ PC 实际展示的部分（按宽度裁剪）
+const visibleCategories = ref<NavItem[]>([])
+
 const isMobile = ref(false)
 const isLoading = ref(true)
 
@@ -34,20 +56,31 @@ const isLoading = ref(true)
 const expandedLevel1 = ref<number | null>(null)
 const expandedLevel2 = reactive<{ [key: number]: number | null }>({})
 
+// PC nav DOM 引用
+const navWrapper = ref<HTMLElement | null>(null)
+const navItems = ref<HTMLElement[]>([])
+
 // 获取分类
 const getcatelist = async () => {
   isLoading.value = true
   try {
-    const res = await listOnlineMallProductCatalogTree()
-    const cate = res.treeList
-    const recommendList = res.recommendList
-    catemenu.value = cate
-    menuData.value = cate
-    recommendData.value = recommendList
+    const res = await listGuidingStarPublishTree()
+
+    catemenu.value = res.result
+    menuData.value = res.result
+    recommendData.value = res.result
+    // 初始先全部给上，等 PC 宽度计算后再裁剪
+    visibleCategories.value = [...res.result]
   } catch (e) {
     console.error('获取产品分类错误:', e)
   } finally {
     isLoading.value = false
+    // 如果一开始就是 PC，等 DOM 出来后算一遍
+    nextTick(() => {
+      if (!isMobile.value) {
+        computeVisibleNavItems()
+      }
+    })
   }
 }
 
@@ -56,14 +89,73 @@ const checkScreenSize = () => {
   isMobile.value = window.innerWidth < 1024
 }
 
+// ⭐ 按容器宽度裁剪 PC 分类
+const computeVisibleNavItems = async () => {
+  if (!navWrapper.value) return
+  // 移动端不裁剪，直接全部展示
+  if (isMobile.value) {
+    visibleCategories.value = [...recommendData.value]
+    return
+  }
+
+  // 确保 DOM 和 ref 收集完成
+  await nextTick()
+  await nextTick()
+
+  if (!navItems.value.length) {
+    visibleCategories.value = [...recommendData.value]
+    return
+  }
+
+  const containerWidth = navWrapper.value.clientWidth
+  let usedWidth = 0
+  const temp: NavItem[] = []
+
+  navItems.value.forEach((el, i) => {
+    if (!el) return
+    const itemWidth = el.offsetWidth + 12 // 加一点间距
+    if (usedWidth + itemWidth <= containerWidth) {
+      temp.push(recommendData.value[i])
+      usedWidth += itemWidth
+    }
+  })
+
+  visibleCategories.value = temp
+}
+
+// ====== resize 防抖 ======
+let resizeTimer: any = null
+
+const handleResize = () => {
+  checkScreenSize()
+
+  clearTimeout(resizeTimer)
+  resizeTimer = setTimeout(() => {
+    // 只在 PC 下根据宽度裁剪
+    if (!isMobile.value) {
+      computeVisibleNavItems()
+    }
+  }, 150)
+}
+
 onMounted(() => {
   getcatelist()
   checkScreenSize()
-  window.addEventListener('resize', checkScreenSize)
+  window.addEventListener('resize', handleResize)
+})
+
+watch(isMobile, (val) => {
+  // 从移动端切回 PC 时重新算一遍
+  if (!val) {
+    computeVisibleNavItems()
+  } else {
+    // 切到 mobile，全部展示
+    visibleCategories.value = [...recommendData.value]
+  }
 })
 
 onUnmounted(() => {
-  window.removeEventListener('resize', checkScreenSize)
+  window.removeEventListener('resize', handleResize)
 })
 
 // 导航
@@ -74,6 +166,20 @@ const navigate = (link: string, e?: Event) => {
   emit('closeSlideover')
   router.push(link)
 }
+
+const getNavLabel = (item: NavItem) =>
+  item.catalog?.catalogEnName ||
+  item.tag?.tagName ||
+  item.enName ||
+  'Unnamed'
+
+const slugify = (value: string) =>
+  value
+    .trim()
+    .replace(/[^A-Za-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
+const formatCollectionPath = (name: string, id: string | number) => `/collections/${slugify(name) || 'collection'}-${id}`
 
 // 移动端：一级
 const toggleLevel1 = (index: number, e?: Event) => {
@@ -105,7 +211,7 @@ const hoverSub = ref<number | null>(null)
 const close = () => { openMobileMenu() }
 
 // ====================================================================================
-// ============ 定位选择（与购物车头部同接口 & 同结构；改为折叠行，不用 UPopover） ============
+// ============ 定位选择（与你原来一致，没改） ============
 // ====================================================================================
 
 type CountryItem = { id: string | number; countryCode: string; countryName: string }
@@ -309,6 +415,20 @@ const ensureOptionsOnOpen = async () => {
     }
   }
 }
+const thirdMenuOpenLeft = ref(false)
+
+const checkThirdMenuDirection = (event: MouseEvent) => {
+  const el = event.currentTarget as HTMLElement
+  if (!el) return
+
+  const rect = el.getBoundingClientRect()
+  const thirdMenuWidth = 240 // 三级菜单宽度，与你 CSS 一致即可
+  const screenWidth = window.innerWidth
+
+  // rect.right 是二级菜单的右边界
+  // 如果加上三级菜单宽度会超过屏幕宽 → 往左展开
+  thirdMenuOpenLeft.value = (rect.right + thirdMenuWidth) > screenWidth
+}
 
 const toggleDeliver = async (e?: Event) => {
   e?.stopPropagation()
@@ -347,10 +467,46 @@ const handleDeliverSubmitInline = () => {
   writeLocationCookie(data)
   deliverOpen.value = false
 }
+
 const formatCatalogPath = (name: string, id: number | string) => {
-  // 去掉首尾空格并把中间连续空格替换为单个横杠
   const safeName = name.trim().replace(/\s+/g, '-')
   return `/${safeName}-${id}`
+}
+
+const resolveNavTarget = (item: NavItem) => {
+  if (!item) return null
+  if (item.type === 10) {
+    const name = getNavLabel(item)
+    const targetId = item.catalogId && item.catalogId !== 'none' ? item.catalogId : item.catalog?.id ?? item.id
+    if (!targetId) return null
+    return { path: formatCatalogPath(name, targetId), external: false }
+  }
+  if (item.type === 20) {
+    const name = item.tag?.tagName || item.enName
+    const id = item.tag?.id || item.enName
+    if (!name) return null
+    return { path: formatCollectionPath(name, id), external: false }
+  }
+  if (item.type === 30 && item.url) {
+    const isExternal = /^https?:\/\//i.test(item.url)
+    return { path: item.url, external: isExternal }
+  }
+  return null
+}
+
+const getNavPath = (item: NavItem) => resolveNavTarget(item)?.path || '#'
+
+const goToNavItem = (item: NavItem, e?: Event) => {
+  const target = resolveNavTarget(item)
+  if (!target) return
+  e?.preventDefault()
+  if (target.external) {
+    openMobileMenu()
+    emit('closeSlideover')
+    window.location.href = target.path
+    return
+  }
+  navigate(target.path, e)
 }
 
 // 启动
@@ -377,7 +533,7 @@ onMounted(async () => {
         <div class="flex items-center space-x-2 rounded-lg transition">
           <BaseIcon name="i-material-symbols:location-on-outline-rounded" class="w-5 h-5 text-primary" />
           <div class="truncate max-w-[200px] text-sm">
-            <div class="text-gray-500">Delivering to</div>
+            <div class="text-gray-500">Delivery to</div>
             <div class="truncate text-gray-900">
               {{ displayLocationLabel || 'Select location' }}
             </div>
@@ -425,8 +581,8 @@ onMounted(async () => {
     <div class="mobile-category-item">
       <div class="category-level-1 flex items-center justify-between p-3 border-b border-b-blackcolor/10 last:border-0"
         @click="toggleLevel1(-1, $event)">
-        <div class="flex items-center" @click="navigate('/products', $event)">
-          <span>All Products</span>
+        <div class="flex items-center">
+          <span>All</span>
         </div>
         <BaseIcon class="arrow-icon w-5 h-5 text-gray-500 transition-transform duration-300 ease-in-out"
           name="i-material-symbols:expand-more" :class="{ 'rotate-180': expandedLevel1 === -1 }" />
@@ -437,8 +593,8 @@ onMounted(async () => {
           <div v-for="(item, i) in menuData" :key="item.id" class="category-level-2">
             <div class="flex items-center justify-between p-3 border-b border-b-blackcolor/10 "
               @click="toggleLevel2(-1, i, $event)">
-              <div @click="navigate(formatCatalogPath(item.catalogEnName || item.catalogName, item.id), $event)">
-                <span>{{ item.catalogEnName || item.catalogName }}</span>
+              <div @click="goToNavItem(item, $event)">
+                <span>{{ item.enName }}</span>
               </div>
 
               <BaseIcon v-if="item?.children?.length"
@@ -450,8 +606,8 @@ onMounted(async () => {
               <div v-if="expandedLevel2[-1] === i" class="pl-4">
                 <div v-for="(sub, j) in item?.children" :key="sub.id" class="category-level-3">
                   <div class="flex items-center justify-between p-3 border-b border-b-blackcolor/10">
-                    <div @click="navigate(formatCatalogPath(sub.catalogEnName || sub.catalogName, sub.id), $event)">
-                      <span>{{ sub.catalogEnName || sub.catalogName }}</span>
+                    <div @click="goToNavItem(sub, $event)">
+                      <span>{{ sub.enName }}</span>
                     </div>
 
                   </div>
@@ -464,11 +620,11 @@ onMounted(async () => {
     </div>
 
     <!-- 推荐分类 -->
-    <div v-for="(category, index) in recommendData" :key="category.id" class="mobile-category-item">
+    <div v-for="(category, index) in recommendData.slice(0, 8)" :key="category.id" class="mobile-category-item">
       <div class="category-level-1 flex items-center justify-between p-3 border-b border-b-blackcolor/10 last:border-0"
         @click="toggleLevel1(index, $event)">
-        <div @click="navigate(formatCatalogPath(category.catalogEnName || category.catalogName, category.id), $event)">
-          <span>{{ category.catalogEnName || category.catalogName }}</span>
+        <div @click="goToNavItem(category, $event)">
+          <span>{{ category.enName }}</span>
         </div>
 
         <BaseIcon v-if="category?.children?.length"
@@ -481,8 +637,8 @@ onMounted(async () => {
           <div v-for="(sub, j) in category?.children" :key="sub.id" class="category-level-2">
             <div class="flex items-center justify-between p-3 border-b border-b-blackcolor/10"
               @click="toggleLevel2(index, j, $event)">
-              <div @click="navigate(formatCatalogPath(sub.catalogEnName || sub.catalogName, sub.id), $event)">
-                <span>{{ sub.catalogEnName || sub.catalogName }}</span>
+              <div @click="goToNavItem(sub, $event)">
+                <span>{{ sub.enName }}</span>
               </div>
 
               <BaseIcon v-if="sub?.children?.length"
@@ -494,8 +650,8 @@ onMounted(async () => {
               <div v-if="expandedLevel2[index] === j" class="pl-4">
                 <div v-for="child in sub?.children" :key="child.id" class="category-level-3">
                   <div class="flex items-center justify-between p-3 border-b border-b-blackcolor/10"
-                    @click="navigate(formatCatalogPath(child.catalogEnName || child.catalogName, child.id), $event)">
-                    <span>{{ child.catalogEnName || child.catalogName }}</span>
+                    @click="goToNavItem(child, $event)">
+                    <span>{{ child.enName }}</span>
                   </div>
 
                 </div>
@@ -507,100 +663,119 @@ onMounted(async () => {
     </div>
   </div>
 
-  <!-- 桌面端视图（原样保留） -->
-  <div v-else class="relative flex flex-wrap whitespace-nowrap gap-2 md:flex-nowrap md:flex-row md:gap-2">
-    <!-- All Products Hover 多级 -->
-    <div class="relative group px-2" @mouseleave="hoverLevel1 = null">
-      <NuxtLink to="/products">
-        <div class="flex items-center p-2 pl-0 cursor-pointer" @mouseenter="hoverLevel1 = 0">
-          <NuxtImg src="cell.png" width="24" class="mr-2" />
-          All Products
+  <!-- 桌面端视图 -->
+  <div v-else>
+    <div ref="navWrapper" class="relative flex flex-nowrap whitespace-nowrap md:flex-nowrap md:flex-row">
+      <!-- All Products Hover 多级 -->
+      <div class="relative group pr-2" @mouseleave="hoverLevel1 = null">
+        <NuxtLink>
+          <div class="flex items-center p-2 pl-0 cursor-pointer" @mouseenter="hoverLevel1 = 0">
+            <NuxtImg src="cell.png" width="24" class="mr-2" />
+            All
+          </div>
+        </NuxtLink>
+
+        <div class="absolute top-full left-0 bg-white shadow-2xl flex z-50 py-1 " v-if="hoverLevel1 !== null"
+          @mouseleave="hoverLevel1 = null; hoverLevel2 = null; hoverSub = null">
+          <!-- 一级 -->
+          <ul class="text-sm w-60 max-h-[600px] overflow-y-auto">
+            <li v-for="(item, i) in menuData" :key="item.id" class="group"
+              @mouseenter="hoverLevel2 = i; hoverSub = null">
+              <NuxtLink :to="getNavPath(item)" @click.prevent="goToNavItem(item, $event)"
+                class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap w-full"
+                @click="emit('closeSlideover')">
+                <span class="catalogtitle">{{ item.enName }}</span>
+                <BaseIcon v-if="hoverLevel2 === i && item?.children" name="i-material-symbols:chevron-right"
+                  class="w-5 h-5 text-gray-400 transition-opacity duration-200" />
+              </NuxtLink>
+            </li>
+          </ul>
+
+          <!-- 二级 -->
+          <ul v-if="hoverLevel2 !== null && menuData[hoverLevel2]?.children"
+            class="text-sm w-60 max-h-[600px] overflow-y-auto">
+            <li v-for="(sub, j) in menuData[hoverLevel2]?.children" :key="sub.id" class="group"
+              @mouseenter="hoverSub = j">
+              <NuxtLink :to="getNavPath(sub)" @click.prevent="goToNavItem(sub, $event)"
+                class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap"
+                @click="emit('closeSlideover')">
+                <span class="catalogtitle">{{ sub.enName }}</span>
+                <BaseIcon v-if="hoverSub === j && sub?.children" name="i-material-symbols:chevron-right"
+                  class="w-5 h-5 text-gray-400 transition-opacity duration-200" />
+              </NuxtLink>
+            </li>
+          </ul>
+
+          <!-- 三级 -->
+          <ul v-if="hoverLevel2 !== null && hoverSub !== null && menuData[hoverLevel2]?.children?.[hoverSub]?.children"
+            class="text-sm w-60 max-h-[600px] overflow-y-auto">
+            <li v-for="child in menuData[hoverLevel2]?.children?.[hoverSub]?.children" :key="child.id">
+              <NuxtLink :to="getNavPath(child)" @click.prevent="goToNavItem(child, $event)"
+                class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] cursor-pointer whitespace-nowrap"
+                @click="emit('closeSlideover')">
+                <span class="catalogtitle">{{ child.enName }}</span>
+              </NuxtLink>
+            </li>
+          </ul>
         </div>
-      </NuxtLink>
-
-      <div class="absolute top-full left-0 bg-white shadow-2xl flex z-50 py-1" v-if="hoverLevel1 !== null"
-        @mouseleave="hoverLevel1 = null; hoverLevel2 = null; hoverSub = null">
-        <!-- 一级 -->
-        <ul class="text-sm w-60">
-          <li v-for="(item, i) in menuData" :key="item.id" class="group" @mouseenter="hoverLevel2 = i; hoverSub = null">
-            <NuxtLink :to="formatCatalogPath(item.catalogEnName || item.catalogName, item.id)"
-              class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap w-full"
-              @click="emit('closeSlideover')">
-              <span class="catalogtitle">{{ item.catalogEnName || item.catalogName }}</span>
-              <BaseIcon v-if="hoverLevel2 === i && item?.children" name="i-material-symbols:chevron-right"
-                class="w-5 h-5 text-gray-400 transition-opacity duration-200" />
-            </NuxtLink>
-          </li>
-        </ul>
-
-        <!-- 二级 -->
-        <ul v-if="hoverLevel2 !== null && menuData[hoverLevel2]?.children" class="text-sm w-60">
-          <li v-for="(sub, j) in menuData[hoverLevel2]?.children" :key="sub.id" class="group"
-            @mouseenter="hoverSub = j">
-            <NuxtLink :to="formatCatalogPath(sub.catalogEnName || sub.catalogName, sub.id)"
-              class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap"
-              @click="emit('closeSlideover')">
-              <span class="catalogtitle">{{ sub.catalogEnName || sub.catalogName }}</span>
-              <BaseIcon v-if="hoverSub === j && sub?.children" name="i-material-symbols:chevron-right"
-                class="w-5 h-5 text-gray-400 transition-opacity duration-200" />
-            </NuxtLink>
-          </li>
-        </ul>
-
-        <!-- 三级 -->
-        <ul v-if="hoverLevel2 !== null && hoverSub !== null && menuData[hoverLevel2]?.children?.[hoverSub]?.children"
-          class="text-sm w-60">
-          <li v-for="child in menuData[hoverLevel2]?.children?.[hoverSub]?.children" :key="child.id">
-            <NuxtLink :to="formatCatalogPath(child.catalogEnName || child.catalogName, child.id)"
-              class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] cursor-pointer whitespace-nowrap"
-              @click="emit('closeSlideover')">
-              <span class="catalogtitle">{{ child.catalogEnName || child.catalogName }}</span>
-            </NuxtLink>
-          </li>
-        </ul>
       </div>
-    </div>
 
-    <!-- 分类按钮 -->
-    <div v-for="(category, index) in recommendData" :key="category.id"
-      class="relative flex items-center p-2 cursor-pointer whitespace-nowrap" @mouseenter="hoverRecommend = index"
-      @mouseleave="hoverRecommend = null; hoverRecommendSub = null">
-      <NuxtLink :to="formatCatalogPath(category.catalogEnName || category.catalogName, category.id)"
-        class="text-base duration-200 border border-transparent md:border-none leading-none"
-        @click="emit('closeSlideover')">
-        {{ category.catalogEnName || category.catalogName }}
-      </NuxtLink>
+      <!-- 推荐分类按钮（PC 使用 visibleCategories + ref="navItems"） -->
+      <div v-for="(category, index) in menuData.slice(0, 6)" :key="category.id" ref="navItems"
+        class="relative flex items-center md:p-1 xl:p-2 cursor-pointer whitespace-nowrap "
+        @mouseenter="hoverRecommend = index" @mouseleave="hoverRecommend = null; hoverRecommendSub = null">
+        <NuxtLink :to="getNavPath(category)" @click.prevent="goToNavItem(category, $event)"
+          class="text-sm xl:text-base duration-200 border border-transparent md:border-none leading-none max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap"
+          @click="emit('closeSlideover')">
+          {{ category.enName }}
+        </NuxtLink>
 
-      <div class="absolute top-full left-0 top-full bg-white shadow-2xl  z-50 py-1 flex"
-        v-if="hoverRecommend === index && category?.children?.length">
-        <!-- 二级 -->
-        <ul class="text-sm w-60">
-          <li v-for="(sub, j) in category?.children" :key="sub.id" class="group" @mouseenter="hoverRecommendSub = j">
-            <NuxtLink :to="formatCatalogPath(sub.catalogEnName || sub.catalogName, sub.id)"
-              class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap"
-              @click="emit('closeSlideover')">
-              <span class="catalogtitle">{{ sub.catalogEnName || sub.catalogName }}</span>
-              <BaseIcon v-if="hoverRecommendSub === j && sub?.children" name="i-material-symbols:chevron-right"
-                class="w-5 h-5 text-gray-400 transition-opacity duration-200" />
-            </NuxtLink>
-          </li>
-        </ul>
-        <!-- 三级 -->
-        <ul v-if="hoverRecommendSub !== null && category?.children?.[hoverRecommendSub]?.children" class="text-sm w-60">
-          <li v-for="child in category?.children?.[hoverRecommendSub]?.children" :key="child.id">
-            <NuxtLink :to="formatCatalogPath(child.catalogEnName || child.catalogName, child.id)"
-              class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] cursor-pointer whitespace-nowrap"
-              @click="emit('closeSlideover')">
-              <span class="catalogtitle">{{ child.catalogEnName || child.catalogName }}</span>
-            </NuxtLink>
-          </li>
-        </ul>
+        <div class="absolute top-full left-0 top-full bg-white shadow-2xl  z-50 py-1 flex "
+          v-if="hoverRecommend === index && category?.children?.length">
+          <!-- 二级 -->
+          <ul class="text-sm w-50 xl:w-60 max-h-[600px] overflow-y-auto">
+            <li v-for="(sub, j) in category?.children" :key="sub.id" class="group"
+              @mouseenter="hoverRecommendSub = j; checkThirdMenuDirection($event);">
+              <NuxtLink :to="getNavPath(sub)" @click.prevent="goToNavItem(sub, $event)"
+                class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap"
+                @click="emit('closeSlideover')">
+                <span class="catalogtitle">{{ sub.enName }}</span>
+                <BaseIcon v-if="hoverRecommendSub === j && sub?.children" name="i-material-symbols:chevron-right"
+                  class="w-5 h-5 text-gray-400 transition-opacity duration-200" />
+              </NuxtLink>
+            </li>
+          </ul>
+          <!-- 三级 -->
+          <ul v-if="hoverRecommendSub !== null && category?.children?.[hoverRecommendSub]?.children"
+            class="submenu-level-3 text-sm w-50 xl:w-60 max-h-[600px] overflow-y-auto bg-white"
+            :class="{ 'open-left': thirdMenuOpenLeft }">
+            <li v-for="child in category?.children?.[hoverRecommendSub]?.children" :key="child.id">
+              <NuxtLink :to="getNavPath(child)" @click.prevent="goToNavItem(child, $event)"
+                class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] cursor-pointer whitespace-nowrap"
+                @click="emit('closeSlideover')">
+                <span class="catalogtitle">{{ child.enName }}</span>
+              </NuxtLink>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.submenu-level-3 {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  height: 100%;
+}
+
+.submenu-level-3.open-left {
+  left: auto;
+  right: 100%;
+}
+
 .mobile-categories {
   width: 100%;
 }
@@ -682,14 +857,9 @@ onMounted(async () => {
 
 .catalogtitle {
   display: block;
-  /* 确保为块级元素 */
   white-space: nowrap;
-  /* 禁止换行 */
   overflow: hidden;
-  /* 隐藏溢出部分 */
   text-overflow: ellipsis;
-  /* 超出部分显示省略号 */
   max-width: 100%;
-  /* 限制最大宽度 */
 }
 </style>

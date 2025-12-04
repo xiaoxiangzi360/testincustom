@@ -25,10 +25,17 @@ onMounted(async () => {
 
     try {
         const res = await facebookLogin({ code })
-        const redirectCookie = useCookie('redirectPath')
-        const backTo = redirectCookie.value || '/myorders'   // 没有就回首页
-        redirectCookie.value = null                  // 清除，避免下次误跳
-        await navigateTo(backTo, { replace: true })
+        if (!res.result) {
+            navigateTo({
+                path: '/registerbusiness',
+                query: { step: 2, code: code, type: 'google', }
+            }, { replace: true })
+        } else {
+            const redirectCookie = useCookie('redirectPath')
+            const backTo = redirectCookie.value || '/myorders'
+            redirectCookie.value = null
+            await navigateTo(backTo, { replace: true })
+        }
 
     } catch (error) {
         router.replace('/login')

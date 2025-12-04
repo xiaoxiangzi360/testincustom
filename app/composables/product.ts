@@ -147,7 +147,18 @@ export const ProductAuth = () => {
       throw error
     }
   }
+  const listGuidingStarPublishTree = async () => {
+    try {
+      const response = await $api(`/product/guidingStar/listGuidingStarPublishTree`, {
+        method: 'GET',
+      })
 
+      return response
+    } catch (error) {
+
+      throw error
+    }
+  }
   const getMallProductCatalogById = async (params) => {
     try {
       const query = new URLSearchParams(params).toString()
@@ -189,5 +200,5 @@ export const ProductAuth = () => {
       throw error
     }
   }
-  return { getProductSpuV2ById, getProductDetailsById, randomRecommendationProductByCatalogId, getUserProductRollPage, getmapProductSpuV2ByProductSkuV2IdList, customizedProductPriceTrialCalculation, erpTryToCreateSkuV2, getproductSearch, productSearchRecommendation, listOnlineMallProductCatalogTree, trialPriceCalculationBySpuV4, getMallProductCatalogById, getconfigRollPage, propSideLengthTool }
+  return { getProductSpuV2ById, getProductDetailsById, randomRecommendationProductByCatalogId, getUserProductRollPage, getmapProductSpuV2ByProductSkuV2IdList, customizedProductPriceTrialCalculation, erpTryToCreateSkuV2, getproductSearch, productSearchRecommendation, listOnlineMallProductCatalogTree, trialPriceCalculationBySpuV4, getMallProductCatalogById, getconfigRollPage, propSideLengthTool, listGuidingStarPublishTree }
 }

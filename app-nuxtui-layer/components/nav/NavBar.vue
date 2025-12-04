@@ -6,17 +6,19 @@ const { logout } = useAuth();
 
 const router = useRouter()
 const route = useRoute()
-const searchInput = ref(route.query.query || '')
+const initialQuery = typeof route.query.query === 'string' ? route.query.query : ''
+const searchInput = ref(initialQuery)
 const token = useCookie('token')
 const isTokenValid = computed(() => !!token.value)
 const userType = useCookie<string | number | null>('userType', { sameSite: 'lax', path: '/' })
 const isuserTokenValid = computed(() => {
-  const isMember = userType.value === 1 || userType.value === '1'
+  const isMember = userType.value != 2
   return !!token.value && isMember
 })
 // 控制移动菜单
 const { isMobileMenuOpen } = useMobileMenu()
 const { isMobileCartMenuOpen } = useMobileCartMenu()
+const showAuthSheet = ref(false)
 
 // 搜索历史相关
 const searchHistory = ref<{ id: string; date: string }[]>([])
@@ -139,6 +141,15 @@ const checklogin = () => {
 
   }
 }
+
+const openAuthSheet = () => {
+  showAuthSheet.value = true
+}
+
+const goAuthPage = (path: string) => {
+  showAuthSheet.value = false
+  router.push(path)
+}
 function goToCart() {
   router.push('/cart')
 }
@@ -146,7 +157,7 @@ function goToCart() {
 watch(
   () => route.query.query,
   (newQuery) => {
-    searchInput.value = newQuery || ''
+    searchInput.value = typeof newQuery === 'string' ? newQuery : ''
   }
 )
 
@@ -226,8 +237,8 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
 
           <BaseIcon name="i-heroicons-user-circle" class="lg:!hidden w-7 h-7" width="28" height="28"
             @click="checklogin()" v-show="isuserTokenValid" />
-          <NuxtImg v-show="!isuserTokenValid" @click="router.push('/login')" loading='lazy'  src="https://cdn.incustom.com/upload/web/user.png" alt="user"
-            class="lg:!hidden w-7 h-7 cursor-pointer" />
+          <NuxtImg v-show="!isuserTokenValid" @click="openAuthSheet" src="https://cdn.incustom.com/upload/web/user.png"
+            alt="user" class="lg:!hidden w-7 h-7 cursor-pointer" />
           <BaseIcon name="i-heroicons:shopping-cart" class="lg:!hidden w-7 h-7 ml-3" width="28" height="28"
             @click="goToCart" />
 
@@ -257,6 +268,30 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
         </div>
       </div>
     </USlideover>
+    <UModal v-model="showAuthSheet"
+      :ui="{ width: 'max-w-full sm:max-w-sm', container: 'items-end', base: 'rounded-t-2xl p-6 pb-8' }">
+      <div class="space-y-4 text-center">
+        <button class="w-full py-3 rounded-full bg-primary text-white font-medium" @click="goAuthPage('/login')">
+          Sign In
+        </button>
+        <div class="flex items-center text-xs uppercase tracking-wider text-gray-400">
+          <span class="flex-1 h-px bg-gray-200"></span>
+          <span class="px-3">or</span>
+          <span class="flex-1 h-px bg-gray-200"></span>
+        </div>
+        <div class="text-sm text-gray-500">
+          No account? <span class="text-primary font-medium">Sign Up now</span>
+        </div>
+        <button class="w-full py-3 rounded-full border border-primary text-primary font-medium bg-white"
+          @click="goAuthPage('/register')">
+          Sign Up for Personal
+        </button>
+        <!-- <button class="w-full py-3 rounded-full border border-primary text-primary font-medium bg-white"
+          @click="goAuthPage('/registerbusiness')">
+          Sign Up for Business
+        </button> -->
+      </div>
+    </UModal>
   </nav>
 </template>
 
@@ -273,12 +308,6 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
     display: grid;
     grid-template-columns: auto 1fr auto;
     grid-template-areas: 'logo search profile' 'primary-nav primary-nav primary-nav';
-  }
-}
-
-@media (min-width: 1280px) {
-  .navbar-grid {
-    /* Adjust as needed */
   }
 }
 </style>

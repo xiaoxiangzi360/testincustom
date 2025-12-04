@@ -179,7 +179,7 @@
                             <UInput :ui="{
                                 base: 'dark:!bg-white dark:!text-gray-900',
                                 color: { white: { outline: 'bg-[#F7F8FB] ring-0 focus:ring-0' } }
-                            }" v-model="formStep2.firstName" size="lg" placeholder="First Name"
+                            }" v-model="formStep2.firstName" size="lg" maxlength="50" placeholder="First Name"
                                 @blur="validateStep2Field('firstName')" />
                             <span v-if="errorsStep2.firstName" class="text-red-500 text-sm">
                                 {{ errorsStep2.firstName }}
@@ -190,7 +190,7 @@
                             <UInput :ui="{
                                 base: 'dark:!bg-white dark:!text-gray-900',
                                 color: { white: { outline: 'bg-[#F7F8FB] ring-0 focus:ring-0' } }
-                            }" v-model="formStep2.lastName" size="lg" placeholder="Last Name"
+                            }" v-model="formStep2.lastName" size="lg" maxlength="50" placeholder="Last Name"
                                 @blur="validateStep2Field('lastName')" />
                             <span v-if="errorsStep2.lastName" class="text-red-500 text-sm">
                                 {{ errorsStep2.lastName }}
@@ -256,11 +256,23 @@
                         <label class="block mb-2 text-sm font-medium text-gray-700">
                             What Category do you sell
                         </label>
-                        <USelect :ui="{
-                            base: 'dark:!bg-white dark:!text-gray-900',
-                            color: { white: { outline: 'bg-[#F7F8FB] ring-0 focus:ring-0' } }
-                        }" v-model="formStep2.productCategory" :options="categoryOptions" size="lg"
-                            placeholder="Select a category" @blur="validateStep2Field('productCategory')" />
+                        <USelectMenu v-model="formStep2.productCategory" :options="categoryOptions" multiple size="lg"
+                            placeholder="Select categories" :ui="{
+                                base: 'dark:!bg-white dark:!text-gray-900',
+                                color: { white: { outline: 'bg-[#F7F8FB] ring-0 focus:ring-0' } }
+                            }" track-by="value" @blur="validateStep2Field('productCategory')">
+                            <template #label>
+                                <span v-if="formStep2.productCategory.length === 0" class="text-gray-400">
+                                    Select categories
+                                </span>
+                                <span v-else>
+                                    {{
+                                        formStep2.productCategory.map(item => typeof item === 'object' ? item.label :
+                                            (categoryOptions.find(opt => opt.value === item)?.label || item)).join(', ')
+                                    }}
+                                </span>
+                            </template>
+                        </USelectMenu>
                         <span v-if="errorsStep2.productCategory" class="text-red-500 text-sm">
                             {{ errorsStep2.productCategory }}
                         </span>
@@ -282,11 +294,9 @@
                             {{ errorsStep2.salesChannels }}
                         </span>
                     </UFormGroup>
-
-
                     <!-- 店铺网址 -->
-                    <UFormGroup name="storeUrl" :required="formStep2.salesChannels === 1" class="mb-5"
-                        v-if="formStep2.salesChannels === 1">
+                    <UFormGroup name="storeUrl" :required="formStep2.salesChannels === '1'" class="mb-5"
+                        v-show="formStep2.salesChannels === '1'">
                         <UInput :ui="{
                             base: 'dark:!bg-white dark:!text-gray-900',
                             color: { white: { outline: 'bg-[#F7F8FB] ring-0 focus:ring-0' } }
@@ -364,7 +374,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
-const { register, sendUserRegisterEmail, createBSideWithLogin, googleRegister, facebookRegister } = useAuth();
+const { register, sendUserRegisterEmail, createBSideWithLogin, googleRegister, facebookRegister, checkCreateUserCodeByEmail } = useAuth();
 const { listOnlineMallProductCatalogTree } = ProductAuth();
 import { message } from 'ant-design-vue';
 const { $showLoading, $hideLoading } = useNuxtApp();
@@ -633,8 +643,8 @@ const revenueOptions = [
     { label: 'Over $500,000', value: 40 }
 ];
 const channelsOptions = [
-    { label: 'Online (like Shopify, TikTok)', value: 1 },
-    { label: 'Brick & Mortar and Offline Traffic', value: 2 }
+    { label: 'Online (like Shopify, TikTok)', value: '1' },
+    { label: 'Brick & Mortar and Offline Traffic', value: '2' }
 ];
 const lookingForOptions = [
     { label: 'Dropshipping', value: 1 },
@@ -671,8 +681,8 @@ const formStep2 = reactive({
     phoneNumber: '',
     whatsappNumber: '',
     facebookUrl: '',
-    productCategory: '',
-    salesChannels: 1, // 默认线上，使用枚举值1
+    productCategory: [], // 多选，默认为空数组
+    salesChannels: '1', // 默认线上，使用枚举值1
     storeUrl: '',
     monthlyRevenue: '5', // 默认低于5k
     primaryInterest: [] // 多选
@@ -847,23 +857,15 @@ const handleStep1Submit = async () => {
     validateStep1Field('agreement');
 
     if (Object.values(errorsStep1).some(error => error)) {
-        message.warning('Please check the form for errors');
+        // 获取第一个有内容的错误
+        const firstError = Object.values(errorsStep1).find(e => e);
+        message.warning(firstError || 'Please check the form for errors');
         return;
     }
 
     try {
         $showLoading();
-        // 调用注册接口（仅完成账号创建，不跳转）
-        // const payload = {
-        //     code: formStep1.verificationCode,
-        //     user: {
-        //         email: formStep1.email.trim(),
-        //         password: formStep1.password.trim()
-        //     }
-        // };
-        // const result = await register(payload);
-        // step1Result.value.code = result.code;
-        // step1Result.value.userId = result.userId;
+        let res = await checkCreateUserCodeByEmail(formStep1.email, formStep1.verificationCode);
         isStep2Authorized.value = true; // 标记为已授权
         currentStep.value = 2; // 进入第二步
 
@@ -954,21 +956,15 @@ const validateStep2Field = fieldName => {
                 : 'Please enter a valid phone number (7-15 digits)';
             break;
 
-        case 'facebookUrl':
-            const urlRegex = /^(https?:\/\/)?(www\.)?facebook\.com\/.+/i;
-            errorsStep2.facebookUrl = urlRegex.test(formStep2.facebookUrl.trim())
-                ? ''
-                : 'Please enter a valid Facebook URL';
-            break;
-
         case 'productCategory':
-            errorsStep2.productCategory = formStep2.productCategory
-                ? ''
-                : 'Please select a product category';
+            errorsStep2.productCategory =
+                Array.isArray(formStep2.productCategory) && formStep2.productCategory.length > 0
+                    ? ''
+                    : 'Please select at least one category';
             break;
 
         case 'storeUrl':
-            if (formStep2.salesChannels === 1) {
+            if (formStep2.salesChannels === '1') {
                 const urlRegex2 =
                     /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w.-]*)*\/?$/;
                 errorsStep2.storeUrl = urlRegex2.test(formStep2.storeUrl.trim())
@@ -1006,7 +1002,7 @@ const validateStep2Form = () => {
 
     fields.forEach(field => validateStep2Field(field));
 
-    if (formStep2.salesChannels === 1) {
+    if (formStep2.salesChannels === '1') {
         validateStep2Field('storeUrl');
     }
 
@@ -1042,7 +1038,9 @@ const buildStep2Payload = () => {
             firstName: formStep2.firstName.trim(),
             lastName: formStep2.lastName.trim(),
             monthlyRevenue: Number(formStep2.monthlyRevenue),
-            sellCatalogIdList: formStep2.productCategory ? [formStep2.productCategory] : [],
+            sellCatalogIdList: Array.isArray(formStep2.productCategory)
+                ? formStep2.productCategory.map(i => typeof i === 'object' ? i.value : i)
+                : [],
             sellChannelList: formStep2.salesChannels ? [Number(formStep2.salesChannels)] : [],
             websiteUrl: formStep2.storeUrl ? formStep2.storeUrl.trim() : ''
         }
@@ -1052,7 +1050,9 @@ const buildStep2Payload = () => {
 // 第二步：提交（完成注册）
 const handleStep2Submit = async () => {
     if (!validateStep2Form()) {
-        message.warning('Please check the form for errors');
+        // 获取第一个有内容的错误
+        const firstError = Object.values(errorsStep2).find(e => e);
+        message.warning(firstError || 'Please check the form for errors');
         return;
     }
     try {
@@ -1082,7 +1082,7 @@ const handleStep2Submit = async () => {
 const goToStep1 = () => {
     currentStep.value = 1;
     // 更新地址栏，移除step参数
-    navigateTo({ path: '/registerbusiness' }, { replace: true });
+    // navigateTo({ path: '/registerbusiness' }, { replace: true });
 };
 
 // 页面加载时预加载分类（第二步需要）

@@ -11,7 +11,8 @@
           <p class="text-xs mt-2 text-white">Trusted to deliver 99.8M items since 2024</p>
 
           <div class="flex items-center gap-3 mt-5">
-            <NuxtImg format="webp" loading="lazy" src="https://cdn.incustom.com/upload/web/email-2.png" alt="email" class="w-5" />
+            <NuxtImg format="webp" loading="lazy" src="https://cdn.incustom.com/upload/web/email-2.png" alt="email"
+              class="w-5" />
             <a href="mailto:hello@incustom.com" class="text-sm hover:text-primary">hello@incustom.com</a>
           </div>
 

@@ -212,7 +212,7 @@
                                                     </div>
                                                     <p class="text-xs text-gray-500">{{ item.product?.skuData ?
                                                         getSpecAttrFromPropList(item.product.skuData.propList) : ''
-                                                    }}</p>
+                                                        }}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -370,9 +370,6 @@ const refreshFromStore = async () => {
     }
 }
 
-if (isTokenValid.value) {
-    refreshFromStore()
-}
 
 const toggleSelectAll = () => {
     cart.itemList.forEach(item => {
@@ -463,6 +460,10 @@ const handleResize = () => {
 onMounted(() => {
     handleResize()
     window.addEventListener('resize', handleResize)
+    if (isTokenValid.value) {
+        refreshFromStore()
+    }
+
 })
 onUnmounted(() => {
     window.removeEventListener('resize', handleResize)
