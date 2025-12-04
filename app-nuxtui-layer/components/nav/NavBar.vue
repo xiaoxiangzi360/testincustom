@@ -188,7 +188,7 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
                 variant: { outline: 'shadow-none focus:ring-0' },
                 color: {
                   white: {
-                    outline: 'bg-white dark:bg-white'
+                    outline: 'bg-white dark:bg-white dark:text-gray-900'
                   }
                 }
               }"

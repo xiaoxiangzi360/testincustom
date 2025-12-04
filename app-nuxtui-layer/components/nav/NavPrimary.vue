@@ -45,10 +45,6 @@ const { listGuidingStarPublishTree } = ProductAuth();
 const catemenu = ref<NavItem[]>([])
 const menuData = ref<NavItem[]>([])
 const recommendData = ref<NavItem[]>([])
-
-// ⭐ PC 实际展示的部分（按宽度裁剪）
-const visibleCategories = ref<NavItem[]>([])
-
 const isMobile = ref(false)
 const isLoading = ref(true)
 
@@ -69,18 +65,10 @@ const getcatelist = async () => {
     catemenu.value = res.result
     menuData.value = res.result
     recommendData.value = res.result
-    // 初始先全部给上，等 PC 宽度计算后再裁剪
-    visibleCategories.value = [...res.result]
   } catch (e) {
     console.error('获取产品分类错误:', e)
   } finally {
     isLoading.value = false
-    // 如果一开始就是 PC，等 DOM 出来后算一遍
-    nextTick(() => {
-      if (!isMobile.value) {
-        computeVisibleNavItems()
-      }
-    })
   }
 }
 
@@ -89,53 +77,8 @@ const checkScreenSize = () => {
   isMobile.value = window.innerWidth < 1024
 }
 
-// ⭐ 按容器宽度裁剪 PC 分类
-const computeVisibleNavItems = async () => {
-  if (!navWrapper.value) return
-  // 移动端不裁剪，直接全部展示
-  if (isMobile.value) {
-    visibleCategories.value = [...recommendData.value]
-    return
-  }
-
-  // 确保 DOM 和 ref 收集完成
-  await nextTick()
-  await nextTick()
-
-  if (!navItems.value.length) {
-    visibleCategories.value = [...recommendData.value]
-    return
-  }
-
-  const containerWidth = navWrapper.value.clientWidth
-  let usedWidth = 0
-  const temp: NavItem[] = []
-
-  navItems.value.forEach((el, i) => {
-    if (!el) return
-    const itemWidth = el.offsetWidth + 12 // 加一点间距
-    if (usedWidth + itemWidth <= containerWidth) {
-      temp.push(recommendData.value[i])
-      usedWidth += itemWidth
-    }
-  })
-
-  visibleCategories.value = temp
-}
-
-// ====== resize 防抖 ======
-let resizeTimer: any = null
-
 const handleResize = () => {
   checkScreenSize()
-
-  clearTimeout(resizeTimer)
-  resizeTimer = setTimeout(() => {
-    // 只在 PC 下根据宽度裁剪
-    if (!isMobile.value) {
-      computeVisibleNavItems()
-    }
-  }, 150)
 }
 
 onMounted(() => {
@@ -144,15 +87,6 @@ onMounted(() => {
   window.addEventListener('resize', handleResize)
 })
 
-watch(isMobile, (val) => {
-  // 从移动端切回 PC 时重新算一遍
-  if (!val) {
-    computeVisibleNavItems()
-  } else {
-    // 切到 mobile，全部展示
-    visibleCategories.value = [...recommendData.value]
-  }
-})
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
@@ -209,10 +143,6 @@ const hoverLevel1 = ref<number | null>(null)
 const hoverLevel2 = ref<number | null>(null)
 const hoverSub = ref<number | null>(null)
 const close = () => { openMobileMenu() }
-
-// ====================================================================================
-// ============ 定位选择（与你原来一致，没改） ============
-// ====================================================================================
 
 type CountryItem = { id: string | number; countryCode: string; countryName: string }
 type ProvinceItem = { id: string | number; regionName: string }
@@ -720,7 +650,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- 推荐分类按钮（PC 使用 visibleCategories + ref="navItems"） -->
+      <!-- 推荐分类按钮 -->
       <div v-for="(category, index) in menuData.slice(0, 6)" :key="category.id" ref="navItems"
         class="relative flex items-center md:p-1 xl:p-2 cursor-pointer whitespace-nowrap "
         @mouseenter="hoverRecommend = index" @mouseleave="hoverRecommend = null; hoverRecommendSub = null">
