@@ -265,7 +265,7 @@
                       {{ index +
                         1 }}</UBadge>
                     <span class="truncate-1-lines font-medium text-sm md:text-base">{{ property.propertyNameShop
-                      }}</span>
+                    }}</span>
                     <!-- Proposed tip: Tooltip type (proposedViewType=10) -->
                     <Tooltip color="#000" :overlayInnerStyle="{ color: '#fff' }" placement="top"
                       v-if="property.proposedView && property.proposedViewType === 10 && property.proposedDesc"
@@ -692,8 +692,8 @@
                           <NuxtImg src="/reviewer.png" class="w-11 h-11" />
                         </div>
                         <div>
-                          <p class="text-sm font-semibold text-black">{{ review.name }}</p>
-                          <p class="text-sm text-gray-300">{{ review.date }}</p>
+                          <div class="text-sm font-semibold text-black">{{ review.name }}</div>
+                          <div class="text-sm text-gray-300">{{ review.date }}</div>
                         </div>
                         <div class="ml-auto flex">
                           <span v-for="star in 5" :key="star" class="text-xl text-[#FFD359]">
@@ -778,7 +778,7 @@
             </div>
             <div class="mt-2">
               <h3 class="text-sm font-normal mb-2 line-clamp-2 dark:text-black">{{ product.productEnglishName
-                }}
+              }}
               </h3>
               <p class="text-sm font-medium text-primary">
                 <span class="text-sm sm:text-base font-medium text-primary">
@@ -858,7 +858,7 @@
     </div>
 
     <UModal v-model="addSuccessOpen"
-      :ui="{ width: 'lg:w-[500px] lg:max-w-[500px] sm:max-w-sm', container: 'items-center' }">
+      :ui="{ width: 'lg:w-[500px] lg:max-w-[500px] sm:max-w-sm', container: 'items-center', background: 'dark:bg-white' }">
       <div class="p-8 pb-6">
         <div class="mb-4 text-gray-400">
           The product has been successfully added to the shopping cart

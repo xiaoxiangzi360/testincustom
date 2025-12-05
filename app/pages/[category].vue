@@ -332,11 +332,13 @@ watch([products, loading, selectedsort, () => selected.value], () => {
           v-show="products.length != 0">
           <div class="flex flex-wrap gap-4">
             <UCheckbox :checked="selected === 'Hot Selling'" @change="handleChange('Hot Selling')" label="Hot Selling"
-              class="text-sm" :ui="{ label: 'font-normal' }" />
+              class="text-sm" :ui="{ label: 'font-normal', background: 'dark:bg-white dark:text-gray-700' }" />
             <UCheckbox :checked="selected === 'New Arrival'" @change="handleChange('New Arrival')" label="New Arrival"
-              class="text-sm font-normal" :ui="{ label: 'font-normal' }" />
+              class="text-sm font-normal"
+              :ui="{ label: 'font-normal', background: 'dark:bg-white dark:text-gray-700' }" />
             <UCheckbox :checked="selected === 'Discount'" @change="handleChange('Discount')" label="Discount"
-              class="text-sm font-normal" :ui="{ label: 'font-normal' }" />
+              class="text-sm font-normal"
+              :ui="{ label: 'font-normal', background: 'dark:bg-white dark:text-gray-700' }" />
           </div>
           <div class="flex items-center gap-2">
             <span class="text-sm dark:text-gray-900">Sort</span>
@@ -433,9 +435,5 @@ watch([products, loading, selectedsort, () => selected.value], () => {
   /* Ensure two lines max */
   -webkit-box-orient: vertical;
   overflow: hidden;
-  height: 2.4rem;
-  /* Adjust this value to fit two lines */
-  line-height: 1.2rem;
-  /* This should match the height of one line */
 }
 </style>

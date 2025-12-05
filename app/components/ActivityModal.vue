@@ -65,9 +65,7 @@
             <!-- SALE background text -->
             <div
                 class="w-[90%] mx-auto relative flex items-center justify-center font-bold text-[#00000010] pointer-events-none">
-                <NuxtImg
-                    :src="isMobile ? 'https://cdn.incustom.com/upload/web/acticitybg2.png' : 'https://cdn.incustom.com/upload/web/acticitybg.png'"
-                    alt="bg" />
+                <NuxtImg src="https://cdn.incustom.com/upload/web/acticitybg2.png" alt="bg" class="w-full" />
                 <div class="absolute inset-0 flex items-center justify-center text-base text-white text-xs md:text-xl">
                     <div>
                         <div>incustom</div>
@@ -261,7 +259,7 @@ const handleBeforeUnload = (event) => {
 }
 
 const checkScreenSize = () => {
-    isMobile.value = window.innerWidth < 1024
+    isMobile.value = window.innerWidth < 769
 }
 
 onMounted(() => {

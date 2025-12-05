@@ -270,9 +270,5 @@ const slugify = (str: string) =>
     /* Ensure two lines max */
     -webkit-box-orient: vertical;
     overflow: hidden;
-    height: 2.4rem;
-    /* Adjust this value to fit two lines */
-    line-height: 1.2rem;
-    /* This should match the height of one line */
 }
 </style>

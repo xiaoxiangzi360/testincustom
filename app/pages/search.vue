@@ -12,8 +12,12 @@
 
                     </div>
                     <div class="relative flex items-center" v-show="products.length != 0">
-                        <span class="mr-4 text-sm">Sort</span>
-                        <USelect size="xs" v-model="selectedsort" :options="sortarray" />
+                        <span class="mr-4 text-sm dark:text-gray-700">Sort</span>
+                        <USelect size="xs" v-model="selectedsort" :options="sortarray" :ui="{
+                            color: {
+                                white: { outline: 'dark:bg-white dark:text-gray-700' }
+                            }
+                        }" />
                     </div>
                 </div>
 

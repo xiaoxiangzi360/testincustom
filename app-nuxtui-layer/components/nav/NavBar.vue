@@ -284,7 +284,7 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
         </div>
         <button class="w-full py-3 rounded-full border border-primary text-primary font-medium bg-white"
           @click="goAuthPage('/register')">
-          Sign Up for Personal
+          Sign Up
         </button>
         <!-- <button class="w-full py-3 rounded-full border border-primary text-primary font-medium bg-white"
           @click="goAuthPage('/registerbusiness')">
