@@ -1,7 +1,13 @@
 <template>
     <div class="min-h-screen bg-white">
         <div class="max-w-7xl mx-auto p-3 md:py-4 lg:py-8">
-            <div class="mb-3 md:mb-4 lg:mb-6 font-medium dark:text-black text-base">Shopping Cart</div>
+            <UBreadcrumb divider=">" :links="breadcrumbLinks"
+                class="mb-3 text-blackcolor custom-breadcrumb text-lg sm:text-2xl" :ui="{
+                    base: 'hover:underline font-normal',
+                    li: 'text-sm sm:text-sm font-normal text-gray-400',
+                    active: 'text-customblack dark:text-primary-400 no-underline hover:no-underline',
+                    divider: { base: 'px-2 text-text-gray-400 no-underline' }
+                }" />
             <div class="rounded-lg shadow-sm">
                 <div class="flex flex-col md:gap-4 lg:gap-8 lg:flex-row items-stretch">
                     <!-- Cart Items -->
@@ -32,62 +38,73 @@
                                     <td colspan="6" class="md:hidden p-4">
                                         <div class="bg-white rounded-lg flex flex-col gap-4">
                                             <div class="flex items-center gap-4">
-                                                <input type="checkbox" v-model="item.selected" @change="updateSelection"
-                                                    class="rounded w-4 h-4" />
-                                                <div class="w-16 h-16 overflow-hidden rounded-lg">
-                                                    <img :src="item.productImage || item.product?.mainPic.url"
-                                                        @click="checkdetai(item.product?.id, item.productSku, item.productName)"
-                                                        alt="Product image"
-                                                        class="w-16 h-16 object-cover cursor-pointer" />
+                                                <!-- Checkbox：居中对齐，并限制宽度 -->
+                                                <div class="flex items-center justify-center">
+                                                    <input type="checkbox" v-model="item.selected"
+                                                        @change="updateSelection" class="rounded w-5 h-5" />
                                                 </div>
-                                                <div class="flex-1">
-                                                    <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
-                                                        :title="item.productName"
-                                                        :overlayStyle="{ maxWidth: '250px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
-                                                        <div class="text-sm font-medium text-black truncate-1-lines">
-                                                            {{ item.productName }}
-                                                        </div>
-                                                    </Tooltip>
-                                                    <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
-                                                        :title="item.skuData?.propList ? getSpecAttrFromPropList(item.skuData.propList) : ''"
-                                                        :overlayStyle="{ maxWidth: '250px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
-                                                        <div class="text-xs text-[#8E8E8E] truncate-1-lines mt-1">
-                                                            {{ item.skuData?.propList ?
-                                                                getSpecAttrFromPropList(item.skuData.propList) : '' }}
-                                                        </div>
-                                                    </Tooltip>
+
+                                                <!-- 图片和规格部分：顶部对齐 -->
+                                                <div class="flex-1 flex items-start gap-4">
+                                                    <div class="w-16 h-16 overflow-hidden rounded-lg">
+                                                        <img :src="item.productImage || item.product?.mainPic.url"
+                                                            @click="checkdetai(item.product?.id, item.productSku, item.productName)"
+                                                            alt="Product image"
+                                                            class="w-16 h-16 object-cover cursor-pointer" />
+                                                    </div>
+
+                                                    <div class="flex-1">
+                                                        <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
+                                                            :title="item.productName"
+                                                            :overlayStyle="{ maxWidth: '250px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
+                                                            <div @click="checkdetai(item.product?.id, item.productSku, item.productName)"
+                                                                class="text-sm text-black hover:underline cursor-pointer title">
+                                                                {{ item.productName }}
+                                                            </div>
+                                                        </Tooltip>
+                                                        <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
+                                                            :title="getSpecArray(item.skuData?.propList).map(s => s.label + ' ' + s.value).join('\n')"
+                                                            :overlayStyle="{ maxWidth: '250px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
+                                                            <div class="text-xs text-[#767676] mt-1 leading-4">
+                                                                <div v-for="(spec, i) in getSpecArray(item.skuData?.propList)"
+                                                                    :key="i" class="whitespace-normal">
+                                                                    <span class="text-customblack">{{ spec.label
+                                                                    }}</span>
+                                                                    <span class="text-gray-400 ml-1">{{ spec.value
+                                                                    }}</span>
+                                                                </div>
+                                                            </div>
+                                                        </Tooltip>
+                                                    </div>
                                                 </div>
                                             </div>
 
+                                            <!-- 价格、数量、删除部分：顶部对齐 -->
                                             <div class="flex justify-between items-center">
                                                 <div>
                                                     <div class="text-sm text-gray-900">
                                                         Price: ${{ item.productPrice.toFixed(2) }}
                                                     </div>
                                                     <div class="text-sm text-gray-900 mt-1">
-                                                        Subtotal:
-                                                        ${{ (item.productPrice *
+                                                        Subtotal: ${{ (item.productPrice *
                                                             item.productQuantity).toFixed(2) }}
                                                     </div>
                                                 </div>
 
+                                                <!-- 数量控制和删除按钮 -->
                                                 <div class="flex items-center gap-2">
                                                     <div
                                                         class="flex items-center border rounded-md w-24 justify-between px-2 h-7">
                                                         <button @click="decreaseproductQuantity(index)"
                                                             class="text-gray-500 hover:text-black disabled:text-gray-300 text-base"
-                                                            :disabled="item.productQuantity <= min">
-                                                            -
-                                                        </button>
+                                                            :disabled="item.productQuantity <= min">-</button>
                                                         <input v-model.number="item.productQuantity"
                                                             @blur="validate(index)"
-                                                            class="w-12  h-7 text-center outline-none border-b border-t border-l-0 border-r-0 border-gray-300 focus:ring-0 text-xs"
+                                                            class="w-12 h-7 text-center outline-none border-b border-t border-l-0 border-r-0 border-gray-300 focus:ring-0 text-xs"
                                                             :min="min" :max="max" />
                                                         <button @click="increaseproductQuantity(index)"
                                                             class="text-gray-500 hover:text-black disabled:text-gray-300 text-base"
-                                                            :disabled="item.productQuantity >= max">
-                                                            +
-                                                        </button>
+                                                            :disabled="item.productQuantity >= max">+</button>
                                                     </div>
                                                     <img @click="deleteItem(item)" src="/del.png"
                                                         class="w-5 cursor-pointer" />
@@ -96,6 +113,7 @@
                                         </div>
                                     </td>
 
+
                                     <!-- Desktop View -->
                                     <td class="py-4 p-6 w-8 bg-blue hidden md:table-cell">
                                         <input type="checkbox" v-model="item.selected" @change="updateSelection"
@@ -103,7 +121,7 @@
                                     </td>
 
                                     <td class="py-4 w-80 hidden md:table-cell">
-                                        <div class="flex lg:items-center gap-4">
+                                        <div class="flex items-center lg:items-start gap-4">
                                             <div class="w-20 h-20 lg:w-24 lg:h-24 overflow-hidden">
                                                 <img :src="item.productImage || item.product?.mainPic.url"
                                                     @click="checkdetai(item.product?.id, item.productSku, item.productName)"
@@ -114,16 +132,22 @@
                                                 <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
                                                     :title="item.productName"
                                                     :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
-                                                    <div
-                                                        class="text-sm lg:text-lg font-medium text-blackcolor truncate-1-lines max-w-52">
+                                                    <div @click="checkdetai(item.product?.id, item.productSku, item.productName)"
+                                                        class="text-sm lg:text-sm text-blackcolor hover:underline cursor-pointer title max-w-52">
                                                         {{ item.productName }}
                                                     </div>
                                                 </Tooltip>
-                                                <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
-                                                    :title="getSpecAttrFromPropList(item.skuData?.propList)"
+                                                <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" :title="getSpecArray(item.skuData?.propList)
+                                                    .map(s => s.label + ' ' + s.value)
+                                                    .join('\n')"
                                                     :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
-                                                    <div class="text-sm text-[#8E8E8E] truncate-1-lines max-w-52 mt-1">
-                                                        {{ getSpecAttrFromPropList(item.skuData?.propList) }}
+                                                    <div class="text-xs text-[#767676] max-w-52 mt-1 leading-5">
+                                                        <div v-for="(spec, i) in getSpecArray(item.skuData?.propList)"
+                                                            :key="i" class="whitespace-normal">
+                                                            <span class="text-customblack">{{ spec.label }}</span>
+                                                            <span class="text-gray-400 ml-1">{{ spec.value
+                                                            }}</span>
+                                                        </div>
                                                     </div>
                                                 </Tooltip>
                                             </div>
@@ -205,7 +229,7 @@
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <div class="font-medium text-base">
+                                                    <div class="text-base">
                                                         {{ item.product ? item.product.productEnglishName ||
                                                             item.product.productName :
                                                             '' }}
@@ -230,7 +254,7 @@
                                                 </div>
                                             </div>
                                             <div>
-                                                <div class="font-medium text-lg">
+                                                <div class="text-base">
                                                     {{ item.product ? item.product.productEnglishName ||
                                                         item.product.productName : '' }}
                                                 </div>
@@ -314,7 +338,10 @@ import { useCartStore } from '@/stores/cart'
 
 const router = useRouter()
 const cart = useCartStore() // ✅ 只通过 Pinia 操作删除
-
+const breadcrumbLinks = [
+    { label: 'Home', to: '/', title: 'Home' },
+    { label: 'Shopping Cart', title: 'Shopping Cart' },
+]
 const activeTab = ref<'cart' | 'expired'>('cart')
 const min = 1
 const max = 999
@@ -347,6 +374,32 @@ const getSpecAttrFromPropList = (propList: any[]) => {
 
     return specParts.join(' | ')
 }
+const getSpecArray = (propList: any[]) => {
+    if (!propList || !Array.isArray(propList)) return []
+
+    const result: any[] = []
+
+    propList.forEach(prop => {
+        if (prop.inputList?.length > 0) {
+            // ⚠️ 一个 prop 可能包含多个 input，拆成多行
+            prop.inputList.forEach((input: any) => {
+                result.push({
+                    label: `${input.inputName}:`,
+                    value: input.inputValue
+                })
+            })
+        } else {
+            // 普通属性
+            result.push({
+                label: `${prop.propEnName}:`,
+                value: prop.propValueEnName
+            })
+        }
+    })
+
+    return result
+}
+
 
 const validate = (index: number) => {
     if (cart.itemList[index].productQuantity < min) cart.itemList[index].productQuantity = min
@@ -472,6 +525,14 @@ onUnmounted(() => {
 
 
 <style scoped>
+.title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    /* Ensure two lines max */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
