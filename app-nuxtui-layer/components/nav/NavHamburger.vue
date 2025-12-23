@@ -2,7 +2,9 @@
 const { isMobileMenuOpen, openMobileMenu } = useMobileMenu()
 </script>
 <template>
-  <BaseIcon class="w-7 h-7" width="28" height="28" :name="isMobileMenuOpen ? 'i-material-symbols-close' : 'i-material-symbols-menu'
-    " @click="openMobileMenu" />
+  <NuxtImg src="cell.png" 
+    @click="openMobileMenu" :style="{ width: '24px', height: '24px' }" />
+  <!-- <UIcon :name="isMobileMenuOpen ? 'i-material-symbols-close' : 'i-material-symbols-menu'
+    " @click="openMobileMenu" :style="{ width: '24px', height: '24px' }" /> -->
 </template>
 <style scoped></style>

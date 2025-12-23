@@ -1,6 +1,6 @@
 <template>
     <UModal :model-value="props.isshow" @update:model-value="(v) => { if (!v) emit('close') }" :prevent-close="false"
-        :ui="{ rounded: 'rounded', container: 'items-center' }">
+        :ui="{ rounded: 'rounded', container: 'items-center',wrapper:'z-[1000]' }">
         <div class="p-4 rounded">
             <div class="text-lg font-medium pb-4">{{ form.id ? 'Edit' : 'Add' }} Address</div>
 

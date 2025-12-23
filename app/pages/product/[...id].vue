@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white w-full pt-3 md:pt-[32px]">
+  <div class="bg-white w-full pt-4 font-hind">
     <!-- Loading 遮罩 -->
     <div v-if="isLoading" class="fixed inset-0 bg-white bg-opacity-80 z-50 flex items-center justify-center">
       <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary"></div>
@@ -64,27 +64,28 @@
 
     <!-- 原有内容，只有在非loading状态下显示 -->
     <div v-else class="max-row">
-      <UBreadcrumb divider=">" :links="breadcrumbLinks"
-        class="mb-3 md:mb-[30px] text-blackcolor custom-breadcrumb text-2xl" :ui="{
-          base: 'hover:underline font-normal',
-          li: 'text-sm font-normal text-gray-400',
-          active: 'text-customblack dark:text-primary-400 no-underline hover:no-underline font-normal',
-          divider: { base: 'px-2 text-gray-400 no-underline' }
-        }" />
+      <UBreadcrumb divider=">" :links="breadcrumbLinks" class="custom-breadcrumb text-2xl" :ui="{
+        base: 'hover:underline font-normal',
+        ol: 'mb-4',
+        li: 'text-sm font-normal text-customblack',
+        active: 'text-gray-300 dark:text-primary-300 no-underline hover:no-underline font-normal',
+        divider: { base: 'px-2 text-gray-400 no-underline' }
+      }" />
 
       <!-- 产品详情部分 -->
       <div class="text-gray-800" ref="detailSectionRef">
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-8">
+        <div class="flex flex-row max-md:flex-col gap-6 max-md:gap-4 border-b border-b-[#D1D1D1] pb-4">
 
           <!-- Left section with image thumbnails (已改：主图手势滑动 + 缩略图联动) -->
-          <div class="md:col-span-5">
+          <div class="w-[43%] max-md:w-full max-md:pb-2 max-md:border-b max-md:border-b-[#D1D1D1]">
             <div class="sticky top-[100px] z-[49]">
               <ClientOnly>
                 <!-- 主图 Swiper（支持视频自动播放） -->
                 <div class="relative"
                   v-if="currentSkuImage || (productinfo.photoList && productinfo.photoList.length > 0)">
                   <Swiper :modules="[Navigation, Controller]" ref="swiperRefMain" :space-between="10"
-                    :slides-per-view="1" class="w-full aspect-square overflow-hidden mb-4 relative rounded shadow-lg"
+                    :slides-per-view="1"
+                    class="w-full aspect-square overflow-hidden mb-4 relative rounded-[6px] shadow-lg"
                     :navigation="{ nextEl: '.main-button-next', prevEl: '.main-button-prev' }" @swiper="onMainSwiper"
                     @slideChange="onMainSlideChange">
 
@@ -130,18 +131,23 @@
 
 
                     <!-- 主图左右按钮 -->
-                    <div class="main-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
-                      :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }">
+                    <div class="main-button-prev absolute left-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer
+                   transition-all duration-300 ease-in-out"
+                      :class="{ 'opacity-30 pointer-events-none': isSwiperAtStart }"
+                      :style="{ opacity: showZoomBox || mouseBtnIn ? (isSwiperAtStart ? '0.3' : '0.6') : '0' }"
+                      @mouseleave="onBtnMouseLeave" @mouseenter="onBtnMouseEnter">
                       <div
                         class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
                         <BaseIcon name="i-raphael:arrowleft2" class="text-primary w-6 h-6" />
-
                       </div>
                     </div>
-                    <div class="main-button-next absolute right-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer"
-                      :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }">
-                      <div
-                        class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
+                    <div
+                      class="main-button-next absolute right-[5px] top-1/2 -translate-y-1/2 z-10 cursor-pointer transition-all duration-300 ease-in-out"
+                      :class="{ 'opacity-30 pointer-events-none': isSwiperAtEnd }"
+                      :style="{ opacity: showZoomBox || mouseBtnIn ? '0.6' : '0' }" @mouseleave="onBtnMouseLeave"
+                      @mouseenter="onBtnMouseEnter">
+                      <div class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary
+                        ">
                         <BaseIcon name="i-raphael:arrowright2" class="text-primary w-6 h-6" />
 
 
@@ -171,9 +177,10 @@
 
                   <!-- 产品原始图片缩略图 -->
                   <SwiperSlide v-for="(item, idx) in productinfo.photoList" :key="'thumb-' + (item.url || idx)"
-                    @click="onThumbClick(idx)" :class="{ 'active-thumb': isThumbActive(idx) }">
+                    @click="onThumbClick(idx)"
+                    :class="{ 'border-primary border-[1px]  rounded-[4px]': isThumbActive(idx) }">
                     <div
-                      class="relative w-full aspect-square rounded overflow-hidden cursor-pointer hover:opacity-80 bg-[#F8F8F8]">
+                      class="relative w-full aspect-square  rounded-[4px] p-2  overflow-hidden cursor-pointer hover:opacity-80 bg-[#F8F8F8]">
                       <template v-if="isVideo(item.url)">
                         <video muted loop playsinline :src="item.url" class="w-full h-full object-cover"></video>
                         <div
@@ -185,7 +192,7 @@
                         <NuxtImg width="80" height="80" loading="eager"
                           :src="(item.url || '/images/empty.jpg') + '?x-oss-process=image/auto-orient,1/resize,w_100,limit_0'"
                           :alt="item.altText || productinfo.productEnglishName || 'Product thumbnail'"
-                          class="w-full h-full object-cover" />
+                          class="w-full h-full object-cover  rounded-[4px]" />
                       </template>
                     </div>
                   </SwiperSlide>
@@ -212,60 +219,90 @@
               </ClientOnly>
             </div>
           </div>
-
           <!-- Right section（原样） -->
-          <div class="md:col-span-7">
+          <div class="w-[57%] h-full max-md:w-full">
             <div class="flex items-center justify-between">
-              <h1 class="text-base font-normal md:text-lg lg:text-2xl mb-0 md:line-clamp-3 cursor-default"
+              <h1 class="text-base font-normal max-lg:text-[16px] line-clamp-3 cursor-default"
                 :title="productinfo.productEnglishName">
                 {{ productinfo.productEnglishName }}
               </h1>
             </div>
             <!-- 新增：评分类展示 -->
-            <div v-if="reviews.length > 0" class="flex items-center gap-2 text-sm sm:text-base mb-2 sm:mb-0 mt-4">
-              <div class="flex items-center gap-1">
-                <span v-for="star in 5" :key="star" class="text-[#FFD359]">
-                  <BaseIcon v-if="getStarStatus(star) === 'full'" name="i-mdi:star" class="text-[#FFD359]" />
-                  <BaseIcon v-else-if="getStarStatus(star) === 'half'" name="i-mdi:star-half-full"
-                    class="text-[#FFD359]" />
-                  <BaseIcon v-else name="i-mdi:star-outline" class="text-gray-300" />
+            <div v-show="reviews.length > 0"
+              class="flex items-center gap-2 max-md:text-sm text-[14px] mb-2 max-md:mb-0">
+              <div class="flex items-center gap-1 text-[#FFD359] text-xl">
+                <span v-for="star in 5" :key="star">
+                  <UIcon v-if="getStarStatus(star) === 'full'" name="i-mdi:star" class="text-[#FFD359] block w-[24px] h-[24px]" />
+                  <UIcon v-else-if="getStarStatus(star) === 'half'" name="i-mdi:star-half-full"
+                    class="text-[#FFD359] block w-[24px] h-[24px]" />
+                  <UIcon v-else name="i-mdi:star-outline" class="text-gray-300 block w-[24px] h-[24px]" />
                 </span>
               </div>
-              <span class="text-gray-900 font-semibold">{{ averageRating.toFixed(1) }}</span>
-              <span class="text-primary cursor-pointer underline" @click="scrollToSection('reviews')">
-                {{ totalReviews.toLocaleString() }} reviews
+              <span class="text-primary cursor-pointer  underline" @click="scrollToSection('reviews')">
+                {{ totalReviews.toLocaleString() }} Reviews
               </span>
+              <span class="text-[#0C1013]">{{ averageRating.toFixed(1) }}</span>
             </div>
-            <div
-              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0  pb-4 pt-4 border-b border-b-[#D1D1D1]">
-              <div class="flex items-center gap-3">
-                <div class="text-base sm:text-xl font-medium text-primary">${{ skuprice }}</div>
-                <!-- SKU已确定：显示SKU的originPrice作为划线价 -->
-                <div v-if="currentSku && currentSku.originPrice > currentSku.basePrice"
-                  class="text-sm sm:text-base text-gray-500 line-through">
-                  ${{ currentSku.originPrice.toFixed(2) }}
+            <div class="flex flex-col gap-2 sm:gap-0  py-4 max-md:py-2">
+              <div class="flex items-center gap-3 max-md:flex-col max-md:items-start">
+                <div class="flex items-center gap-3">
+                  <div class="text-base sm:text-xl font-medium ">
+                    <span class="text-[#0C1013] text-[14px] font-normal mr-2">From</span>
+                    <span class="font-medium">${{ skuprice }}</span>
+                  </div>
+                  <!-- SKU已确定：显示SKU的originPrice作为划线价 -->
+                  <div v-if="currentSku && currentSku.originPrice > currentSku.basePrice"
+                    class="text-[16px] sm:text-base text-[rgba(34,34,34,0.5033)] line-through">
+                    ${{ currentSku.originPrice.toFixed(2) }}
+                  </div>
+                  <!-- SKU未确定：显示产品的originPrice作为划线价 -->
+                  <div v-else-if="!currentSku && productinfo.originPrice > productinfo.basePrice"
+                    class="text-[16px] sm:text-base text-[rgba(34,34,34,0.5033)] line-through">
+                    ${{ productinfo.originPrice.toFixed(2) }}
+                  </div>
                 </div>
-                <!-- SKU未确定：显示产品的originPrice作为划线价 -->
-                <div v-else-if="!currentSku && productinfo.originPrice > productinfo.basePrice"
-                  class="text-sm sm:text-base text-gray-500 line-through">
-                  ${{ productinfo.originPrice.toFixed(2) }}
+                <div class="text-[14px] text-[#00B2E3] flex items-start" v-show="false">
+                  <span>Get up to 15% off, Made the Coupon:</span>
+                  <span class='underline mx-1'>Order15</span>
+                  <UIcon name="i-ant-design:copy-outlined" style="color: rgba(34,34,34,0.5033);"
+                    class="w-4 h-4 inline-block" />
+                </div>
+              </div>
+            </div>
+            <!-- Section 服务类 -->
+            <div
+              class="flex items-center gap-2 text-[#0C1013] text-[18px] max-md:text-[16px] font-normal max-md:flex-col max-md:items-start">
+              <div v-for="(item, index) in serviceList" class="" :key="index">
+                <div class="flex items-center gap-2">
+                  <NuxtImg :src="item.img" class="w-5 h-5" />
+                  <span>{{ item.text }}</span>
                 </div>
               </div>
             </div>
 
             <!-- Section 1: THE TYPE（原样） -->
-            <div v-if="productinfo.normalPropertyList">
-              <div class="border-b border-b-[#D1D1D1] py-4" :data-prop-block="index"
-                v-for="(property, index) in productinfo.normalPropertyList" :key="index">
-                <div class="flex justify-between items-center cursor-pointer" @click="changeshow(index)">
-                  <h2 class="font-normal text-base flex items-center mb-0">
+            <div v-if="productinfo.normalPropertyList" class="mt-2">
+              <div class="py-2" :data-prop-block="index" v-for="(property, index) in productinfo.normalPropertyList"
+                :key="index">
+                <div class="flex justify-between items-center cursor-pointer">
+                  <h2 class="font-normal text-[14px] flex items-center mb-0">
                     <UBadge size="lg" :color="isUndefinedOrEmptyObject(property.selectedproperty) ? 'white' : 'black'"
-                      variant="solid" class="mr-3 w-[24px] h-[24px] flex items-center justify-center"
+                      variant="solid"
+                      class="mr-3 w-[24px] h-[24px] flex items-center justify-center text-[16px] font-none"
                       :ui="{ color: { black: { solid: 'dark:bg-gray-900 dark:text-white' } }, size: { lg: 'text-base' } }">
                       {{ index +
                         1 }}</UBadge>
-                    <span class="truncate-1-lines font-medium text-sm md:text-base">{{ property.propertyNameShop
+                    <span class="line-clamp-[1] font-[600]">{{ property.propertyNameShop.toUpperCase()
                     }}</span>
+
+                    <span class="mr-2 line-clamp-[1] text-sm text-[#5A5B5B]" v-if="property.selectedproperty">
+                      <span v-show="property.isneedinput && Number(property.chooseindex) >= 2">
+                        <span class="mx-1" v-show="getFormattedInputDisplay(property)"> -</span>
+                        {{ getFormattedInputDisplay(property) }}</span>
+                      <span v-show="!(property.isneedinput && Number(property.chooseindex) >= 2)">
+                        <span class="mx-1" v-show="property.selectedproperty.detailName"> - </span>
+                        {{ property.selectedproperty.detailName }}</span>
+                    </span>
                     <!-- Proposed tip: Tooltip type (proposedViewType=10) -->
                     <Tooltip color="#000" :overlayInnerStyle="{ color: '#fff' }" placement="top"
                       v-if="property.proposedView && property.proposedViewType === 10 && property.proposedDesc"
@@ -281,21 +318,17 @@
                     </button>
 
                   </h2>
-                  <div class="flex items-center">
-                    <span class="mr-4 truncate-1-lines text-sm text-[#5A5B5B]" v-if="property.selectedproperty">
-                      {{ property.isneedinput && Number(property.chooseindex) >= 2 ? getFormattedInputDisplay(property)
-                        :
-                        property.selectedproperty.detailName }}
-                    </span>
+                  <!-- <div class="flex items-center">
                     <BaseIcon :name="property.showType ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
                       class="w-5 h-5 text-gray-500 font-medium transition-all duration-300" />
-                  </div>
+                  </div> -->
+
                 </div>
 
                 <!-- Measurement tip (specialRestrictionList: type=20,use=true) -->
-                <div v-if="hasMeasurementTool(property)" class="mt-2 text-xs sm:text-sm text-gray-700 leading-6">
+                <div v-if="hasMeasurementTool(property)" class="mt-1 text-xs sm:text-sm text-gray-700 leading-6">
                   <div class="flex items-start gap-2">
-                    <div>
+                    <div class="text-[#5A5B5B]">
                       The factory only accepts the dimensions of the sail, if you provide the distance between the
                       fixing points.
                       <button class="ml-1 text-primary underline font-medium"
@@ -307,8 +340,8 @@
                 </div>
 
                 <div :class="[
-                  'transition-all duration-300 ease-in-out grid gap-1 grid-container',
-                  property.showType ? 'max-h-[500px] mt-4 overflow-y-auto ' : 'overflow-hidden max-h-0',
+                  'transition-all duration-300 ease-in-out flex flex-wrap gap-2 relative z-[5]',
+                  property.showType ? 'max-h-[500px] mt-2 overflow-y-auto ' : 'overflow-hidden max-h-0',
                   !property.isneedinput && property.productPropertyDetailType != 'text' && property.detailList.every(item => item.imageLink) ? 'grid-cols-8 md:grid-cols-10 lg:grid-cols-12' : ''
                 ]">
                   <div
@@ -320,7 +353,7 @@
                     ]">
                     <Tooltip :title="type.detailName" placement="bottom">
                       <div :class="[
-                        'w-full aspect-square overflow-hidden relative',
+                        'overflow-hidden relative p-1 w-[80px] h-[80px] max-md:w-[60px] max-md:h-[60px]',
                         (!type.disabled ? 'hover:border hover:border-primary cursor-pointer' : 'opacity-60 cursor-not-allowed'),
                         property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId
                           ? 'rounded border border-primary'
@@ -346,19 +379,19 @@
                     v-if="!property.isneedinput && (property.productPropertyDetailType == 'text' || !property.detailList.every(item => item.imageLink))">
                     <div v-for="(type, propertyindex) in property.detailList" :key="type.propertyDetailId"
                       @click="!type.disabled && selectproperty(index, type)" :class="[
-                        'p-2 px-0 mr-4 rounded-xl flex flex-col items-center transition-all max-w-[33.3333%] min-w-[16.6%]',
+                        'pb-2 mr-3 rounded-[4px] flex flex-col items-center transition-all text-[#858789]',
                         type.disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer',
                         propertyindex === 0 ? 'ml-0' : ''  // Add ml-0 to the first element
                       ]">
                       <!-- 文本类型 -->
                       <div :class="[
-                        'p-2 w-full text-sm relative border border-customblack w-full rounded-md',
-                        !type.disabled ? 'hover:border hover:border-primary hover:text-primary' : '',
+                        'p-3 py-2 w-full text-sm relative border border-[#d9d9d9] rounded-md text-black',
+                        !type.disabled ? 'hover:border hover:border-primary hover:text-primary' : 'text-[#858789]',
                         property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId
                           ? 'text-primary bg-primary-50 border border-primary w-full'
                           : ''
                       ]">
-                        <div class="truncate-1-lines text-center">{{ type.detailName }}</div>
+                        <div class="line-clamp-[1] text-center">{{ type.detailName }}</div>
                         <div
                           v-if="property.selectedproperty && type.propertyDetailId === property.selectedproperty.propertyDetailId"
                           class="absolute bottom-0 right-0 w-5 h-5 text-white">
@@ -376,7 +409,7 @@
                   <div class="flex flex-col md:flex-row md:items-start gap-6 relative w-full"
                     v-if="property.isneedinput">
                     <div class="flex-1">
-                      <div class="text-base text-gray-800">
+                      <div class="text-[14px] text-[#0C1013]">
                         <div class="cursor-pointer block" :class="{ 'mt-3': needindex > 0 }"
                           v-for="(needinput, needindex) in property.needinputlist">
                           <div v-show="!needinput.disabled">
@@ -402,13 +435,13 @@
                                     <template v-if="getInputConfig(needinput, pindex).viewType === 10">
                                       <!-- 输入框 -->
                                       <div>
-                                        <div class="text-sm  text-gray-800">{{ getInputConfig(needinput,
+                                        <div class="text-sm text-[#0C1013] mb-1">{{ getInputConfig(needinput,
                                           pindex).inputName
                                           || inputitem }} (<span v-if="getInputConfig(needinput, pindex).unit"> {{
                                             getInputConfig(needinput,
                                               pindex).unit
                                           }}</span>)</div>
-                                        <InputNumber v-model:value="needinput.inputvalue[pindex]"
+                                        <InputNumber type="number" v-model:value="needinput.inputvalue[pindex]"
                                           @blur="changeinputvalue(property, needindex + 2, index)"
                                           class="custom-input rounded text-sm w-[250px] focus:outline-none focus:ring-0"
                                           :min="getInputConfig(needinput, pindex).min"
@@ -420,7 +453,7 @@
                                     <template v-else-if="getInputConfig(needinput, pindex).viewType === 50">
                                       <!-- 下拉选择框 -->
                                       <div>
-                                        <div class="text-sm  text-gray-800">{{ getInputConfig(needinput,
+                                        <div class="text-sm text-[#0C1013] mb-1">{{ getInputConfig(needinput,
                                           pindex).inputName
                                           || inputitem }} (<span v-if="getInputConfig(needinput, pindex).unit"> {{
                                             getInputConfig(needinput,
@@ -520,52 +553,66 @@
 
             <!-- 数量/价格/按钮（原样） -->
             <div>
-              <div class="w-full mx-auto bg-white rounded-md">
-                <div class="flex flex-row sm:items-center justify-between gap-4 mt-3">
-                  <span class="text-sm sm:text-lg font-medium">Quantity</span>
+              <div class="w-full mx-auto bg-white rounded-md text-[#0C1013]">
+                <div class="flex flex-row sm:items-center gap-4 mt-3">
+                  <span class="text-sm font-normal">QUANTITY：</span>
                   <div class="flex items-center rounded px-2">
                     <div class="flex items-center rounded">
-                      <button
-                        class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center rounded-tl-[6px] rounded-bl-[6px]"
+                      <div
+                        class="text-gray-500 px-2 hover:opacity-80 cursor-pointer bg-[#F8F8F8] border-[#F8F8F8] h-[26px] flex items-center justify-center rounded-tl-[6px] rounded-bl-[6px]"
                         @click="decrement">
-                        <BaseIcon name="i-heroicons-minus-20-solid" />
-                      </button>
+                        <UIcon name="i-heroicons-minus-20-solid" />
+                      </div>
 
                       <input @input="onQuantityInput" v-model="quantity"
                         class="focus:outline-none focus:ring-0 focus:border-transparent w-12 h-[26px] text-center outline-none border-0 py-1 bg-[#F8F8F8] mx-0.5" />
-                      <button
-                        class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center rounded-tr-[6px] rounded-br-[6px]"
+                      <div
+                        class="text-gray-500 border-[#F8F8F8] px-2 hover:opacity-80 cursor-pointer bg-[#F8F8F8] h-[26px] flex items-center justify-center rounded-tr-[6px] rounded-br-[6px]"
                         @click="increment">
                         <BaseIcon name="i-heroicons-plus-20-solid" />
-                      </button>
+                      </div>
                     </div>
-                    <span class="ml-2 text-sm sm:text-lg">Panels</span>
+                    <!-- <span class="ml-2 text-lg">Panels</span> -->
                   </div>
                 </div>
 
-                <div class="flex flex-row sm:items-center justify-between gap-4 mt-4">
-                  <span class="text-sm sm:text-lg font-medium">Total price</span>
+                <div class="flex flex-row items-center gap-4 mt-4">
+                  <span class="text-sm">TOTAL PRICE：</span>
                   <div class="flex items-center flex-wrap gap-2">
-                    <span class="text-sm sm:text-lg font-bold text-primary">${{ totalPrice.toFixed(2) }}</span>
+                    <span class="text-2xl font-medium">${{ totalPrice.toFixed(2) }}</span>
                   </div>
                 </div>
-                <div class="flex flex-col sm:flex-row gap-4 mt-4">
+                <div class="flex flex-row gap-4 mt-4 max-xl:pr-4">
                   <!-- Add to Cart -->
-                  <UButton class="w-full sm:flex-1 flex items-center justify-center rounded-md 
-           border border-[#00B4F0] text-[#00B4F0] bg-white 
-           hover:bg-[#00B4F0] hover:text-white transition-colors disabled:bg-primary-100 disabled:text-primary"
-                    :loading="cartloding" @click="addtocart" color="primary" variant="solid" size="xl">
+                  <UButton class="max-xl:flex-1 flex items-center justify-center rounded-md w-[280px] 
+           bg-[#00B4F0] text-white hover:bg-[#0099D6] transition-colors" :loading="cartloding" @click="addtocart"
+                    color="primary" variant="solid" size="xl" icon="i-garden:shopping-cart-stroke-16">
                     Add to Cart
                   </UButton>
 
                   <!-- Order Now -->
-                  <UButton class="w-full sm:flex-1 flex items-center justify-center rounded-md 
-           bg-[#00B4F0] text-white hover:bg-[#0099D6] transition-colors" :loading="orderloding" @click="createorder"
-                    color="primary" variant="solid" size="xl">
+                  <UButton class="max-xl:flex-1  flex items-center justify-center rounded-md  w-[280px]
+           border border-[#00B4F0] text-[#00B4F0] bg-white 
+           hover:bg-[#00B4F0] hover:text-white transition-colors disabled:bg-primary-100 disabled:text-primary"
+                    :loading="orderloding" @click="createorder" color="primary" variant="solid" size="xl">
                     Order Now
                   </UButton>
                 </div>
-
+                <div class='text-center max-md:hidden'>
+                  <div class="py-4 text-lg text-[#0C1013] font-normal">Checkout securely with</div>
+                  <div class="flex items-center justify-center">
+                    <div class="w-[76px] h-[45px] flex items-center justify-center  " v-for="(item, index) in payList"
+                      :key="index">
+                      <NuxtImg :src="item" class="w-full h-full object-contain" />
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-center mt-4">
+                    <div class="w-[110px] h-[56px] flex items-center justify-center "
+                      v-for="(item, index) in ['/product/pay8.webp', '/product/pay9.webp']" :key="index">
+                      <NuxtImg :src="item" class="w-full h-full object-contain" />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -573,7 +620,8 @@
       </div>
       <!-- ✅ Tabs（滚动到自身位置才固定） -->
       <!-- ✅ 使用 Splide 取代 flex 滚动 -->
-      <div ref="tabsContainer" class="bg-white z-40 transition-all duration-300 ease-in-out mt-4"
+      <!-- <div ref="tabsContainer"
+        class="z-40 transition-all duration-300 ease-in-out mt-4 w-[73%] mx-auto max-md:w-full"
         :class="{ 'backdrop-blur-sm sticky top-[80px] lg:top-[100px]': isSticky }">
 
         <ClientOnly>
@@ -593,17 +641,29 @@
 
 
         </ClientOnly>
+      </div> -->
+      <div ref="tabsContainer"
+        class="z-40 bg-[white] cursor-pointer text-sm flex pt-3 px-4 text-d3black overflow-x-auto scrollbar-hide"
+        :class="{ 'sticky max-lg:top-[80px] top-[100px] ': isSticky }">
+        <div v-for="(tab, i) in tabs" :key="tab.key" class="">
+          <div class="cursor-pointer max-md:text-sm text-base py-3 px-4 text-d3black whitespace-nowrap" :class="{
+            'border-b-[3px] border-primary text-primary':
+              activeSection === tab.key,
+            'text-gray-500 hover:text-primary hover:font-semibold': activeSection !== tab.key
+          }" @click="scrollToSection(tab.key)">
+            {{ tab.label }}
+          </div>
+        </div>
       </div>
 
 
 
       <!-- ✅ 实际内容段落（统一排序渲染） -->
       <ClientOnly>
-        <div class="bg-[#F8F8F8]" v-if="sections && sections.length">
+        <div class="bg-[#F8F8F8] w-[73%] mx-auto max-md:w-full" v-if="sections && sections.length">
           <div class="mx-auto mt-4 bg-white pt-6">
 
-            <section v-for="item in sections" :key="item.key" :id="'section-' + item.key"
-              class="border-b border-gray-100 mb-4">
+            <section v-for="item in sections" :key="item.key" :id="'section-' + item.key" class="pt-4 pb-4 mb-4">
               <!-- <h2 class="text-lg font-semibold mb-6">{{ item.label }}</h2> -->
 
               <!-- FAQ -->
@@ -646,22 +706,23 @@
                   <aside class="w-full lg:w-[320px] xl:w-[360px] shrink-0">
                     <div class="bg-white rounded-lg">
                       <!-- 顶部标题与副标题（严格按图） -->
-                      <div class="mb-[10px] text-black font-bold text-lg ">
-                        <div class="mb-4">Reviews</div>
-                        <div>Customer reviews</div>
+                      <div class=" text-black font-bold text-lg ">
+                        <div class="mb-2">Reviews</div>
+                        <div class="font-normal mb-2">Customer reviews</div>
                       </div>
 
                       <!-- 星星 + 平均分 + 分隔符 + Ratings（严格按文案） -->
                       <div class="flex items-center gap-3 mb-4">
-                        <div class="flex items-center gap-1 text-[#FFD359] text-xl">
+                        <div class="flex items-center gap-1 text-[#FFD359] text-xl mr-4">
                           <span v-for="star in 5" :key="star">
-                            <BaseIcon v-if="getStarStatus(star) === 'full'" name="i-mdi:star" class="text-[#FFD359]" />
-                            <BaseIcon v-else-if="getStarStatus(star) === 'half'" name="i-mdi:star-half-full"
-                              class="text-[#FFD359]" />
-                            <BaseIcon v-else name="i-mdi:star-outline" class="text-gray-300" />
+                            <UIcon v-if="getStarStatus(star) === 'full'" name="i-mdi:star"
+                              class="text-[#FFD359] w-[24px] h-[24px] block" />
+                            <UIcon v-else-if="getStarStatus(star) === 'half'" name="i-mdi:star-half-full"
+                              class="text-[#FFD359] w-[24px] h-[24px] block" />
+                            <UIcon v-else name="i-mdi:star-outline" class="text-gray-300 w-[24px] h-[24px]" />
                           </span>
                         </div>
-                        <span class="text-black text-primary">{{ averageRating.toFixed(1) }}</span>
+                        <span class="text-primary">{{ averageRating.toFixed(1) }}</span>
                         <span class="h-4 w-px bg-primary inline-block text-primary"></span>
                         <button type="button" class="text-primary">
                           {{ totalReviews.toLocaleString() }} Ratings
@@ -670,13 +731,13 @@
 
                       <!-- 星级分布条 -->
                       <div class="space-y-3">
-                        <div v-for="stars in 5" :key="stars" class="flex items-center gap-3">
-                          <span class="w-12 text-xs text-gray-700">{{ 6 - stars }} star</span>
-                          <div class="flex-1 bg-gray-100 h-3 rounded overflow-hidden">
+                        <div v-for="stars in 5" :key="stars" class="flex items-center gap-2">
+                          <span class="w-12 text-sm text-gray-700">{{ 6 - stars }} star</span>
+                          <div class="flex-1 bg-[rgba(0,178,227,0.1)] h-3 rounded overflow-hidden">
                             <div :style="{ width: `${starPercentages[6 - stars]}%` }"
                               class="h-full bg-[#FFD359] transition-all duration-300"></div>
                           </div>
-                          <span class="w-10 text-xs text-right text-gray-700">{{ starPercentages[6 - stars] }}%</span>
+                          <span class="w-10 text-sm text-right text-gray-700">{{ starPercentages[6 - stars] }}%</span>
                         </div>
                       </div>
                     </div>
@@ -688,8 +749,8 @@
 
                     <div v-for="review in reviews" :key="review.date" class="bg-white p-4 border-b border-[#D1D1D1]">
                       <div class="flex items-center">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3">
-                          <NuxtImg src="/reviewer.png" class="w-11 h-11" />
+                        <div class="w-11 h-11 rounded-full flex items-center justify-center mr-3">
+                          <NuxtImg src="/reviewer.png" class="w-full h-full object-cover" />
                         </div>
                         <div>
                           <div class="text-sm font-semibold text-black">{{ review.name }}</div>
@@ -697,8 +758,8 @@
                         </div>
                         <div class="ml-auto flex">
                           <span v-for="star in 5" :key="star" class="text-xl text-[#FFD359]">
-                            <BaseIcon v-if="star <= review.rating" name="i-mdi:star" class="text-[#FFD359]" />
-                            <BaseIcon v-else name="i-mdi:star-outline" class="text-gray-300" />
+                            <UIcon v-if="star <= review.rating" name="i-mdi:star" class="text-[#FFD359] inline-block w-[24px] h-[24px]" />
+                            <UIcon v-else name="i-mdi:star-outline" class="text-gray-300 inline-block w-[24px] h-[24px]" />
                           </span>
                         </div>
                       </div>
@@ -748,9 +809,14 @@
                       </div>
                     </div>
 
-                    <div class="flex justify-between mt-3 md:mt-6 items-center">
-                      <Button :disabled="currentPage === 1" @click="prevPage" class="custom-btn">Previous</Button>
-                      <Button :disabled="currentPage === totalPages" @click="nextPage" class="custom-btn">Next</Button>
+                    <div class="flex justify-end mt-3 md:mt-6" v-show="totalPages > 1">
+                      <UPagination v-model="currentPage" :page-count="pageSize" :total="totalReviews"
+                        :active-button="{ variant: 'outline' }" :ui="{
+                          base: 'ring-[#d9d9d9] dark:ring-[#d9d9d9]',
+                        }" :prev-button="{ icon: 'i-material-symbols:chevron-left' }"
+                        :next-button="{ icon: 'i-material-symbols:chevron-right' }" />
+                      <!-- <Button :disabled="currentPage === 1" @click="prevPage" class="custom-btn">Previous</Button>
+                      <Button :disabled="currentPage === totalPages" @click="nextPage" class="custom-btn">Next</Button> -->
                     </div>
                   </section>
                 </div>
@@ -824,39 +890,57 @@
 
     <!-- Bottom bar（原样） -->
     <!-- 原来的 sticky 改成 fixed + 全宽 + 高 z-index -->
-    <div ref="bottomBarRef" class="fixed bottom-0 left-0 right-0 z-50
-         flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4
-         py-4 px-8 bg-white rounded-none shadow-[0_-4px_16px_rgba(0,0,0,0.08)]
+    <div ref="bottomBarRef" class="fixed md:hidden bottom-0 left-0 right-0 z-50
+         p-4 bg-white rounded-none shadow-[0_-4px_16px_rgba(0,0,0,0.08)]
          transition-all duration-300 ease-in-out" :class="{
           'opacity-100 translate-y-0 pointer-events-auto': isBottomBarVisible,
           'opacity-0 translate-y-8 pointer-events-none': !isBottomBarVisible
         }" v-show="isshow && !isLoading">
-      <div>
-        <h2 class="font-semibold text-base sm:text-lg text-gray-900 line-clamp-3">{{ productinfo.productEnglishName }}
-        </h2>
-        <div class="text-sm text-gray-500">Ordinary type sail / Rectangle</div>
-      </div>
-      <div class="flex flex-wrap items-center gap-3 sm:gap-4">
-        <div class="flex items-center rounded">
-          <button
-            class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center rounded-tl-[6px] rounded-bl-[6px]"
-            @click="decrement">
-            <BaseIcon name="i-heroicons-minus-20-solid" />
-          </button>
+      <div class="flex flex-col gap-3">
+        <div>
 
-          <input @input="onQuantityInput" v-model="quantity"
-            class="focus:outline-none focus:ring-0 focus:border-transparent w-12 h-[26px] text-center outline-none border-0 py-1 bg-[#F8F8F8] mx-0.5" />
-          <button @click="increment"
-            class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center rounded-tr-[6px] rounded-br-[6px]">
-            <BaseIcon name="i-heroicons-plus-20-solid" />
-          </button>
+          <div class="flex items-center rounded">
+            <span class="text-sm text-[#0C1013]">QUANTITY：</span>
+            <button
+              class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center rounded-tl-[6px] rounded-bl-[6px]"
+              @click="decrement">
+              <BaseIcon name="i-heroicons-minus-20-solid" />
+            </button>
+
+            <input @input="onQuantityInput" v-model="quantity"
+              class="focus:outline-none focus:ring-0 focus:border-transparent w-12 h-[26px] text-center outline-none border-0 py-1 bg-[#F8F8F8] mx-0.5" />
+            <button @click="increment"
+              class="text-gray-500 px-2 hover:text-black bg-[#F8F8F8] h-[26px] flex items-center justify-center rounded-tr-[6px] rounded-br-[6px]">
+              <BaseIcon name="i-heroicons-plus-20-solid" />
+            </button>
+          </div>
         </div>
-        <span class="text-sm text-gray-600">Panels</span>
-        <span class="text-base sm:text-lg font-medium text-gray-800">${{ totalPrice.toFixed(2) }}</span>
-        <UButton color="primary" size="md" @click="addtocart" class="rounded-lg">Add to Cart</UButton>
+        <div><span class="text-sm text-[#0C1013]">TOTAL PRICE：</span><span
+            class="text-base max-md:text-[24px] font-medium text-gray-800">${{ totalPrice.toFixed(2) }}</span></div>
+        <div class="flex flex-row gap-4">
+          <UButton class="flex-1 flex items-center justify-center rounded-md max-w-[280px]
+           bg-[#00B4F0] text-white hover:bg-[#0099D6] transition-colors" :loading="cartloding" @click="addtocart"
+            color="primary" variant="solid" size="xl" icon="i-garden:shopping-cart-stroke-16">
+            Add to Cart
+          </UButton>
+
+          <!-- Order Now -->
+          <UButton class="flex-1 flex items-center justify-center rounded-md  max-w-[280px]
+           border border-[#00B4F0] text-[#00B4F0] bg-white 
+           hover:bg-[#00B4F0] hover:text-white transition-colors disabled:bg-primary-100 disabled:text-primary"
+            :loading="orderloding" @click="createorder" color="primary" variant="solid" size="xl">
+            Order Now
+          </UButton>
+        </div>
       </div>
     </div>
 
+    <div src="/product/top.png" alt="top"
+      class="w-11 h-11 bottom-1/2 text-[12px] flex flex-col items-center pt-1 translate-y-[50%] right-[30px] z-10 cursor-pointer shadow-md rounded-full bg-white"
+      :class="{ 'fixed': isSticky, 'hidden': !isSticky }" @click="scrollToTop">
+      <UIcon name="i-material-symbols:fitbit-arrow-upward" style="color: #5A5B5B;" class="w-6 h-6 " />
+      Top
+    </div>
     <UModal v-model="addSuccessOpen"
       :ui="{ width: 'lg:w-[500px] lg:max-w-[500px] sm:max-w-sm', container: 'items-center', background: 'dark:bg-white' }">
       <div class="p-8 pb-6">
@@ -879,7 +963,7 @@
 
     <!-- Proposed Desc Drawer -->
     <ClientOnly>
-      <Drawer v-model:open="drawerVisible" :title="drawerTitle" placement="right" :width="500"
+      <Drawer v-model:open="drawerVisible" :title="drawerTitle" placement="right" :width="drawerWidth"
         @close="closeProposedDrawer">
         <div class="prose max-w-none" v-shadow-html="drawerContent"></div>
       </Drawer>
@@ -887,7 +971,8 @@
 
     <!-- Measurement Tool Drawer -->
     <ClientOnly>
-      <Drawer v-model:open="measureDrawerVisible" title="Shade Sail Size Calculator" placement="right" :width="680">
+      <Drawer v-model:open="measureDrawerVisible" title="Shade Sail Size Calculator" placement="right"
+        :width="drawerWidth">
         <div class="p-5 space-y-5 text-gray-800">
           <!-- Selected summary -->
           <div v-if="measureTargetProp" class="text-sm">
@@ -935,7 +1020,8 @@
           <!-- Step 3 results -->
           <div>
             <div class="font-semibold mb-2">Step3: Check the shade sail sizes we recommend for you</div>
-            <div class="text-sm text-gray-600 mb-3">You can save the shade sail size combination and return to the input
+            <div class="text-sm text-gray-600 mb-3">You can save the shade sail size combination and return to the
+              input
               box
               to enter it with one click.</div>
             <div class="space-y-3 max-w-[520px]">
@@ -955,7 +1041,8 @@
             <ol class="list-decimal ml-4 space-y-1">
               <li>The minimum angle of a triangular shade sail must be greater than 35°.</li>
               <li>A trapezoidal shade sail is a convex quadrilateral.</li>
-              <li>The longest side of a triangular shade sail is 24 feet, and the longest side of a quadrilateral shade
+              <li>The longest side of a triangular shade sail is 24 feet, and the longest side of a quadrilateral
+                shade
                 sail
                 is 25 feet.</li>
             </ol>
@@ -986,7 +1073,7 @@ import { Splide, SplideSlide } from '@splidejs/vue-splide'
 import '@splidejs/vue-splide/css'
 const { addToCartEvent, initiateCheckout } = useFbq({ currency: 'USD' })
 const { viewItem, addToCart: trackAddToCart, beginCheckout } = useTrack()
-const { getProductSpuV2ById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV4, erpTryToCreateSkuV2, propSideLengthTool } = ProductAuth()
+const { checkProductAvailablePurchase, getProductSpuV2ById, randomRecommendationProductByCatalogId, trialPriceCalculationBySpuV4, erpTryToCreateSkuV2, propSideLengthTool } = ProductAuth()
 const { createCart } = cartAuth()
 const { getspuCommentProductRollPage, getgroupComment } = CommentAuth()
 const { getUserInfo } = useAuth()
@@ -1003,7 +1090,6 @@ const goCart = () => {
 }
 const HEADER_HEIGHT = 100
 const TAB_HEIGHT = 40
-
 const tabsContainer = ref(null)
 const isSticky = ref(false)
 const activeSection = ref('')
@@ -1056,9 +1142,33 @@ const isMobile = computed(() => {
   return window.innerWidth < 768 // md断点
 })
 
+// 检测是否为移动端（禁用放大镜功能）
+const isPad = computed(() => {
+  if (!process.client) return false
+  return 768 <= window.innerWidth && window.innerWidth <= 1024 // md断点
+})
+
+const drawerWidth = computed(() => {
+  if (isMobile.value) return '320px'
+  if (isPad.value) return '400px'
+  return '520px'
+})
+
+const serviceList = [
+  { img: '/product/service_1.webp', text: 'Free shipping' },
+  { img: '/product/service_2.webp', text: 'Energy Efficiernt' },
+  { img: '/product/service_3.webp', text: 'Lifetime Warranty' },
+]
+const payList = ['/product/pay1.webp', '/product/pay2.webp', '/product/pay3.webp', '/product/pay4.webp', '/product/pay5.webp', '/product/pay6.webp', '/product/pay7.webp']
 const onMainSwiper = (s) => { swiperMain.value = s }
 const onThumbSwiper = (s) => { swiperThumb.value = s }
 
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
+}
 // 缩略图轮播时同步主图
 const onThumbSlideChange = (swiper) => {
   if (!swiperMain.value || isUpdatingFromMain.value) return
@@ -1110,7 +1220,8 @@ const zoomBoxStyle = ref({});
 const zoomedImage = ref('');
 const zoomedImageStyle = ref({});
 const showZoomBox = ref(false);
-const zoomScale = 2;
+const zoomScale = 3;
+const mouseBtnIn = ref(false);
 
 // 当鼠标进入主图时，显示放大方块（移动端不启用）
 const onMouseEnter = () => {
@@ -1176,6 +1287,16 @@ const onMouseLeave = () => {
   console.log('Mouse leave - hiding zoom box')
   showZoomBox.value = false;
 };
+const onBtnMouseLeave = () => {
+  if (isMobile.value) return
+  mouseBtnIn.value = false;
+};
+
+const onBtnMouseEnter = () => {
+  if (isMobile.value) return
+  mouseBtnIn.value = true;
+};
+
 // 主图切换时更新 index / 按钮状态 / mainImage（供其它逻辑用）
 const onMainSlideChange = () => {
   const s = swiperMain.value
@@ -1269,14 +1390,16 @@ const { data: serverProductData, pending, error } = await useAsyncData('product-
     needPublishSkuData: true
   })
 })
-
+const preview = computed(() => route.query.preview);
+console.log('Fetched product data:', serverProductData.value)
 const showDimensions = ref(true)
 const designimage = ref('')
 const mainImage = ref('')
 const productinfo = ref(serverProductData.value?.result ?? {})
 
 // 检查产品是否有效
-const isProductValid = productinfo.value.id && productinfo.value.productState === 'published'
+const isProductValid = productinfo.value.id
+// && productinfo.value.productState === 'published'
 
 // 服务端：抛出错误
 if (process.server && !isProductValid) {
@@ -2655,6 +2778,10 @@ const resolveSkuForAction = async () => {
 
 
 const addtocart = async () => {
+  if(preview.value == 'true') {
+    message.error('This product is not available for purchase')
+    return
+  }
   try {
     if (!quantity.value || quantity.value <= 0) {
       message.error('Please enter quantity!')
@@ -2664,7 +2791,7 @@ const addtocart = async () => {
       // 展开第一个有错误的属性块 + 平滑滚动过去
       var firstErrIndex = propErrors.value.findIndex(function (e) { return e })
       if (firstErrIndex !== -1) {
-        productinfo.value.normalPropertyList.forEach(function (p, i) { p.showType = i === firstErrIndex })
+        // productinfo.value.normalPropertyList.forEach(function (p, i) { p.showType = i === firstErrIndex })
         nextTick(function () {
           var blocks = document.querySelectorAll('[data-prop-block]')
           var el = blocks && blocks[firstErrIndex]
@@ -2741,6 +2868,10 @@ function isUndefinedOrEmptyObject(val) {
 }
 
 const createorder = async () => {
+  if(preview.value == 'true') {
+    message.error('This product is not available for purchase')
+    return
+  }
   try {
     if (!quantity.value || quantity.value <= 0) {
       message.error('Please enter quantity!')
@@ -2750,7 +2881,7 @@ const createorder = async () => {
       // 展开第一个有错误的属性块 + 平滑滚动过去
       var firstErrIndex = propErrors.value.findIndex(function (e) { return e })
       if (firstErrIndex !== -1) {
-        productinfo.value.normalPropertyList.forEach(function (p, i) { p.showType = i === firstErrIndex })
+        // productinfo.value.normalPropertyList.forEach(function (p, i) { p.showType = i === firstErrIndex })
         nextTick(function () {
           var blocks = document.querySelectorAll('[data-prop-block]')
           var el = blocks && blocks[firstErrIndex]
@@ -2766,10 +2897,13 @@ const createorder = async () => {
 
     await getUserInfo()
 
-
     // ✅ 这里可能抛出 EMPTY_DIMENSION / NOT_CHOSEN
     const { sku: selectsku } = await resolveSkuForAction()
-
+    const res = await checkProductAvailablePurchase({ productSkuV2IdList: [selectsku] })
+    if (res?.code !== 0) {
+      message.error(res?.errorBody?.enDesc || 'checkProductAvailablePurchase error')
+      return;
+    }
     // 埋点
     initiateCheckout({
       value: totalPrice.value,
@@ -3639,19 +3773,16 @@ const slugify = (str) => {
 
 .zoom-box {
   position: absolute;
-  border: 2px solid #00B2E3;
   background: rgba(255, 255, 255, 0.3);
   pointer-events: none;
   z-index: 1000;
   /* 设置高于属性选择部分 */
 }
 
-.grid-container {
+/* .grid-container {
   position: relative;
-  /* 确保 z-index 生效 */
   z-index: 5;
-  /* 设置为较低层级 */
-}
+} */
 
 /* 右侧悬浮框，相对swiper-slide定位，脱离swiper-slide限制 */
 .zoom-preview-box {
@@ -3683,14 +3814,6 @@ const slugify = (str) => {
   display: -webkit-box;
   line-clamp: 2;
   -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.truncate-1-lines {
-  display: -webkit-box;
-  line-clamp: 1;
-  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -3949,28 +4072,10 @@ input[type="radio"]:checked:hover {
 
 /* 自定义输入框 placeholder 字体大小 */
 :deep(.custom-input .ant-input-number-input::placeholder) {
-  font-size: 12px !important;
+  font-size: 14px !important;
 }
 
 :deep(.custom-select .ant-select-selection-placeholder) {
-  font-size: 12px !important;
-}
-
-/* 缩略图激活状态样式 */
-.active-thumb {
-  position: relative;
-}
-
-.active-thumb::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 2px solid #00B2E3;
-  border-radius: 5px;
-  pointer-events: none;
-}
-
-.active-thumb .w-full {
-  border-radius: 5px;
+  font-size: 14px !important;
 }
 </style>

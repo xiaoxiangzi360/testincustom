@@ -4,7 +4,7 @@
 
 
             <!-- Main Content -->
-            <div class="container mx-auto px-6">
+            <div class="">
                 <!-- Filters -->
                 <div class="sticky [top:96px] bg-white z-10 flex justify-between items-center mb-8 py-4"
                     v-show="products.length != 0">
@@ -258,9 +258,9 @@ const slugify = (str) => {
 </script>
 
 <style scoped>
-.container {
+/* .container {
     max-width: 1440px;
-}
+} */
 
 select {
     -webkit-appearance: none;

@@ -200,5 +200,76 @@ export const ProductAuth = () => {
       throw error
     }
   }
-  return { getProductSpuV2ById, getProductDetailsById, randomRecommendationProductByCatalogId, getUserProductRollPage, getmapProductSpuV2ByProductSkuV2IdList, customizedProductPriceTrialCalculation, erpTryToCreateSkuV2, getproductSearch, productSearchRecommendation, listOnlineMallProductCatalogTree, trialPriceCalculationBySpuV4, getMallProductCatalogById, getconfigRollPage, propSideLengthTool, listGuidingStarPublishTree }
+
+  const checkProductAvailablePurchase = async (params) => {
+    try {
+      const response = await $api('/product/product/checkProductAvailablePurchase', {
+        method: 'POST',
+        body: params,
+      })
+
+      return response
+    } catch (error) {
+
+      throw error
+    }
+  }
+
+  const getProductSpuLevelTwo = async (params) => {
+    try {
+      const query = new URLSearchParams(params).toString()
+      const response = await $api(`/product/product/groupProductSpuLevelTwoCatalogByCatalogId?${query}`, {
+        method: 'GET',
+      })
+
+      return response
+    } catch (error) {
+
+      throw error
+    }
+  }
+
+  const getSpuCatalogTwoLevelByTagId = async (params) => {
+    try {
+      const query = new URLSearchParams(params).toString()
+      const response = await $api(`/product/product/groupProductSpuLevelTwoCatalogByTagId?${query}`, {
+        method: 'GET',
+      })
+
+      return response
+    } catch (error) {
+
+      throw error
+    }
+  }
+
+  const getSpuCatalogPropByCatalogId = async (params) => {
+    try {
+      const query = new URLSearchParams(params).toString()
+      const response = await $api(`/product/product/groupProductSpuCatalogPropByCatalogId?${query}`, {
+        method: 'GET',
+      })
+
+      return response
+    } catch (error) {
+
+      throw error
+    }
+  }
+
+  const getProductTagById = async (params) => {
+    try {
+      const query = new URLSearchParams(params).toString()
+      const response = await $api(`/product/product/getProductTagById?${query}`, {
+        method: 'GET',
+      })
+
+      return response
+    } catch (error) {
+
+      throw error
+    }
+  }
+  return { getProductTagById, getProductSpuLevelTwo, getSpuCatalogTwoLevelByTagId, getSpuCatalogPropByCatalogId, checkProductAvailablePurchase, listGuidingStarPublishTree, getProductSpuV2ById, getProductDetailsById, randomRecommendationProductByCatalogId, getUserProductRollPage, getmapProductSpuV2ByProductSkuV2IdList, customizedProductPriceTrialCalculation, erpTryToCreateSkuV2, getproductSearch, productSearchRecommendation, listOnlineMallProductCatalogTree, trialPriceCalculationBySpuV4, getMallProductCatalogById, getconfigRollPage, propSideLengthTool }
 }
+

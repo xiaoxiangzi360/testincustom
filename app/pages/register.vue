@@ -237,7 +237,8 @@ const sendVerificationCode = async () => {
         }, 1000);
     } catch (error) {
         console.error('Failed to send verification code:', error);
-        message.error(error.message || 'Failed to send verification code, please try again');
+        const errormsg = JSON.parse(error.message || '{}');
+        message.error(errormsg.enDesc || 'Failed to send verification code, please try again');
     } finally {
         isSending.value = false;
     }

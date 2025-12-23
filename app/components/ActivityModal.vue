@@ -1,8 +1,10 @@
 <template>
-    <UModal :ui="{ width: 'sm:max-w-2xl', container: 'items-center' }" :model-value="props.isshow"
-        @update:model-value="(v) => emit('update:isshow', v)" :prevent-close="false">
-        <!-- ===== 邮箱订阅：couponReceiveMethod == 50 ===== -->
-        <div v-show="props.curactivity.couponReceiveMethod == 50"
+    <UModal :ui="{
+        width: 'sm:max-w-2xl', container: 'items-center',
+        background: 'bg-[none]'
+    }" :model-value="isshow" @update:model-value="(v) => emit('update:isshow', v)" :prevent-close="false">
+        <!-- <div>{{ JSON.stringify(props.curactivity) }}</div> -->
+        <div v-show="!merryIds.includes(props.curactivity.id) && props.curactivity.couponReceiveMethod == 50"
             class="bg-[#fff5dc] rounded-xl shadow-xl flex flex-col md:flex-row max-w-3xl w-full overflow-hidden relative">
             <!-- ✅ Close button（邮箱订阅：点击关闭=今天不再弹） -->
             <div class="absolute top-3 right-3 z-50 text-gray-500 hover:text-black cursor-pointer" @click="handleget">
@@ -60,7 +62,7 @@
         </div>
 
         <!-- ===== 领券展示：couponReceiveMethod == 10 ===== -->
-        <div v-show="props.curactivity.couponReceiveMethod == 10"
+        <div v-show="!merryIds.includes(props.curactivity.id) &&props.curactivity.couponReceiveMethod == 10"
             class="bg-[#FFF6E8] rounded-xl shadow-xl p-6 flex flex-col items-center relative text-center">
             <!-- SALE background text -->
             <div
@@ -120,6 +122,61 @@
                 Okey, I understand
             </UButton>
         </div>
+
+        <!-- ===== Merry活动展示：couponReceiveMethod == 10 ===== -->
+        <div v-show="merryIds.includes(props.curactivity.id)" class="bg-[#9A0606] rounded-[20px] pt-4 pb-9 px-7">
+            <div class="flex justify-between">
+                <div class="flex items-center">
+                    <NuxtImg src="/activityModal/star.png" class="w-[12px] h-[12px]" alt="Description of the image" />
+                    <NuxtImg src="/activityModal/inCustom.png" class="w-[68px] h-[17px]" :height="18"
+                        alt="Description of the image" />
+                </div>
+                <span class="text-[rgba(0,0,0,0.45)] hover:text-black">
+                    <UIcon name="i-material-symbols:cancel" class="w-[24px] h-[24px]   cursor-pointer"
+                        @click="handleCloseAttempt" />
+                </span>
+            </div>
+            <!-- Modal content -->
+            <div class="flex mt-6">
+                <NuxtImg src="/activityModal/left.png" class="w-[112px] max-md:hidden" alt="Description of the image" />
+                <div class="flex-1 flex flex-col items-center pl-10 max-md:pl-0 w-full">
+                    <div class="px-4 w-full">
+                        <NuxtImg src="/activityModal/merry.png" class="w-full" alt="Description of the image" />
+                    </div>
+                    <div class="text-white font-hind font-semibold text-[16px] pt-1 pb-5 max-md:text-center">
+                        Your Christmas Treat Is Here:
+                       <span class="max-md:block"><span class="font-[900] text-[40px] font-arial ml-3">25</span> % OFF</span>
+                    </div>
+                    <!-- Coupon code -->
+                    <div class="flex gap-2  mt-4">
+                        <div v-for="(char, index) in props.curactivity.couponCode" :key="index"
+                            class="bg-[#FFAA00] font-arial text-white text-[22px] w-[44px] h-[44px] max-md:w-[32px] max-md:h-[32px] flex items-center justify-center rounded-md">
+                            {{ char }}
+                        </div>
+                    </div>
+                    <div @click="copyCode" class="cursor-pointer  mt-7 ">
+                        <div class="bg-black font-arial text-white text-[16px] font-[900] py-4 px-7 rounded-md">
+                            CLICK TO COPY YOUR CODE
+                        </div>
+                    </div>
+                    <div v-show="isCopied" class="text-black text-center text-sm">Code copied to
+                        clipboard!</div>
+                    <div v-show="!isCopied" class="h-[18px]"></div>
+                    <div class="mt-4 font-hind">
+                        <div v-for="(item, index) in bottomList" :key="index"
+                            class="flex font-arial  gap-1 text-white mb-2 items-center">
+                            <NuxtImg :src="item.img" class="w-[18px] h-[18px]" />
+                            <span class="text-[14px]  text-[#e5e5e5]">{{ item.text1 }}</span>
+                            <span class="text-[14px] font-[600]">{{ item.text2 }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-col justify-between max-md:hidden">
+                    <NuxtImg src="/activityModal/deer.png" class="w-[58px] " alt="Description of the image" />
+                    <NuxtImg src="/activityModal/gifs.png" class="w-[75px]" alt="Description of the image" />
+                </div>
+            </div>
+        </div>
     </UModal>
 </template>
 
@@ -142,7 +199,28 @@ const loading = ref(false)
 const promoCode = ref([])
 const showButtons = ref(false)
 const isMobile = ref(false)
+const bottomList = [
+    {
+        id: 1,
+        img: '/activityModal/shalou.png',
+        text1: 'Limited Time:',
+        text2: 'Valid until Dec 15.'
+    },
+    {
+        id: 2,
+        img: '/activityModal/green_check_box.png',
+        text1: 'Use Instantly: ',
+        text2: 'No subscription required.'
+    },
+    {
+        id: 3,
+        img: '/activityModal/box.png',
+        text1: 'Free Shipping: ',
+        text2: ' On all orders.'
+    },
+]
 
+const merryIds = ['1998573680116084736']
 /** ========== Cookie 工具 ========== */
 const getCookieName = () => 'hideactivity_' + (props.curactivity?.id || '')
 /** 今天不再弹（到次日 0 点） */
@@ -161,10 +239,11 @@ const setCookiePermanent = () => {
     const cookie = useCookie(getCookieName(), { expires })
     cookie.value = 1
 }
-
+const isCopied = ref(false)
 /** 复制券码 */
 function copyCode() {
     const textToCopy = promoCode.value.join('')
+    isCopied.value = true
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard
             .writeText(textToCopy)

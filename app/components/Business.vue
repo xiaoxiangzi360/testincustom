@@ -3,7 +3,7 @@
         style="background-image: url('https://cdn.incustom.com/upload/web/business.webp')">
         <div class="absolute inset-0 bg-gray-900/50"></div>
 
-        <div class="relative z-10 flex flex-col justify-center h-full text-left max-row">
+        <div class="relative z-10 flex flex-col justify-center h-full text-left">
             <div>
                 <h2 class="text-xl md:text-[26px] font-bold text-white">
                     Join Our Newsletter

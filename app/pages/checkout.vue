@@ -1,27 +1,156 @@
 <template>
-    <div class="min-h-screen bg-[#F8F8F8]">
-        <div class="max-w-7xl mx-auto px-3 py-3 md:py-8">
-            <div class="mb-6 md:mb-8">
+    <div class="min-h-screen bg-[#F8F8F8] w-full">
+        <div class="max-w-7xl m-auto py-4">
+            <div class="md:mb-6 mb-4">
                 <NuxtLink to="/">
                     <NuxtImg class="h-7 md:h-11" src="/images/incustom3.png" />
                 </NuxtLink>
             </div>
 
-            <div class="rounded shadow-sm">
-                <div class="flex flex-col lg:flex-row gap-4 items-stretch">
+            <div class="rounded">
+                <div class="flex flex-row max-md:flex-col gap-4 items-stretch">
                     <!-- Left: Main -->
-                    <div class="flex-1">
+                    <div class="w-[60%] max-md:w-[100%] md:max-h-[90vh] overflow-y-auto scrollbar-hide">
                         <main class="flex-1">
                             <!-- 加载完成 -->
                             <template v-if="isProductLoaded">
                                 <!-- 有商品 -->
                                 <template v-if="hasItems">
+                                    <section v-if="isMobile" class="bg-white mb-4">
+                                        <div
+                                            class="p-4  text-[#0c1013] font-semibold text-base sm:text-lg flex items-center justify-between">
+                                            Selected {{ selectedQuantity }} items
+                                            <div class="px-2 items-center justify-center max-md:flex hidden"
+                                                :class="{ 'rotate-180': !isSummaryOpen, 'rotate-0': isSummaryOpen }"
+                                                @click="changeSummaryOpen">
+                                                <UIcon name="i-ic:sharp-keyboard-arrow-up"
+                                                    class="w-6 h-6 text-[#0c1013]" />
+                                            </div>
+                                        </div>
+
+                                        <!-- 加载完成 -->
+                                        <template v-if="isProductLoaded">
+                                            <!-- 有商品 -->
+                                            <template v-if="hasItems">
+                                                <div class="">
+                                                    <div class="overflow-y-auto px-4 md:max-h-[43vh]"
+                                                        v-show="isSummaryOpen">
+                                                        <div class=" bg-white pb-4 " v-for="item in productlists"
+                                                            :key="item.productSku">
+                                                            <div class="flex  gap-2  w-full h-full">
+                                                                <NuxtImg
+                                                                    :src="`${item.mainPic}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`"
+                                                                    :alt="item.altText || 'Product image'"
+                                                                    class="w-20 h-20 rounded-[4px] object-cover" />
+                                                                <div class="flex flex-col flex-1">
+                                                                    <Tooltip color="white"
+                                                                        :overlayInnerStyle="{ color: '#333' }"
+                                                                        :title="item.productName"
+                                                                        :overlayStyle="{ whiteSpace: 'pre-line', wordBreak: 'break-word' }">
+                                                                        <div
+                                                                            class="font-semibold text-sm text-blackcolor line-clamp-2 mt-2">
+                                                                            {{ item.productName }}
+                                                                        </div>
+                                                                    </Tooltip>
+
+                                                                    <div class="text-sm font-medium mt-2">
+                                                                        ${{ item.productPrice }} x {{ item.qtyOrdered }}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div
+                                                                class=" text-[#AEAEAE] font-normal text-[14px] leading-5 mt-1 px-2">
+                                                                <div v-for="(spec, i) in getSpecArray(item?.skuPropList)"
+                                                                    :key="i" class="whitespace-normal">
+                                                                    {{ spec.label }}
+                                                                    <span class="text-[#0C1013] ml-1">{{ spec.value
+                                                                        }}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+
+                                                    <!-- Coupon -->
+                                                    <div class="px-4 pb-4 bg-white" v-if="!isMobile">
+                                                        <div class="flex gap-2 text-white">
+                                                            <Input :disabled="from == 'order'"
+                                                                v-model:value="couponCode"
+                                                                placeholder="Enter the coupon code"
+                                                                class="flex-1 border border-gray-300 focus:border-primary focus:ring-primary text-customblack placeholder-[#EAEAEA]" />
+                                                            <UButton @click="applyCoupon"
+                                                                :disabled="!couponCode || applyLoading"
+                                                                :loading="applyLoading"
+                                                                class="shrink-0 rounded px-4 text-white"
+                                                                :class="[(!couponCode) ? '!bg-gray-300 cursor-not-allowed' : 'bg-primary hover:bg-[#00a9d8]']">
+                                                                Apply
+                                                            </UButton>
+                                                        </div>
+                                                        <div v-if="couponError" class="text-red-500 text-sm mt-1">{{
+                                                            couponError }}
+                                                        </div>
+                                                        <div class="mt-4 inline-flex items-center px-2 py-1 rounded-md text-xs"
+                                                            v-if="activeCoupon"
+                                                            style="background-color: #F0F0F0; color: #333;">
+                                                            <img src="/tag.png" class="w-4 h-4 mr-2" />
+                                                            <span class="mr-2 text-xs">{{ activeCoupon }}</span>
+                                                            <BaseIcon name="i-material-symbols-close-rounded"
+                                                                class="w-4 h-4 text-gray-100 hover:text-red-500 cursor-pointer"
+                                                                @click="removeCoupon" />
+                                                        </div>
+                                                        <div class="flex justify-between  mt-4  font-medium  text-sm">
+                                                            <span class="text-gray-600">SubTotal . {{ selectedQuantity
+                                                                }} items</span>
+                                                            <span class="text-primary">${{ selectedTotal.toFixed(2)
+                                                                }}</span>
+                                                        </div>
+                                                        <div class="flex justify-between mt-4 font-medium text-sm"
+                                                            v-if="discount > 0">
+                                                            <span class="text-customblack">Discount</span>
+                                                            <span class="text-primary">- ${{ discount.toFixed(2)
+                                                                }}</span>
+                                                        </div>
+
+                                                        <div class="flex justify-between mt-4 font-medium text-sm">
+                                                            <span class="text-customblack">Shipping</span>
+                                                            <span class="text-primary">${{ shipping.toFixed(2) }}</span>
+                                                        </div>
+
+                                                        <div class="flex justify-between font-medium text-[16px] my-4">
+                                                            <span class="text-customblack">Total</span>
+                                                            <span class="text-primary">${{ ((selectedTotal || 0) +
+                                                                (shipping || 0) -
+                                                                discount).toFixed(2) }}</span>
+                                                        </div>
+                                                    </div>
+
+
+                                                </div>
+
+                                                <!-- PayPal 按钮容器（仅当选中 PayPal） -->
+
+                                            </template>
+
+                                            <!-- 无商品 -->
+                                            <template v-if="!hasItems">
+                                                <div class="p-4">
+                                                    <div class="text-gray-500 text-sm">No items selected.</div>
+                                                    <NuxtLink to="/" class="mt-4 inline-flex">
+                                                        <UButton size="lg"
+                                                            class="rounded bg-primary hover:bg-[#00a9d8] text-white px-6">
+                                                            Go shopping
+                                                        </UButton>
+                                                    </NuxtLink>
+                                                </div>
+                                            </template>
+                                        </template>
+                                    </section>
                                     <!-- Contact Email -->
                                     <section class="rounded bg-white">
                                         <div
                                             class="p-4 pb-[10px] text-customblack font-semibold text-base sm:text-lg flex items-center justify-between">
                                             <span>Contact Email</span>
-                                            <button v-if="!isLoggedIn" class="text-sm text-customblack"
+                                            <button v-if="!isLoggedIn" class="text-sm font-normal text-customblack"
                                                 @click="showSignIn = true">
                                                 I have an account to
                                                 <span class="text-primary ml-1">Sign In</span>
@@ -30,7 +159,7 @@
                                         <div class="p-4 pt-0">
                                             <Form layout="vertical" ref="formRef" :model="form" class="max-w-[980px]">
                                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-[10px] md:gap-4">
-                                                    <FormItem class="!mb-0">
+                                                    <FormItem class="!mb-0" required>
                                                         <template #label>
                                                             <span class="flex items-center">
                                                                 Email:
@@ -202,75 +331,87 @@
                                         </div>
 
                                         <div class="grid grid-cols-1 p-4 pt-[10px]">
-                                            <div v-for="(option, index) in options" :key="option.value"
-                                                class="flex items-center rounded-md" :class="index !== 0 ? 'mt-4' : ''">
-                                                <div class="flex items-center space-x-2 px-4 py-[6px] rounded cursor-pointer"
-                                                    :class="selected === option.value ? 'border border-primary' : 'border border-[#F0F0F0]'"
-                                                    @click="selected = option.value">
-                                                    <input type="radio" :value="option.value" v-model="selected"
-                                                        class="form-radio" />
-                                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                                        <img :src="option.icon" class="h-8 sm:h-[50px]" />
-                                                    </label>
-                                                </div>
+                                            <div v-for="(option, index) in options" :key="option.value" class=""
+                                                :class="index !== 0 ? 'mt-4' : ''">
+                                                <div class="flex items-center">
+                                                    <div class="flex items-center space-x-2 px-4 py-[6px] rounded cursor-pointer"
+                                                        :class="selected === option.value ? 'border border-primary' : 'border border-[#F0F0F0]'"
+                                                        @click="selected = option.value">
+                                                        <input type="radio" :value="option.value" v-model="selected"
+                                                            class="form-radio" />
+                                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                                            <img :src="option.icon" class="h-8 sm:h-[50px]" />
+                                                        </label>
+                                                    </div>
 
-                                                <!-- ✅ 选中后的文字/图标展示 -->
-                                                <div v-if="option.value === 1"
-                                                    class="text-d3black text-sm ml-2 font-medium">
-                                                    Paypal
-                                                </div>
-                                                <div v-if="option.value === 2" class="flex flex-col items-start ml-2">
-                                                    <div class="text-sm text-d3black font-medium">Credit/Debit Card
+                                                    <!-- ✅ 选中后的文字/图标展示 -->
+                                                    <div v-if="option.value === 1"
+                                                        class="text-d3black text-sm ml-2 font-medium">
+                                                        Paypal
                                                     </div>
-                                                    <div class="text-[10px] text-d3black my-1 font-medium">We support
-                                                        these credit
-                                                        card types</div>
-                                                    <div class="flex gap-[6px]">
-                                                        <img src="/images/international.png" class="w-10 h-5" />
-                                                        <img src="/images/international1.png" class="w-10 h-5" />
-                                                        <img src="/images/international2.png" class="w-10 h-5" />
-                                                        <img src="/images/international3.png" class="w-10 h-5" />
+                                                    <div v-if="option.value === 2"
+                                                        class="flex flex-col items-start ml-2">
+                                                        <div class="text-sm text-d3black font-medium">Credit/Debit Card
+                                                        </div>
+                                                        <div class="text-[10px] text-d3black my-1 font-medium">We
+                                                            support
+                                                            these credit
+                                                            card types</div>
+                                                        <div class="flex gap-[6px]">
+                                                            <img src="/images/international.png" class="w-10 h-5" />
+                                                            <img src="/images/international1.png" class="w-10 h-5" />
+                                                            <img src="/images/international2.png" class="w-10 h-5" />
+                                                            <img src="/images/international3.png" class="w-10 h-5" />
+                                                        </div>
+                                                    </div>
+                                                    <div v-if="option.value === 3"
+                                                        class="text-d3black text-sm ml-2 font-medium">
+                                                        Google&nbsp;Pay
+                                                    </div>
+                                                    <div v-if="option.value === 4"
+                                                        class="text-d3black text-sm ml-2 font-medium">
+                                                        Apple&nbsp;Pay
                                                     </div>
                                                 </div>
-                                                <div v-if="option.value === 3"
-                                                    class="text-d3black text-sm ml-2 font-medium">
-                                                    Google&nbsp;Pay
-                                                </div>
-                                                <div v-if="option.value === 4"
-                                                    class="text-d3black text-sm ml-2 font-medium">
-                                                    Apple&nbsp;Pay
+                                                <div>
+                                                    <!-- ✅ Airwallex Split Card 输入区（卡号整行；下行 Expiry+CVC 横排） -->
+                                                    <div :class="['py-2', { hidden: selected !== 2 }]"
+                                                        v-if="index == 1">
+                                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <!-- 顶部：卡号独占整行 -->
+                                                            <div
+                                                                class="border border-[#D9D9D9] rounded p-4 md:col-span-2">
+                                                                <label class="block text-xs text-gray-500 mb-1">Card
+                                                                    number</label>
+                                                                <div id="awx-card-number"></div>
+                                                            </div>
+
+                                                            <!-- 底部左：有效期 -->
+                                                            <div class="border border-[#D9D9D9] rounded p-4">
+                                                                <label
+                                                                    class="block text-xs text-gray-500 mb-1">Expiration
+                                                                    date</label>
+                                                                <div id="awx-expiry"></div>
+                                                            </div>
+
+                                                            <!-- 底部右：CVC -->
+                                                            <div class="border border-[#D9D9D9] rounded p-4">
+                                                                <label class="block text-xs text-gray-500 mb-1">Security
+                                                                    code</label>
+                                                                <div id="awx-cvc"></div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- 内联错误提示 -->
+                                                        <p v-if="awxError" class="text-red-500 text-sm mt-2">{{ awxError
+                                                            }}</p>
+                                                    </div>
                                                 </div>
                                             </div>
 
                                         </div>
 
-                                        <!-- ✅ Airwallex Split Card 输入区（卡号整行；下行 Expiry+CVC 横排） -->
-                                        <div :class="['px-4 pb-4', { hidden: selected !== 2 }]">
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <!-- 顶部：卡号独占整行 -->
-                                                <div class="border border-[#D9D9D9] rounded p-4 md:col-span-2">
-                                                    <label class="block text-xs text-gray-500 mb-1">Card number</label>
-                                                    <div id="awx-card-number"></div>
-                                                </div>
 
-                                                <!-- 底部左：有效期 -->
-                                                <div class="border border-[#D9D9D9] rounded p-4">
-                                                    <label class="block text-xs text-gray-500 mb-1">Expiration
-                                                        date</label>
-                                                    <div id="awx-expiry"></div>
-                                                </div>
-
-                                                <!-- 底部右：CVC -->
-                                                <div class="border border-[#D9D9D9] rounded p-4">
-                                                    <label class="block text-xs text-gray-500 mb-1">Security
-                                                        code</label>
-                                                    <div id="awx-cvc"></div>
-                                                </div>
-                                            </div>
-
-                                            <!-- 内联错误提示 -->
-                                            <p v-if="awxError" class="text-red-500 text-sm mt-2">{{ awxError }}</p>
-                                        </div>
 
                                     </section>
 
@@ -290,6 +431,7 @@
                                                 }" />
                                         </div>
                                     </section>
+
                                 </template>
 
                                 <!-- 无商品空态 -->
@@ -367,63 +509,77 @@
                     </div>
 
                     <!-- Right: Summary -->
-                    <div class="lg:w-80 bg-white rounded shadow-sm min-h-[200px]" v-if="hasItems || !isProductLoaded">
-                        <div class="p-4 pb-0 text-customblack font-semibold text-base sm:text-lg">Order Summary</div>
-
+                    <div class="w-[40%] max-md:w-[100%] bg-white rounded shadow-sm min-h-[200px] max-md:min-h-0"
+                        v-if="hasItems || !isProductLoaded">
+                        <div
+                            class="p-4 text-[#0c1013] font-semibold text-base sm:text-lg hidden  md:flex items-center justify-between">
+                            Selected {{ selectedQuantity }} items
+                            <div class="px-2 items-center justify-center max-md:flex hidden"
+                                :class="{ 'rotate-180': !isSummaryOpen, 'rotate-0': isSummaryOpen }"
+                                @click="changeSummaryOpen">
+                                <UIcon name="i-ic:sharp-keyboard-arrow-up" class="w-6 h-6 text-[#0c1013]" />
+                            </div>
+                        </div>
                         <!-- 加载完成 -->
                         <template v-if="isProductLoaded">
                             <!-- 有商品 -->
                             <template v-if="hasItems">
-                                <div class="p-4">
-                                    <div class="flex justify-between font-medium">
-                                        <span class="text-gray-600 text-sm">Selected {{ selectedQuantity }} items</span>
-                                        <span class="text-primary">${{ selectedTotal.toFixed(2) }}</span>
-                                    </div>
-
-                                    <div class="max-h-96 overflow-y-auto">
-                                        <div class="flex items-center space-x-4 bg-white rounded-md shadow-sm py-4"
-                                            v-for="item in productlists" :key="item.productSku">
-                                            <img :src="item.mainPic" :alt="item.altText || 'Product image'"
-                                                class="w-20 h-20 rounded-md object-cover" />
-                                            <div class="flex flex-col justify-between">
+                                <div class="overflow-y-auto px-4 md:max-h-[43vh] md:block hidden"
+                                    v-show="isSummaryOpen">
+                                    <div class=" bg-white pb-4 " v-for="item in productlists" :key="item.productSku">
+                                        <div class="flex  gap-2  w-full h-full">
+                                            <NuxtImg
+                                                :src="`${item.mainPic}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`"
+                                                :alt="item.altText || 'Product image'"
+                                                class="w-20 h-20 rounded-[4px] object-cover" />
+                                            <div class="flex flex-col flex-1">
                                                 <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
                                                     :title="item.productName"
-                                                    :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
+                                                    :overlayStyle="{ whiteSpace: 'pre-line', wordBreak: 'break-word' }">
                                                     <div
-                                                        class="font-semibold text-sm text-blackcolor truncate-1-lines max-w-52">
+                                                        class="font-semibold text-sm text-blackcolor line-clamp-2 mt-2">
                                                         {{ item.productName }}
                                                     </div>
                                                 </Tooltip>
-                                                <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
-                                                    :title="item.specAttr"
-                                                    :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
-                                                    <div class="text-gray-300 text-sm my-2 truncate-1-lines max-w-52">
-                                                        {{ item.specAttr }}
-                                                    </div>
-                                                </Tooltip>
-                                                <div class="text-sm font-medium">
+
+                                                <div class="text-sm font-medium mt-2">
                                                     ${{ item.productPrice }} x {{ item.qtyOrdered }}
                                                 </div>
                                             </div>
                                         </div>
+                                        <div class=" text-[#AEAEAE] font-normal text-[14px] leading-5 mt-1 px-2">
+                                            <div v-for="(spec, i) in getSpecArray(item?.skuPropList)" :key="i"
+                                                class="whitespace-normal">
+                                                {{ spec.label }}
+                                                <span class="text-[#0C1013] ml-1">{{ spec.value
+                                                }}</span>
+                                            </div>
+                                        </div>
+
                                     </div>
 
-                                    <!-- Coupon -->
-                                    <div>
-                                        <div class="flex gap-2 text-white">
-                                            <Input :disabled="from == 'order'" v-model:value="couponCode"
-                                                placeholder="Enter the coupon code"
-                                                class="flex-1 border border-gray-300 focus:border-primary focus:ring-primary text-customblack placeholder-[#EAEAEA]" />
-                                            <UButton @click="applyCoupon" :disabled="!couponCode || applyLoading"
-                                                :loading="applyLoading" class="shrink-0 rounded px-4 text-white"
-                                                :class="[(!couponCode) ? '!bg-gray-300 cursor-not-allowed' : 'bg-primary hover:bg-[#00a9d8]']">
-                                                Apply
-                                            </UButton>
-                                        </div>
-                                        <div v-if="couponError" class="text-red-500 text-sm mt-1">{{ couponError }}
-                                        </div>
-                                    </div>
 
+                                </div>
+
+
+                                <!-- PayPal 按钮容器（仅当选中 PayPal） -->
+
+                            </template>
+                            <div class="px-4 bg-white max-md:py-4">
+                                <!-- Coupon -->
+                                <div class="">
+                                    <div class="flex gap-2 text-white">
+                                        <Input :disabled="from == 'order'" v-model:value="couponCode"
+                                            placeholder="Enter the coupon code"
+                                            class="flex-1 border border-gray-300 focus:border-primary focus:ring-primary text-customblack placeholder-[#EAEAEA]" />
+                                        <UButton @click="applyCoupon" :disabled="!couponCode || applyLoading"
+                                            :loading="applyLoading" class="shrink-0 rounded px-4 text-white"
+                                            :class="[(!couponCode) ? '!bg-gray-300 cursor-not-allowed' : 'bg-primary hover:bg-[#00a9d8]']">
+                                            Apply
+                                        </UButton>
+                                    </div>
+                                    <div v-if="couponError" class="text-red-500 text-sm mt-1">{{ couponError }}
+                                    </div>
                                     <div class="mt-4 inline-flex items-center px-2 py-1 rounded-md text-xs"
                                         v-if="activeCoupon" style="background-color: #F0F0F0; color: #333;">
                                         <img src="/tag.png" class="w-4 h-4 mr-2" />
@@ -432,49 +588,48 @@
                                             class="w-4 h-4 text-gray-100 hover:text-red-500 cursor-pointer"
                                             @click="removeCoupon" />
                                     </div>
-
-                                    <div class="flex justify-between mt-4 font-medium" v-if="discount > 0">
+                                    <div class="flex justify-between  mt-4  font-medium  text-sm">
+                                        <span class="text-gray-600">SubTotal . {{ selectedQuantity }} items</span>
+                                        <span class="text-primary">${{ selectedTotal.toFixed(2) }}</span>
+                                    </div>
+                                    <div class="flex justify-between mt-4 font-medium text-sm" v-if="discount > 0">
                                         <span class="text-customblack">Discount</span>
                                         <span class="text-primary">- ${{ discount.toFixed(2) }}</span>
                                     </div>
 
-                                    <div class="flex justify-between mt-4 font-medium">
-                                        <span class="text-customblack text-sm">Shipping</span>
+                                    <div class="flex justify-between mt-4 font-medium text-sm">
+                                        <span class="text-customblack">Shipping</span>
                                         <span class="text-primary">${{ shipping.toFixed(2) }}</span>
                                     </div>
 
-                                    <div class="flex justify-between font-bold mt-4">
+                                    <div class="flex justify-between font-medium text-[16px] my-4">
                                         <span class="text-customblack">Total</span>
                                         <span class="text-primary">${{ ((selectedTotal || 0) + (shipping || 0) -
                                             discount).toFixed(2) }}</span>
                                     </div>
+
                                 </div>
-
-                                <!-- PayPal 按钮容器（仅当选中 PayPal） -->
-                                <div v-show="selected === 1" id="paypal-button-container"
-                                    class="sticky bottom-1 p-4 pt-0 bg-white shadow-[0_-2px_6px_rgba(0,0,0,0.1)] md:shadow-none pt-4 sm:pt-0" />
-
+                                <div v-show="selected === 1" id="paypal-button-container" class=""></div>
                                 <!-- Airwallex 支付按钮（仅当选中 Airwallex） -->
-                                <div v-show="selected === 2"
-                                    class="sticky bottom-1 p-4 pt-0 bg-white shadow-[0_-2px_6px_rgba(0,0,0,0.1)] md:shadow-none">
+                                <div v-show="selected === 2" class="">
                                     <UButton size="lg" :loading="awxPayLoading"
                                         class="w-full rounded bg-primary hover:bg-[#00a9d8] text-white items-center justify-center"
                                         @click="handleAirwallexPay">
                                         {{ awxPayLoading ? 'Processing...' : 'Pay Now' }}
                                     </UButton>
                                 </div>
-                                <div v-show="selected === 3" class="px-4 pb-4">
+                                <div v-show="selected === 3" class="">
                                     <div id="awx-google-pay"></div>
                                     <p v-if="gpayError" class="text-red-500 text-sm mt-2">{{ gpayError }}</p>
                                 </div>
-                                <div v-show="selected === 4" class="px-4 pb-4">
+                                <div v-show="selected === 4" class="">
                                     <div id="awx-apple-pay"></div>
-                                    <p v-if="awxAppleError" class="text-red-500 text-sm mt-2">{{ awxAppleError }}</p>
+                                    <p v-if="awxAppleError" class="text-red-500 text-sm mt-2">{{ awxAppleError
+                                    }}</p>
                                 </div>
-                            </template>
-
+                            </div>
                             <!-- 无商品 -->
-                            <template v-else>
+                            <template v-if="!hasItems">
                                 <div class="p-4">
                                     <div class="text-gray-500 text-sm">No items selected.</div>
                                     <NuxtLink to="/" class="mt-4 inline-flex">
@@ -484,47 +639,6 @@
                                     </NuxtLink>
                                 </div>
                             </template>
-                        </template>
-
-                        <!-- 骨架屏：右侧摘要加载中 -->
-                        <template v-else>
-                            <div class="p-4 space-y-4 animate-pulse">
-                                <div class="flex justify-between">
-                                    <USkeleton class="h-5 w-32" />
-                                    <USkeleton class="h-5 w-16" />
-                                </div>
-                                <div class="space-y-3">
-                                    <div class="flex items-center space-x-4">
-                                        <USkeleton class="w-20 h-20 rounded-md" />
-                                        <div class="flex-1 space-y-2">
-                                            <USkeleton class="h-4 w-40" />
-                                            <USkeleton class="h-4 w-32" />
-                                            <USkeleton class="h-5 w-24" />
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center space-x-4">
-                                        <USkeleton class="w-20 h-20 rounded-md" />
-                                        <div class="flex-1 space-y-2">
-                                            <USkeleton class="h-4 w-40" />
-                                            <USkeleton class="h-4 w-32" />
-                                            <USkeleton class="h-5 w-24" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <USkeleton class="h-10 w-full" />
-                                <div class="flex justify-between">
-                                    <USkeleton class="h-4 w-24" />
-                                    <USkeleton class="h-4 w-16" />
-                                </div>
-                                <div class="flex justify-between">
-                                    <USkeleton class="h-4 w-24" />
-                                    <USkeleton class="h-4 w-16" />
-                                </div>
-                                <div class="flex justify-between">
-                                    <USkeleton class="h-5 w-16" />
-                                    <USkeleton class="h-5 w-24" />
-                                </div>
-                            </div>
                         </template>
                     </div>
                 </div>
@@ -702,7 +816,8 @@ const isLoggedIn = computed(() => userType.value != 2);
 
 const locationinfo = useCookie('locationinfo') as any;
 const userinfoCookie = useCookie<any | null>('userinfo', { sameSite: 'lax', path: '/' });
-
+const isSummaryOpen = ref(true);
+const { isMobile, windowWidth } = useMobile();
 const contactEmail = ref<string>('');
 const contactEmailError = ref<string>('');
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -794,6 +909,10 @@ async function getAWX() {
     if (!Airwallex?.init) throw new Error('Airwallex module not loaded');
     return Airwallex;
 }
+
+const changeSummaryOpen = () => {
+    isSummaryOpen.value = !isSummaryOpen.value;
+};
 function extractAwxFromCreatePayment(payRes: any) {
     const v1 = payRes?.result?.airwallexPaymentIntentsResult?.airwallexPaymentIntents;
     const v2 = payRes?.result?.airwallexResult?.paymentIntent;
@@ -974,6 +1093,33 @@ const removeCoupon = () => {
     activeCoupon.value = '';
     discount.value = 0;
 };
+
+const getSpecArray = (propList: any[]) => {
+    console.log('getSpecArray========propList', propList);
+    if (!propList || !Array.isArray(propList)) return []
+
+    const result: any[] = []
+
+    propList.forEach(prop => {
+        if (prop.inputList?.length > 0) {
+            // ⚠️ 一个 prop 可能包含多个 input，拆成多行
+            prop.inputList.forEach((input: any) => {
+                result.push({
+                    label: `${input.inputName}:`,
+                    value: input.inputValue
+                })
+            })
+        } else {
+            // 普通属性
+            result.push({
+                label: `${prop.propEnName}:`,
+                value: prop.propValueEnName
+            })
+        }
+    })
+
+    return result
+}
 
 const getProductlist = async () => {
     try {
@@ -1305,6 +1451,7 @@ const paynow = async () => {
         addressinfo.value.postalCode = addressinfo.value.postalCode || (form.value as any)?.postalCode;
         addressinfo.value.numberCode = addressinfo.value.numberCode || (form.value as any)?.numberCode;
         addressinfo.value.number = addressinfo.value.number || (form.value as any)?.number;
+        if (!addressinfo.value.email) return message.error('Please add contact email'), null
         if (!addressinfo.value.firstName) return message.error('Please add first name'), null
         if (!addressinfo.value.lastName) return message.error('Please add last name'), null
         if (!addressinfo.value.address) return message.error('Please add a address'), null;
@@ -2559,7 +2706,9 @@ onMounted(async () => {
     const regEmail = (userinfoCookie.value && (userinfoCookie.value.email || userinfoCookie.value.userEmail)) || '';
     if (regEmail) contactEmail.value = regEmail;
     if (!contactEmail.value && (addressinfo.value as any)?.email) contactEmail.value = (addressinfo.value as any).email;
-
+    if (isMobile.value) {
+        isSummaryOpen.value = false;
+    }
     await getCountrylist();
     // 若数据已就绪，尝试渲染 PayPal
     tryRenderPaypalButtons();
@@ -2628,13 +2777,6 @@ tbody tr {
 
 .cart-table__action-button {
     @apply text-primary-500 hover:text-primary-600 transition-colors;
-}
-
-.truncate-1-lines {
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
 }
 
 .ant-input,

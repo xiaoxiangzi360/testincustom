@@ -461,9 +461,9 @@ onMounted(async () => {
       <div class="category-level-1 flex items-center justify-between p-3 border-b border-b-blackcolor/10 last:border-0"
         @click="toggleDeliver($event)">
         <div class="flex items-center space-x-2 rounded-lg transition">
-          <BaseIcon name="i-material-symbols:location-on-outline-rounded" class="w-5 h-5 text-primary" />
+          <BaseIcon name="i-uil:map-marker-alt" class="w-[24px] h-[24px] text-primary" />
           <div class="truncate max-w-[200px] text-sm">
-            <div class="text-gray-500">Delivery to</div>
+            <div class="text-gray-500 text-[12px]">Delivery to</div>
             <div class="truncate text-gray-900">
               {{ displayLocationLabel || 'Select location' }}
             </div>
@@ -507,50 +507,8 @@ onMounted(async () => {
       </transition>
     </div>
 
-    <!-- All Products -->
-    <div class="mobile-category-item">
-      <div class="category-level-1 flex items-center justify-between p-3 border-b border-b-blackcolor/10 last:border-0"
-        @click="toggleLevel1(-1, $event)">
-        <div class="flex items-center">
-          <span>All</span>
-        </div>
-        <BaseIcon class="arrow-icon w-5 h-5 text-gray-500 transition-transform duration-300 ease-in-out"
-          name="i-material-symbols:expand-more" :class="{ 'rotate-180': expandedLevel1 === -1 }" />
-      </div>
-
-      <transition name="slide-down">
-        <div v-if="expandedLevel1 === -1" class="pl-4">
-          <div v-for="(item, i) in menuData" :key="item.id" class="category-level-2">
-            <div class="flex items-center justify-between p-3 border-b border-b-blackcolor/10 "
-              @click="toggleLevel2(-1, i, $event)">
-              <div @click="goToNavItem(item, $event)">
-                <span>{{ item.enName }}</span>
-              </div>
-
-              <BaseIcon v-if="item?.children?.length"
-                class="arrow-icon w-5 h-5 text-gray-500 transition-transform duration-300 ease-in-out"
-                name="i-material-symbols:expand-more" :class="{ 'rotate-180': expandedLevel2[-1] === i }" />
-            </div>
-
-            <transition name="slide-down">
-              <div v-if="expandedLevel2[-1] === i" class="pl-4">
-                <div v-for="(sub, j) in item?.children" :key="sub.id" class="category-level-3">
-                  <div class="flex items-center justify-between p-3 border-b border-b-blackcolor/10">
-                    <div @click="goToNavItem(sub, $event)">
-                      <span>{{ sub.enName }}</span>
-                    </div>
-
-                  </div>
-                </div>
-              </div>
-            </transition>
-          </div>
-        </div>
-      </transition>
-    </div>
-
     <!-- 推荐分类 -->
-    <div v-for="(category, index) in recommendData.slice(0, 8)" :key="category.id" class="mobile-category-item">
+    <div v-for="(category, index) in recommendData" :key="category.id" class="mobile-category-item">
       <div class="category-level-1 flex items-center justify-between p-3 border-b border-b-blackcolor/10 last:border-0"
         @click="toggleLevel1(index, $event)">
         <div @click="goToNavItem(category, $event)">
@@ -596,62 +554,9 @@ onMounted(async () => {
   <!-- 桌面端视图 -->
   <div v-else>
     <div ref="navWrapper" class="relative flex flex-nowrap whitespace-nowrap md:flex-nowrap md:flex-row">
-      <!-- All Products Hover 多级 -->
-      <div class="relative group pr-2" @mouseleave="hoverLevel1 = null">
-        <NuxtLink>
-          <div class="flex items-center p-2 pl-0 cursor-pointer" @mouseenter="hoverLevel1 = 0">
-            <NuxtImg src="cell.png" width="24" class="mr-2" />
-            All
-          </div>
-        </NuxtLink>
-
-        <div class="absolute top-full left-0 bg-white shadow-2xl flex z-50 py-1 " v-if="hoverLevel1 !== null"
-          @mouseleave="hoverLevel1 = null; hoverLevel2 = null; hoverSub = null">
-          <!-- 一级 -->
-          <ul class="text-sm w-60 max-h-[600px] overflow-y-auto">
-            <li v-for="(item, i) in menuData" :key="item.id" class="group"
-              @mouseenter="hoverLevel2 = i; hoverSub = null">
-              <NuxtLink :to="getNavPath(item)" @click.prevent="goToNavItem(item, $event)"
-                class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap w-full"
-                @click="emit('closeSlideover')">
-                <span class="catalogtitle">{{ item.enName }}</span>
-                <BaseIcon v-if="hoverLevel2 === i && item?.children" name="i-material-symbols:chevron-right"
-                  class="w-5 h-5 text-gray-400 transition-opacity duration-200" />
-              </NuxtLink>
-            </li>
-          </ul>
-
-          <!-- 二级 -->
-          <ul v-if="hoverLevel2 !== null && menuData[hoverLevel2]?.children"
-            class="text-sm w-60 max-h-[600px] overflow-y-auto">
-            <li v-for="(sub, j) in menuData[hoverLevel2]?.children" :key="sub.id" class="group"
-              @mouseenter="hoverSub = j">
-              <NuxtLink :to="getNavPath(sub)" @click.prevent="goToNavItem(sub, $event)"
-                class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap"
-                @click="emit('closeSlideover')">
-                <span class="catalogtitle">{{ sub.enName }}</span>
-                <BaseIcon v-if="hoverSub === j && sub?.children" name="i-material-symbols:chevron-right"
-                  class="w-5 h-5 text-gray-400 transition-opacity duration-200" />
-              </NuxtLink>
-            </li>
-          </ul>
-
-          <!-- 三级 -->
-          <ul v-if="hoverLevel2 !== null && hoverSub !== null && menuData[hoverLevel2]?.children?.[hoverSub]?.children"
-            class="text-sm w-60 max-h-[600px] overflow-y-auto">
-            <li v-for="child in menuData[hoverLevel2]?.children?.[hoverSub]?.children" :key="child.id">
-              <NuxtLink :to="getNavPath(child)" @click.prevent="goToNavItem(child, $event)"
-                class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] cursor-pointer whitespace-nowrap"
-                @click="emit('closeSlideover')">
-                <span class="catalogtitle">{{ child.enName }}</span>
-              </NuxtLink>
-            </li>
-          </ul>
-        </div>
-      </div>
 
       <!-- 推荐分类按钮 -->
-      <div v-for="(category, index) in menuData.slice(0, 6)" :key="category.id" ref="navItems"
+      <div v-for="(category, index) in menuData" :key="category.id" ref="navItems"
         class="relative flex items-center md:p-1 xl:p-2 cursor-pointer whitespace-nowrap "
         @mouseenter="hoverRecommend = index" @mouseleave="hoverRecommend = null; hoverRecommendSub = null">
         <NuxtLink :to="getNavPath(category)" @click.prevent="goToNavItem(category, $event)"
@@ -660,14 +565,14 @@ onMounted(async () => {
           {{ category.enName }}
         </NuxtLink>
 
-        <div class="absolute top-full left-0 top-full bg-white shadow-2xl  z-50 py-1 flex "
+        <div class="absolute left-0 top-full bg-white shadow-2xl  z-50 py-1 flex "
           v-if="hoverRecommend === index && category?.children?.length">
           <!-- 二级 -->
-          <ul class="text-sm w-50 xl:w-60 max-h-[600px] overflow-y-auto">
+          <ul class="text-sm w-50 xl:w-60 max-h-[600px] overflow-y-auto mb-0">
             <li v-for="(sub, j) in category?.children" :key="sub.id" class="group"
               @mouseenter="hoverRecommendSub = j; checkThirdMenuDirection($event);">
               <NuxtLink :to="getNavPath(sub)" @click.prevent="goToNavItem(sub, $event)"
-                class="block p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap"
+                class="p-3 text-gray-800 hover:text-primary hover:bg-[#00B2E30A] flex justify-between items-center whitespace-nowrap"
                 @click="emit('closeSlideover')">
                 <span class="catalogtitle">{{ sub.enName }}</span>
                 <BaseIcon v-if="hoverRecommendSub === j && sub?.children" name="i-material-symbols:chevron-right"

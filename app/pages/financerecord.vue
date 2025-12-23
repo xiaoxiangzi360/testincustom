@@ -19,9 +19,14 @@
                 <UTable :columns="columns" :rows="rows" class="mt-4" checkbox @update:checked="checkedRows = $event" />
 
                 <!-- 分頁 -->
-                <div class="flex justify-between items-center mt-4">
-                    <span>共 {{ total }} 条记录 第 {{ page }} / {{ totalPages }} 页</span>
-                    <UPagination v-model="page" :page-count="pageSize" :total="total" />
+                <div class="flex justify-between items-center mt-4" v-show="total > 0">
+                    <!-- <span class="mr-4 text-gray-600">Total {{ total }} items</span> -->
+                    <!-- <span>共 {{ total }} 条记录 第 {{ page }} / {{ totalPages }} 页</span> -->
+                    <UPagination v-model="page" :page-count="pageSize" :total="total"
+                        :active-button="{ variant: 'outline' }" :ui="{
+                            base: 'ring-[#d9d9d9] dark:ring-[#d9d9d9]',
+                        }" :prev-button="{ icon: 'i-material-symbols:chevron-left' }"
+                        :next-button="{ icon: 'i-material-symbols:chevron-right' }" />
                 </div>
             </div>
         </div>

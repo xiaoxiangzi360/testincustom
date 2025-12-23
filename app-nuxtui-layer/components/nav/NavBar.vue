@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useCookie } from 'nuxt/app'
 import { useRouter, useRoute } from 'vue-router'
+import { useCartStore } from '~/stores/cart';
 const { logout } = useAuth();
 
 const router = useRouter()
@@ -32,6 +33,20 @@ const isSearchHistoryVisible = ref(false)
 const historyContentRef = ref<HTMLElement | null>(null)
 const isOverThreeLines = ref(false)
 
+// ========= 购物车逻辑 =========
+const cart = useCartStore()
+const handleGetCart = async () => {
+  try {
+    await cart.refreshCart()
+  } catch (error) {
+    console.error('Failed to refresh cart:', error)
+  }
+};
+onMounted(() => {
+  if (isTokenValid.value) {
+    handleGetCart(); // 页面加载完成后请求购物车数据
+  }
+});
 // 计算过滤后的搜索历史
 const filteredSearchHistory = computed(() =>
   searchHistory.value.filter(item => {
@@ -169,81 +184,85 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
 </script>
 
 <template>
-  <nav class="w-full mx-auto text-white fixed z-50">
+  <nav class="w-full mx-auto text-white fixed z-[100]" id="navBar">
     <div class="bg-[#222222]">
-      <div class="flex items-center justify-between navbar-grid py-[2px] max-row">
+      <div class="flex items-center justify-between navbar-grid py-[2px] max-lg:py-[6px] max-row">
         <div style="grid-area: logo" class="flex">
-          <TheLogo class="absolute top-2 left-1/2 -translate-x-1/2 lg:static lg:translate-x-0"></TheLogo>
+          <TheLogo class=""></TheLogo>
         </div>
         <div data-pg-name="Hamburger" style="grid-area: hamburger" class="lg:hidden flex">
           <NavHamburger @click="isMobileMenuOpen = true"></NavHamburger>
         </div>
-
-        <div data-pg-name="Searchbox" style="grid-area: search;" class="max-w-100 lg:ml-4 mt-3 lg:mt-0 relative">
-          <UFormGroup hint="Optional">
-            <UInput v-model="searchInput" @keyup.enter="onEnterSearch" placeholder="Search..." size="md"
-              class="w-full border-none ring-0 " autocomplete="off" :ui="{
-                base: '!shadow-none !ring-0 focus:ring-0 focus:ring-offset-0 focus:shadow-none rounded-b-none',
-                ring: 'focus:ring-0',
-                variant: { outline: 'shadow-none focus:ring-0' },
-                color: {
-                  white: {
-                    outline: 'bg-white dark:bg-white dark:text-gray-900'
-                  }
-                }
-              }"
-              :input-class="isSearchHistoryVisible ? '!rounded-b-none border-b border-gray-100 focus:border-gray-100 focus:ring-0 focus:outline-none' : ''"
-              @focus="isSearchHistoryVisible = true" @blur="closePanel">
-              <template #trailing>
-                <div class="pointer-events-auto">
-                  <button aria-label="search" @click="onEnterSearch"
-                    class="flex items-center justify-center h-full px-1 text-gray-500 hover:text-black cursor-pointer font-bold"
-                    :class="searchInput.trim() ? 'text-primary' : 'text-gray-400'">
-                    <BaseIcon name="i-heroicons-magnifying-glass" class="w-5 h-5 font-bold" style="stroke-width: 3" />
-                  </button>
-                </div>
-              </template>
-            </UInput>
-
-            <!-- 搜索历史面板 - 无滚动版本 -->
-            <div v-if="isSearchHistoryVisible" @pointerdown.prevent
-              class="absolute top-full left-0 w-full bg-white shadow-lg rounded p-2 z-50 rounded-t-none">
-              <div class="flex justify-between items-center">
-                <div class="text-base text-d3black py-2 font-bold ml-1">Recent Searches</div>
-              </div>
-              <div ref="historyContentRef" class="mt-2 overflow-hidden" :style="{
-                'max-height': showAllHistory ? 'none' : '128px',
-                'transition': 'max-height 0.3s ease'
-              }">
-                <span v-for="(item, index) in filteredSearchHistory" :key="index" @click="searchkeywords(item.id)"
-                  @mousedown.prevent
-                  class="inline-block px-3 py-2 bg-f0black text-d3black text-xs rounded border border-f0black mr-2 mb-1 cursor-pointer hover:border-primary max-w-[32%] overflow-hidden text-ellipsis whitespace-nowrap">
-                  {{ item.id }}
-                </span>
-                <div v-if="filteredSearchHistory.length === 0" class="text-gray-500 text-sm py-2 ml-1">
-                  No recent searches
-                </div>
-              </div>
-              <div v-if="shouldShowMoreHint" @click="toggleShowAll" @mousedown.prevent
-                class="text-xs text-gray-500 mt-3 ml-1 hover:text-primary hover:border-b hover:border-primary cursor-pointer inline-block">
-                {{ showAllHistory ? 'Show less' : 'Records of the last 7 days' }}
-              </div>
-            </div>
-          </UFormGroup>
-        </div>
-
-        <div data-pg-name="Profile" class="flex lg:space-x-1 justify-end lg:justify-start">
+        <div data-pg-name="Profile" class="flex gap-2 justify-end lg:justify-start cursor-pointer">
           <ProfileActions class="!hidden lg:!flex"></ProfileActions>
-
-          <BaseIcon name="i-heroicons-user-circle" class="lg:!hidden w-7 h-7" width="28" height="28"
-            @click="checklogin()" v-show="isuserTokenValid" />
-          <NuxtImg v-show="!isuserTokenValid" @click="openAuthSheet" src="https://cdn.incustom.com/upload/web/user.png"
-            alt="user" class="lg:!hidden w-7 h-7 cursor-pointer" />
-          <BaseIcon name="i-heroicons:shopping-cart" class="lg:!hidden w-7 h-7 ml-3" width="28" height="28"
-            @click="goToCart" />
-
-
+          <NuxtImg v-show="isuserTokenValid" @click="checklogin" src="/home/in_default.webp" alt="user"
+            class="lg:!hidden w-[24px] h-[24px] cursor-pointer" />
+          <NuxtImg src="/home/user_default.webp" class="lg:!hidden w-[24px] h-[24px]" @click="openAuthSheet"
+            v-show="!isuserTokenValid" />
+          <div class="relative lg:!hidden">
+            <NuxtImg src="/home/cart_default.webp" class="w-[24px] h-[24px]" @click="goToCart" />
+            <div v-if="cart.itemCount > 0"
+              class="absolute top-[-7px] right-[-8px] w-4 h-4 flex items-center justify-center rounded-full text-white bg-primary text-[12px] font-semibold">
+              {{ cart.itemCount }}</div>
+          </div>
         </div>
+
+        <div data-pg-name="Searchbox" style="grid-area: search;" class="flex items-center justify-center relative">
+          <div class="w-[80%] max-lg:w-full  max-w-[700px] mx-auto rounded-[4px] relative">
+            <UFormGroup hint="Optional" class="">
+              <UInput v-model="searchInput" @keyup.enter="onEnterSearch" placeholder="Search..." size="md"
+                class="w-full border-none ring-0 " autocomplete="off" :ui="{
+                  base: '!shadow-none !ring-0 focus:ring-0 focus:ring-offset-0 focus:shadow-none rounded-b-none',
+                  ring: 'focus:ring-0',
+                  variant: { outline: 'shadow-none focus:ring-0' },
+                  color: {
+                    white: {
+                      outline: 'bg-white dark:bg-white dark:text-gray-900'
+                    }
+                  }
+                }"
+                :input-class="isSearchHistoryVisible ? '!rounded-b-none border-b border-gray-100 focus:border-gray-100 focus:ring-0 focus:outline-none' : ''"
+                @focus="isSearchHistoryVisible = true" @blur="closePanel">
+                <template #trailing>
+                  <div class="pointer-events-auto">
+                    <button aria-label="search" @click="onEnterSearch"
+                      class="flex items-center justify-center h-full px-1 text-gray-500 hover:text-black cursor-pointer font-bold"
+                      :class="searchInput.trim() ? 'text-primary' : 'text-gray-400'">
+                      <BaseIcon name="i-heroicons-magnifying-glass" class="w-5 h-5 font-bold" style="stroke-width: 3" />
+                    </button>
+                  </div>
+                </template>
+              </UInput>
+
+              <!-- 搜索历史面板 - 无滚动版本 -->
+              <div v-if="isSearchHistoryVisible" @pointerdown.prevent
+                class="absolute top-full  max-w-[700px]  left-0 w-full bg-white shadow-lg rounded p-2 z-50 rounded-t-none">
+                <div class="flex justify-between items-center">
+                  <div class="text-base text-d3black py-2 font-bold ml-1">Recent Searches</div>
+                </div>
+                <div ref="historyContentRef" class="mt-2 overflow-hidden" :style="{
+                  'max-height': showAllHistory ? 'none' : '128px',
+                  'transition': 'max-height 0.3s ease'
+                }">
+                  <span v-for="(item, index) in filteredSearchHistory" :key="index" @click="searchkeywords(item.id)"
+                    @mousedown.prevent
+                    class="inline-block px-3 py-2 bg-f0black text-d3black text-xs rounded border border-f0black mr-2 mb-1 cursor-pointer hover:border-primary max-w-[32%] overflow-hidden text-ellipsis whitespace-nowrap">
+                    {{ item.id }}
+                  </span>
+                  <div v-if="filteredSearchHistory.length === 0" class="text-gray-500 text-sm py-2 ml-1">
+                    No recent searches
+                  </div>
+                </div>
+                <div v-if="shouldShowMoreHint" @click="toggleShowAll" @mousedown.prevent
+                  class="text-xs text-gray-500 mt-3 ml-1 hover:text-primary hover:border-b hover:border-primary cursor-pointer inline-block">
+                  {{ showAllHistory ? 'Show less' : 'Records of the last 7 days' }}
+                </div>
+              </div>
+            </UFormGroup>
+          </div>
+        </div>
+
+
       </div>
     </div>
 
@@ -251,7 +270,7 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
       <NavPrimary class="lg:w-full max-row"></NavPrimary>
     </div>
     <USlideover v-model="isMobileMenuOpen" data-pg-name="NavBarSecondary" style="grid-area: primary-nav"
-      class="w-72 lg:hidden" side="left">
+      class="w-72 lg:hidden z-[999]" side="left">
       <div class="flex flex-col h-full">
         <!-- 主体内容 -->
         <div class="flex-1 overflow-y-auto px-3">
@@ -260,7 +279,7 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
       </div>
     </USlideover>
     <USlideover v-model="isMobileCartMenuOpen" data-pg-name="NavCart" style="grid-area: primary-nav"
-      class="w-72 lg:hidden" side="left">
+      class="w-72 lg:hidden  z-[999]" side="left">
       <div class="flex flex-col h-full">
         <!-- 主体内容 -->
         <div class="flex-1 overflow-y-auto">

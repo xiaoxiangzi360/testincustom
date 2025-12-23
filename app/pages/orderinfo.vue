@@ -1,10 +1,10 @@
 <template>
     <div class="bg-white">
-        <div class="flex min-h-screen text-sm max-row">
+        <div class="flex flex-col md:flex-row min-h-screen text-sm max-row">
             <!-- Sidebar -->
-            <Userleft class="hidden sm:block" v-show="isLoggedIn" />
+            <Userleft v-show="isLoggedIn" />
             <!-- Main Content -->
-            <main class="flex-1 space-y-6 bg-white">
+            <main class="flex-1 px-6 py-8 max-lg:p-0 bg-white">
                 <div>
                     <div class="mx-auto py-8">
                         <!-- ================= Skeleton ================= -->
@@ -115,13 +115,13 @@
 
                             <!-- Order Details -->
                             <div class="bg-white rounded-lg mb-8">
-                                <div class="flex justify-between mb-4 bg-[#F6F6F6] text-black/45 py-4 px-6">
+                                <div class="grid grid-cols-2 mb-4 bg-[#F6F6F6] text-black/45 py-4 px-6">
                                     <span class="font-medium">Product</span>
                                     <span class="font-medium">Price×QTY</span>
                                 </div>
 
                                 <div v-for="(product, index) in orderInfo.orderItemList" :key="index"
-                                    class="flex items-center justify-between py-4 border-b border-gray-100 px-6">
+                                    class="grid grid-cols-2 py-4 border-b border-gray-100 px-6">
                                     <div>
                                         <div class="flex items-center gap-4">
                                             <img :src="product.productImage" alt="Product"
@@ -148,20 +148,21 @@
                                             </button>
                                         </div>
                                     </div>
-                                    <span>${{ product.priceOrdered }}×{{ product.qtyOrdered }}</span>
+                                    <span class="flex items-center">${{ product.priceOrdered }}×{{ product.qtyOrdered
+                                        }}</span>
                                 </div>
 
                                 <!-- Order Summary -->
                                 <div class="mt-10 p-6 rounded-lg border border-[#D9D9D9]">
-                                    <div class="flex justify-between">
+                                    <div class="flex gap-2">
                                         <span>Subtotal:</span>
                                         <span>${{ orderInfo.orderItemAmountOrdered }}</span>
                                     </div>
-                                    <div class="flex justify-between mt-4">
+                                    <div class="flex gap-2 mt-4">
                                         <span>Shipping:</span>
                                         <span>${{ orderInfo.shippingRule?.calFee || 0 }}</span>
                                     </div>
-                                    <div class="flex justify-between mt-4">
+                                    <div class="flex gap-2 mt-4">
                                         <span>Total(excl.tax):</span>
                                         <span class="text-primary-500">${{ orderInfo.paymentAmount }}</span>
                                     </div>

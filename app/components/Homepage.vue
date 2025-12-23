@@ -18,11 +18,11 @@
     </div>
 
     <!-- ✅ 轮播（可见时再挂载） -->
-    <Splide v-if="isReady" ref="carouselRef" :options="computedSplideOptions" class="overflow-hidden relative"
+    <Splide v-if="isReady" ref="carouselRef" :options="computedSplideOptions" class="overflow-hidden relative rounded"
       @splide:mounted="onMountedSplide" @splide:move="onMove">
       <SplideSlide v-for="(s, i) in slides" :key="i">
         <!-- 固定纵横比，避免 CLS -->
-        <div class="relative w-full min-h-[300px] md:min-h-0 md:aspect-[21/9] rounded overflow-hidden">
+        <div class="relative w-full min-h-[300px] md:min-h-0 md:aspect-[21/9] overflow-hidden">
           <picture class="absolute inset-0">
             <!-- 平板：1024–1279 -->
             <source media="(min-width:1024px) and (max-width:1279px)" :srcset="img(baseImages[i], { w: 1280 })" />
@@ -41,11 +41,11 @@
         </div>
 
         <!-- 遮罩/内容 -->
-        <div class="absolute inset-0 z-20 pointer-events-none">
+        <div class="absolute inset-0 z-20 pointer-events-none ">
           <!-- A款 -->
           <div v-if="s.variant === 'A'" class="h-full flex"
             :class="s.align === 'center' ? 'items-center justify-center text-center' : 'items-center'">
-            <div class="pointer-events-auto" :class="s.align === 'center' ? 'px-4' : 'pl-[6%] md:pl-[10%]'">
+            <div class="pointer-events-auto" :class="s.align === 'center' ? 'px-8' : 'pl-[calc(0.75rem+60px)] max-md:pl-12'">
               <h2 class="text-white font-semibold leading-tight"
                 :class="['text-3xl sm:text-5xl lg:text-6xl', textShadowClass]">
                 {{ s.title }}
@@ -102,15 +102,15 @@
     </Splide>
 
     <!-- 左右箭头按钮 - 使用文字箭头 -->
-    <div v-if="isReady" class="home-button-prev absolute top-1/2 -translate-y-1/2 z-30 cursor-pointer
-      left-[calc(0.75rem+12px)] sm:left-[calc(1rem+12px)] lg:left-[calc(1.5rem+12px)] xl:left-[calc(4rem+12px)]"
+    <div v-if="isReady" class="home-button-prev absolute top-1/2 -translate-y-1/2 z-30 cursor-pointer opacity-60
+      left-[calc(0.75rem+12px)]"
       @click="goPrev">
       <div class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
         <BaseIcon name="i-raphael:arrowleft2" class="text-primary w-4 h-4" />
       </div>
     </div>
-    <div v-if="isReady" class="home-button-next absolute top-1/2 -translate-y-1/2 z-30 cursor-pointer
-      right-[calc(0.75rem+12px)] sm:right-[calc(1rem+12px)] lg:right-[calc(1.5rem+12px)] xl:right-[calc(4rem+12px)]"
+    <div v-if="isReady" class="home-button-next absolute top-1/2 -translate-y-1/2 z-30 cursor-pointer opacity-60
+      right-[calc(0.75rem+12px)]"
       @click="goNext">
       <div class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
         <BaseIcon name="i-raphael:arrowright2" class="text-primary w-4 h-4" />
@@ -158,7 +158,7 @@ type Slide = VariantA | VariantB
 
 /** 原始图片（保持干净，无查询参数） */
 const baseImages = [
-  'https://cdn.incustom.com/upload/web/banner1119-1-1.webp',
+  'https://cdn.incustom.com/upload/web/13113.webp',
   'https://cdn.incustom.com/upload/web/banner1119-2-1.webp',
   'https://cdn.incustom.com/upload/web/banner1119-3-1.webp',
   'https://cdn.incustom.com/upload/web/banner1119-4-1.webp',
@@ -173,7 +173,7 @@ const slides = ref<Slide[]>([
     align: 'left',
     title: 'Indoor Roller Shade',
     subtitle: 'From harsh sun to nosy neighbors—your all-in-one window solution.',
-    onClick: () => { router.push('/Indoor-Windows-Treatment-1988900034820935680') },
+    onClick: () => { router.push('/Roller-Shades-1996472144640589824') },
   },
   {
     variant: 'A',
@@ -181,14 +181,14 @@ const slides = ref<Slide[]>([
     title: 'Adjustable Zebra Shades',
     subtitle:
       'Effortlessly transition between light filtering \nand privacy with our modern,  streamlined, \nand custom-fit shades.',
-    onClick: () => { router.push('/product/1990969316715237376/customized-pvc-roller-blind') },
+    onClick: () => { router.push('/Zebra-Blinds-1996475338619863040') },
   },
   {
     variant: 'A',
     align: 'left',
     title: 'Pergola Shade Cloth',
     subtitle: 'All-day UV protection with cool, breathable, and durable shade.',
-    onClick: () => { router.push('/Privacy-Screen-1988900728281894912') },
+    onClick: () => { router.push('/Fence-Screen-1996477845018492928') },
   },
   {
     variant: 'B',
@@ -203,7 +203,7 @@ const slides = ref<Slide[]>([
     align: 'center',
     title: 'Outdoor Roller Shade',
     subtitle: 'Protect your outdoors from harsh sun Enjoy breezy comfort',
-    onClick: () => { router.push('/POD-Outdoor-Roller-Shade-1988909494754840576') },
+    onClick: () => { router.push('/Printed-Outdoor-Roller-Shades-1996476229502615552') },
   },
   {
     variant: 'A',
@@ -211,7 +211,7 @@ const slides = ref<Slide[]>([
     title: 'Shade Sail',
     subtitle:
       'Block harsh sun, enjoy cool comfort, \n and upgrade your outdoor space with a \ndurable shade sail.',
-    onClick: () => { router.push('/Sun-Shade-Sail-879') },
+    onClick: () => { router.push('/Outdoor-Shades-&-Sails-1996475891458392064') },
   },
 ])
 

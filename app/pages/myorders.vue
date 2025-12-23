@@ -1,12 +1,13 @@
 <template>
     <div class="bg-white">
-        <div class="flex min-h-screen text-sm max-row">
+        <div class="flex  flex-col md:flex-row min-h-screen text-sm max-row">
             <!-- Sidebar -->
-            <Userleft class="hidden sm:block" />
+            <Userleft />
+
             <!-- Main Content -->
-            <main class="flex-1 p-0 py-6 sm:p-6 bg-white">
+            <main class="flex-1 py-6 px-6 max-lg:py-4 max-lg:px-0 bg-white">
                 <div class="flex flex-wrap items-center gap-3">
-                    <div class="text-sm whitespace-nowrap sm:px-3 sm:justify-center dark:text-gray-900">Order Number
+                    <div class="text-sm whitespace-nowrap sm:justify-center dark:text-gray-900">Order Number
                     </div>
 
                     <!-- 输入框：最大宽度限制 -->
@@ -15,25 +16,30 @@
 
                     <!-- 按钮 -->
                     <div @click="searchordernumber()"
-                        class="flex justify-center items-center bg-primary text-white px-4 h-[38px] cursor-pointer rounded-xl whitespace-nowrap">
+                        class="flex justify-center items-center bg-primary text-white px-4 h-[32px] cursor-pointer rounded-[4px] whitespace-nowrap">
                         Search
                     </div>
                 </div>
-
-
-                <section class="mt-8">
+                <section class="mt-8 max-lg:mt-4">
                     <!-- 移动端下拉选择 -->
-                    <div class="block md:hidden my-4">
-                        <USelect v-model="selectedindex" :options="tabs" option-attribute="label"
-                            value-attribute="value" @change="val => {
-                                const index = tabs.findIndex(t => String(t.value) === String(val));
-                                console.log(val);
-                                if (index !== -1) onChange(index);
-                            }" size="md" class="w-full" placeholder="Select status" />
+                    <div class="hidden max-md:block my-4">
+                        <USelect :value="selected" :options="tabs" option-attribute="label" value-attribute="value"
+                            @change="handleSelectChange" size="md" class="w-full px-1" placeholder="Select status" />
                     </div>
-
+                    <div class="flex max-md:hidden space-x-1 overflow-x-auto pb-2 scrollbar-thin">
+                        <div v-for="(tab, index) in tabs" :key="index" @click="handleTabChange(tab)" :class="[
+                            'flex-shrink-0 px-6 py-2 transition-all duration-200 cursor-pointer font-bold font-hind',
+                            selected === tab.value
+                                ? 'text-primary  border-b-2 border-sky-400'
+                                : 'text-gray-500 border-b-2 border-transparent hover:text-gray-700'
+                        ]">
+                            <span class="whitespace-nowrap">
+                                {{ tab.label }}
+                            </span>
+                        </div>
+                    </div>
                     <!-- 桌面端 Tabs -->
-                    <UTabs v-model="selected" :items="tabs" @change="onChange" class="hidden md:block" :ui="{
+                    <!-- <UTabs v-model="selectedIndex" :items="tabs" @change="handleTabChange" class="hidden md:block" :ui="{
                         container: 'w-full dark:bg-white',
                         wrapper: 'px-4',
                         list: {
@@ -45,9 +51,9 @@
                             },
                             background: 'bg-transparent dark:bg-white'
                         }
-                    }" />
+                    }" /> -->
 
-                    <div v-if="orders.length > 0" class="mx-auto px-4">
+                    <div v-if="orders.length > 0" class="">
                         <div class="bg-white rounded-lg shadow-sm">
                             <!-- Order Table Header -->
                             <div
@@ -58,9 +64,9 @@
                             </div>
 
                             <!-- Order Items -->
-                            <div class="divide-y">
+                            <div class="">
                                 <div v-for="order in orders" :key="order.id"
-                                    class="px-4 md:px-6 py-4 flex flex-col gap-4">
+                                    class="px-4 md:px-6 py-4 flex flex-col gap-4 border-b border-b-[#d9d9d9]">
                                     <!-- Order Header -->
                                     <div
                                         class="flex flex-col md:flex-row md:items-center text-sm text-gray-500 gap-2 md:gap-4">
@@ -69,8 +75,8 @@
                                             <span class="text-[#AEAEAE] mx-2">{{ order.orderNumber }}</span>
                                             <UTooltip text="Copy the order number" :popper="{ arrow: true }">
                                                 <BaseIcon @click="copyToClipboard(order.orderNumber)"
-                                                    name="i-ri:file-copy-2-line"
-                                                    class="w-5 h-5 cursor-pointer hover:text-primary" />
+                                                    style="color: #383838;" name="i-ant-design:copy-outlined"
+                                                    class="w-4 h-4 cursor-pointer hover:!text-primary" />
                                             </UTooltip>
                                         </div>
                                         <span>{{ formatTimestamp(order.createDate) }}</span>
@@ -90,19 +96,22 @@
                                                 :key="item.productSku">
                                                 <div class="flex gap-3 md:gap-4">
                                                     <div
-                                                        class="w-24 md:w-28 aspect-square overflow-hidden rounded-lg bg-white flex items-center justify-center">
+                                                        class="w-[82px] h-[82px] aspect-square overflow-hidden rounded-[4px] bg-[#d9d9d9] flex items-center justify-center">
                                                         <img :src="item.productImage" :alt="item.productName"
-                                                            class="max-w-full max-h-full object-contain" />
+                                                            class="w-full h-full" />
                                                     </div>
-                                                    <div class="flex-1">
+                                                    <div class="">
                                                         <Tooltip :title="item.productName">
-                                                            <div class="font-medium text-customblack truncate-1-lines">
-                                                                {{ item.productName }}
-                                                            </div>
+                                                            <NuxtLink :to="`/product/${item.productSpuId}`">
+                                                                <span
+                                                                    class="md:ml-auto font-medium text-customblack line-clamp-2">
+                                                                    {{ item.productName }}
+                                                                </span>
+                                                            </NuxtLink>
                                                         </Tooltip>
                                                         <Tooltip
                                                             :title="item.skuPropList.map(spec => spec.value).join(' ')">
-                                                            <p class="text-sm text-[#AEAEAE] my-1 truncate-1-lines">
+                                                            <p class="text-sm text-[#AEAEAE] my-1 line-clamp-2">
                                                                 <span v-for="spec in item.skuPropList" :key="spec.value"
                                                                     class="mr-2">
                                                                     {{ spec.value }}
@@ -110,7 +119,8 @@
                                                             </p>
                                                         </Tooltip>
                                                         <p class="text-sm text-customblack">
-                                                            Price × Qty：${{ item.priceOrdered }} × {{ item.qtyOrdered }}
+                                                            <span class="text-[#5A5B5B]">Price × Qty：</span>${{
+                                                                item.priceOrdered }} × {{ item.qtyOrdered }}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -135,12 +145,13 @@
                                         <!-- Actions -->
                                         <div
                                             class="md:col-span-3 flex flex-wrap gap-2 items-center justify-end md:flex-col md:items-end md:justify-center">
-                                            <UButton class="w-auto px-4 md:w-28 flex justify-center items-center"
+                                            <UButton
+                                                class="w-auto px-4 md:w-28 rounded-[4px] flex justify-center items-center"
                                                 v-if="order.status == 500" @click="gotopay(order.orderNumber)">
                                                 Pay
                                             </UButton>
                                             <UButton color="white"
-                                                class="w-auto px-4 md:w-28 flex justify-center items-center"
+                                                class="w-auto px-4 md:w-28 rounded-[4px] flex justify-center items-center"
                                                 variant="solid" v-if="order.status <= 1200"
                                                 @click="setCancleOrder(order.id)">
                                                 Cancel
@@ -160,9 +171,11 @@
                             </div>
 
                             <!-- Pagination -->
-                            <div class="flex justify-center md:justify-end mt-6" v-show="ordercount > 0">
+                            <div class="flex justify-center items-center md:justify-end mt-6" v-show="ordercount > 0">
                                 <UPagination v-model="page" :page-count="pageSize" :total="ordercount"
-                                    :prev-button="{ icon: 'i-material-symbols:chevron-left' }"
+                                    :active-button="{ variant: 'outline' }" :ui="{
+                                        base: 'ring-[#d9d9d9] dark:ring-[#d9d9d9]',
+                                    }" :prev-button="{ icon: 'i-material-symbols:chevron-left' }"
                                     :next-button="{ icon: 'i-material-symbols:chevron-right' }" />
                             </div>
 
@@ -200,8 +213,8 @@ const orders = ref([]);
 const tabs = ref([]);
 const payarr = [500];
 const canclearr = [500];
-const selectedindex = ref('')
-const selected = ref(tabs.value[0]);
+const selectedIndex = ref(0)
+const selected = ref('');
 const page = ref(1);
 const status = ref([]);
 const pageSize = ref(5);
@@ -211,6 +224,10 @@ const showMore = ref({}); // Tracks which orders show all SKUs
 const { getOrderlists, groupUserOrderStatusCount } = OrderAuth();
 const token = useCookie('token')
 const userType = useCookie('userType', { sameSite: 'lax', path: '/' });
+
+// const curSelect = computed(() => {
+//     return tabs.value[selectedIndex.value];
+// })
 
 const isuserTokenValid = computed(() => {
     const isMember = userType.value != 2
@@ -260,6 +277,7 @@ const getOrderlist = async () => {
         let res = await getOrderlists(params);
         let lists = res.result.list;
         orders.value = lists;
+        console.log('orders====', orders.value);
         ordercount.value = res.result.total;
     } catch (error) { }
 };
@@ -270,9 +288,10 @@ const getOrderstatuslist = async () => {
         let getttabs = res.result;
         tabs.value = getttabs.map(item => ({
             label: item.statusEnName + (item.count > 0 ? '(' + item.count + ')' : ''),
-            value: item.statusList,
+            value: item.statusList?.map(Number).join(',') || '',
             count: item.count,
         }));
+        // selectedIndex.value = 0;
         // let newItems = {
         //     label: 'All',
         //     value: '',
@@ -327,11 +346,18 @@ function getOrderStatus(status) {
     }
 }
 
-function onChange(index) {
-    console.log(index);
-    let item = tabs.value[index];
-    status.value = item.value;
-    console.log(status.value)
+function handleSelectChange(val) {
+    selected.value = val;
+    status.value = val?.split(',')?.length > 0 ? val?.split(',').filter(i => i !== '').map(Number) : [];
+
+    getOrderlist();
+}
+
+function handleTabChange(tab) {
+    console.log('handleTabChange======', tab);
+    // let item = tabs.value[index];
+    selected.value = tab.value;
+    status.value = tab.value?.split(',')?.length > 0 ? tab.value?.split(',').filter(i => i !== '').map(Number) : [];
 
     getOrderlist();
 }
@@ -398,12 +424,5 @@ select {
 input::placeholder,
 select::placeholder {
     color: #AEAEAE !important;
-}
-
-.truncate-1-lines {
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
 }
 </style>

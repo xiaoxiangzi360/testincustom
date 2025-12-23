@@ -228,8 +228,33 @@ const sanitizeInput = (index: number) => {
 function goToCart() { router.push('/cart'); menuOpen.value = false }
 function goShopping() { router.push('/'); menuOpen.value = false }
 const checkdetai = (id: any, sku: any, name: string) => { router.push('/product/' + id + '/' + slugify(name) + '?sku=' + sku) }
-
 // 从 propList 构建规格属性字符串
+
+const getSpecArray = (propList: any[]) => {
+  if (!propList || !Array.isArray(propList)) return []
+
+  const result: any[] = []
+
+  propList.forEach(prop => {
+    if (prop.inputList?.length > 0) {
+      // ⚠️ 一个 prop 可能包含多个 input，拆成多行
+      prop.inputList.forEach((input: any) => {
+        result.push({
+          label: `${input.inputName}:`,
+          value: input.inputValue
+        })
+      })
+    } else {
+      // 普通属性
+      result.push({
+        label: `${prop.propEnName}:`,
+        value: prop.propValueEnName
+      })
+    }
+  })
+
+  return result
+}
 const getSpecAttrFromPropList = (propList: any[]) => {
   if (!propList || !Array.isArray(propList)) return ''
 
@@ -444,165 +469,157 @@ if (process.client) {
 </script>
 
 <template>
-  <div class="flex flex-nowrap items-center justify-center px-4 rounded-lg ">
+  <div class="flex flex-nowrap items-center justify-center pr-4 rounded-lg gap-x-4">
     <!-- Cart Popover（保留） -->
-    <UPopover color="white" v-model:open="menuOpen" trigger="manual" mode="hover"
-      :ui="{ base: 'border-none shadow-2xl bg-white rounded-md focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow' }"
-      :popper="{ placement: 'bottom' }">
-      <template #default>
-        <div class="flex items-center px-4 py-2  rounded-lg transition relative">
-          <NuxtImg src="/cart.png" alt="cart" class="h-9" />
-          <UBadge v-if="cart.itemCount > 0" :label="cart.itemCount" color="primary" variant="solid"
-            class="absolute top-2 right-4 w-4 h-4 flex items-center justify-center rounded-full ring-0 text-white text-xxs font-semibold" />
-        </div>
-      </template>
+    <div class="h-full flex items-center justify-center">
+      <UPopover color="white" v-model:open="menuOpen" mode="hover" :ui="{
+        base: 'pb-0 mb-0'
+        , shadow: 'shadow-none', ring: 'ring-0'
+      }" class="mb-0 pb-0" :popper="{
+        placement: 'bottom'
+      }">
+        <template #default>
+          <div class="relative flex items-center justify-center pt-[3px]">
+            <HoverImg class="w-[24px] h-[24px] object-cover" defaultImg="/home/cart_default.webp"
+              hoverImg="/home/cart_highlight.webp" />
+            <div v-if="cart.itemCount > 0"
+              class="absolute top-[-7px] right-[-8px] w-4 h-4 flex items-center justify-center rounded-full text-white bg-primary text-[12px] font-semibold">
+              {{ cart.itemCount }}</div>
+          </div>
+        </template>
 
-      <template #panel>
-        <div class="flex">
-          <div class="max-w-2xl mx-auto pb-2">
-            <div class="bg-white rounded-lg" v-if="cart.itemList.length > 0">
-              <div class="mb-8 max-h-[40vh] overflow-y-auto p-4">
-                <div v-for="(item, index) in cart.itemList" :key="index" :class="[
-                  'flex items-center py-4 transition-colors border-solid border-[#F8F8F8]',
-                  index !== cart.itemList.length - 1 ? 'border-b' : ''
-                ]">
-                  <div class="w-20 rounded-lg overflow-hidden">
-                    <img :src="item.productImage || item.product?.mainPic?.url" :alt="item.productName"
-                      class="w-full h-full object-cover object-top cursor-pointer"
-                      @click="checkdetai(item.product?.id, item.productSku, item.productName)" />
-                  </div>
+        <template #panel>
+          <div class="flex">
+            <div class="max-w-2xl mx-auto pb-2">
+              <div class="bg-white rounded-lg" v-if="cart.itemList.length > 0">
+                <div class="max-h-[60vh] overflow-y-auto p-4">
+                  <div v-for="(item, index) in cart.itemList" :key="index" :class="[
+                    'flex items-start py-4 transition-colors border-solid border-[#F8F8F8]',
+                    index !== cart.itemList.length - 1 ? 'border-b' : ''
+                  ]">
+                    <div class="w-20 rounded-lg overflow-hidden">
+                      <NuxtImg :src="`${item.productImage || item.product?.mainPic?.url}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`" :alt="item.productName"
+                        class="w-full h-full object-cover object-top cursor-pointer"
+                        @click="checkdetai(item.product?.id, item.productSku, item.productName)" />
+                    </div>
 
-                  <div class="ml-6 ">
-                    <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" :title="item.productName"
-                      :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
-                      <div class="text-sm text-blackcolor truncate-1-lines w-52">
-                        {{ item.productName }}
-                      </div>
-                    </Tooltip>
-
-                    <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
-                      :title="getSpecAttrFromPropList(item.skuData?.propList)"
-                      :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'word-break' }">
-                      <div class="text-sm text-[#8E8E8E]  truncate-1-lines w-52 mt-1">
-                        {{ getSpecAttrFromPropList(item.skuData?.propList) }}
-                      </div>
-                    </Tooltip>
-
-                    <div class="flex items-center mt-2">
-                      <div class="mr-6">
-                        <div class="flex items-center">
-                          <div class="flex items-center border rounded-md w-26 justify-between px-2">
-                            <button @click="decreaseproductQuantity(index)"
-                              class="text-gray-500 hover:text-black disabled:text-gray-300"
-                              :disabled="item.productQuantity <= min">-</button>
-                            <input v-model.number="item.productQuantity" @input="onInputNumber($event, index)"
-                              class="w-16 h-8 text-center outline-none border-none focus:ring-0 focus:outline-none text-black"
-                              :min="min" :max="max" />
-                            <button @click="increaseproductQuantity(index)"
-                              class="text-gray-500 hover:text-black disabled:text-gray-300"
-                              :disabled="item.productQuantity >= max">+</button>
-                          </div>
+                    <div class="ml-6 ">
+                      <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }" :title="item.productName"
+                        :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
+                        <div class="text-sm text-blackcolor line-clamp-[1] w-52">
+                          {{ item.productName }}
+                        </div>
+                      </Tooltip>
+                      <div class="text-xs text-[#8E8E8E] w-52">
+                        <div class="mt-1" v-for="citem in getSpecArray(item.skuData?.propList)" :key="citem">
+                          <span class="text-customblack">{{ citem.label
+                            }}</span>
+                          <span class="text-gray-400 ml-1">{{ citem.value
+                            }}</span>
                         </div>
                       </div>
-                      <div class="flex items-center text-black">
-                        {{ item.productPrice.toFixed(2) }}
+                      <!-- <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
+                      :title="getSpecAttrFromPropList(item.skuData?.propList)"
+                      :overlayStyle="{ maxWidth: '300px', whiteSpace: 'pre-line', wordBreak: 'word-break' }">
+                      <div class="text-sm text-[#8E8E8E]  line-clamp-[1] w-52 mt-1">
+                        {{ getSpecAttrFromPropList(item.skuData?.propList) }}
                       </div>
+                    </Tooltip> -->
+
+                      <div class="flex items-center mt-2">
+                        <div class="mr-6">
+                          <div class="flex items-center">
+                            <div class="flex items-center border rounded-md w-26 justify-between px-2">
+                              <button @click="decreaseproductQuantity(index)"
+                                class="text-gray-500 hover:text-black disabled:text-gray-300"
+                                :disabled="item.productQuantity <= min">-</button>
+                              <input v-model.number="item.productQuantity" @input="onInputNumber($event, index)"
+                                class="w-16 h-8 text-center outline-none border-none focus:ring-0 focus:outline-none text-black"
+                                :min="min" :max="max" />
+                              <button @click="increaseproductQuantity(index)"
+                                class="text-gray-500 hover:text-black disabled:text-gray-300"
+                                :disabled="item.productQuantity >= max">+</button>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="flex items-center text-black">
+                          {{ item.productPrice.toFixed(2) }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="ml-6 flex flex-col items-end">
+                      <img @click="removeItem(index)" src="/del.png" class="w-6 cursor-pointer">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="p-6">
+                  <div class="flex items-center justify-between mb-6">
+                    <span class="font-semibold text-black text-base">Total</span>
+                    <span class="text-base font-semibold text-black cursor-pointer flex"
+                      @click="showDetails = !showDetails">
+                      ${{ total.toFixed(2) }}
+                      <BaseIcon name="i-heroicons-chevron-down-20-solid" width="24px" height="24px"
+                        class="transition-transform duration-200 h-6 w-6" :class="{ 'rotate-180': showDetails }" />
+                    </span>
+                  </div>
+
+                  <div v-if="showDetails">
+                    <div class="flex items-center justify-between mb-4">
+                      <span class="text-black text-base">Subtotal</span>
+                      <span class="text-base font-medium text-black mr-8">${{ subtotal.toFixed(2) }}</span>
+                    </div>
+                    <div class="flex items-center justify-between mb-4">
+                      <span class="text-black text-base">Shipping</span>
+                      <span class="text-base font-medium text-black mr-8">${{ shipping.toFixed(2) }}</span>
                     </div>
                   </div>
 
-                  <div class="ml-6 flex flex-col items-end">
-                    <img @click="removeItem(index)" src="/del.png" class="w-6 cursor-pointer">
+                  <div class="flex space-x-4">
+                    <button @click="goToCart"
+                      class="flex-1 px-6 py-3 border border-solid border-[#979797] bg-gray-100 text-gray-800 font-normal rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap !rounded-button">
+                      Go to Cart
+                    </button>
+                    <button @click="checkout()"
+                      class="flex-1 px-6 py-3 bg-primary border border-solid border-primary text-white font-normal rounded-lg hover:bg-primary-600 transition-colors whitespace-nowrap !rounded-button">
+                      Checkout
+                    </button>
                   </div>
                 </div>
+
               </div>
 
-              <div class="p-6 shadow-[0_-4px_4px_0_rgba(232,231,231,0.5)]">
-                <div class="flex items-center justify-between mb-6">
-                  <span class="font-semibold text-black text-base">Total</span>
-                  <span class="text-base font-semibold text-black cursor-pointer flex"
-                    @click="showDetails = !showDetails">
-                    ${{ total.toFixed(2) }}
-                    <BaseIcon name="i-heroicons-chevron-down-20-solid" width="24px" height="24px"
-                      class="transition-transform duration-200 h-6 w-6" :class="{ 'rotate-180': showDetails }" />
-                  </span>
-                </div>
-
-                <div v-if="showDetails">
-                  <div class="flex items-center justify-between mb-4">
-                    <span class="text-black text-base">Subtotal</span>
-                    <span class="text-base font-medium text-black mr-8">${{ subtotal.toFixed(2) }}</span>
-                  </div>
-                  <div class="flex items-center justify-between mb-4">
-                    <span class="text-black text-base">Shipping</span>
-                    <span class="text-base font-medium text-black mr-8">${{ shipping.toFixed(2) }}</span>
-                  </div>
-                </div>
-
-                <div class="flex space-x-4">
-                  <button @click="goToCart"
-                    class="flex-1 px-6 py-3 border border-solid border-[#979797] bg-gray-100 text-gray-800 font-normal rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap !rounded-button">
-                    Go to Cart
-                  </button>
-                  <button @click="checkout()"
-                    class="flex-1 px-6 py-3 bg-primary border border-solid border-primary text-white font-normal rounded-lg hover:bg-primary-600 transition-colors whitespace-nowrap !rounded-button">
-                    Checkout
-                  </button>
-                </div>
+              <div v-if="cart.itemList.length === 0"
+                class="bg-white rounded-lg  flex flex-col items-center justify-center h-80 px-8 ">
+                <p class="text-gray-400">There are no more items in your cart</p>
+                <button @click="goShopping"
+                  class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors mt-8">
+                  Go shopping
+                </button>
               </div>
 
             </div>
-
-            <div v-if="cart.itemList.length === 0"
-              class="bg-white rounded-lg  flex flex-col items-center justify-center h-80 px-8 ">
-              <p class="text-black">There are no more items in your cart</p>
-              <button @click="goShopping"
-                class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors mt-8">
-                Go shopping
-              </button>
-            </div>
-
           </div>
-        </div>
-      </template>
-    </UPopover>
-
+        </template>
+      </UPopover>
+    </div>
     <!-- 登录按钮 / 用户信息（保留） -->
-    <div v-if="!isuserTokenValid" class="flex items-center text-white text-sm gap-1">
-      <div class="py-1 hover:text-primary transition-colors font-medium cursor-pointer" @click.prevent="goLogin()">Sign
-        In
-      </div>
-      <span>|</span>
-      <div @click.prevent="goRegister('/register')"
-        class="py-1 hover:text-primary transition-colors font-medium cursor-pointer">Sign
-        Up
-      </div>
-
-      <!-- <UPopover v-model:open="signUpOpen" mode="hover" :popper="{ placement: 'bottom' }"
-        :ui="{ base: 'border-none shadow-2xl bg-white rounded-md focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow' }">
-        <template #default>
-          <div class="py-1 hover:text-primary transition-colors font-medium">Sign Up</div>
-        </template>
-        <template #panel>
-          <div class="flex flex-col text-gray-400 min-w-[180px]">
-            <div class="text-left px-4 py-2 hover:bg-primary-50 hover:text-primary-600 cursor-pointer"
-              @click.prevent="goRegister('/register')">
-              Sign Up For Personal
-            </div>
-            <div class="text-left px-4 py-2 hover:bg-primary-50 hover:text-primary-600 cursor-pointer"
-              @click.prevent="goRegister('/registerbusiness')">
-              Sign Up For Business
-            </div>
-          </div>
-        </template>
-      </UPopover> -->
+    <div v-if="!isuserTokenValid" class="flex items-center text-white h-full text-sm gap-1" @click.prevent="goLogin()">
+      <HoverImg class="w-[24px] h-[24px] " defaultImg="/home/user_default.webp" hoverImg="/home/user_highlight.webp" />
     </div>
 
-    <div class="text-white cursor-pointer" v-if="isuserTokenValid">
+    <div class="text-white cursor-pointer h-full flex items-center justify-center" v-if="isuserTokenValid">
       <UPopover color="white" v-model:open="infoOpen" mode="hover"
-        :ui="{ base: 'border-none shadow-2xl bg-white rounded-md focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow' }"
+        :ui="{ base: 'border-none  shadow-2xl bg-white rounded-md focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow' }"
         :popper="{ placement: 'bottom' }">
         <template #default>
-          <NuxtLink to="/userinfo"><img src="/userfill.png" class="h-9" /></NuxtLink>
+          <NuxtLink to="/userinfo" class=" pt-[3px]">
+            <HoverImg class=" w-[24px] h-[24px] text-white ml-1 cursor-pointer" defaultImg="/home/in_default.webp"
+              hoverImg="/home/in_highlight.webp" />
+
+            <!-- <HoverImg class="w-[24px] h-[24px]" defaultImg="/home/user_default.webp" hoverImg="/home/user_highlight.webp" /> -->
+          </NuxtLink>
         </template>
 
         <template #panel>
@@ -626,15 +643,20 @@ if (process.client) {
       </UPopover>
     </div>
 
+
     <!-- ============ 位置选择：改为 UModal ============ -->
     <!-- 触发按钮（原来是 UPopover #default，现在是一个按钮） -->
-    <button type="button" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition focus:outline-none"
+    <button type="button" class="flex items-center space-x-2 pr-4 py-2 rounded-lg transition focus:outline-none"
       @click="langOpen = true">
       <UTooltip :text="displayLocationLabel || 'Select location'">
-        <div class="truncate max-w-[120px] text-sm cursor-pointer text-left">
-          <div class="text-gray-100">Delivery to</div>
-          <div class="truncate">
-            {{ displayLocationLabel || 'Select location' }}
+        <div class="text-white hover:text-primary flex items-center">
+          <HoverImg class="w-[24px] h-[24px] mr-2" defaultImg="/home/map_mark_default.webp"
+            hoverImg="/home/map_mark_highlight.webp" />
+          <div class="truncate max-w-[120px] text-sm cursor-pointer text-left">
+            <div class="text-[12px]">Delivery to</div>
+            <div class="truncate">
+              {{ displayLocationLabel || 'Select location' }}
+            </div>
           </div>
         </div>
       </UTooltip>
@@ -694,12 +716,6 @@ if (process.client) {
   background-color: green;
 }
 
-.truncate-1-lines {
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
 
 :deep(.custom-popover-shadow) {
   box-shadow: -2px 2px 10px 0px rgba(46, 46, 12, 0.06) !important;

@@ -11,7 +11,7 @@ definePageMeta({
     icon: 'i-mdi-home',
 })
 
-const { facebookLogin } = useAuth()
+const { facebookLogin, facebookRegister } = useAuth()
 const router = useRouter()
 const route = useRoute()
 
@@ -26,10 +26,11 @@ onMounted(async () => {
     try {
         const res = await facebookLogin({ code })
         if (!res.result) {
-            navigateTo({
-                path: '/registerbusiness',
-                query: { step: 2, code: code, type: 'google', }
-            }, { replace: true })
+            gotoregister(code)
+            // navigateTo({
+            //     path: '/registerbusiness',
+            //     query: { step: 2, code: code, type: 'google', }
+            // }, { replace: true })
         } else {
             const redirectCookie = useCookie('redirectPath')
             const backTo = redirectCookie.value || '/myorders'
@@ -41,6 +42,21 @@ onMounted(async () => {
         router.replace('/login')
     }
 })
+const gotoregister = async (code) => {
+
+    try {
+        // 传递 code 给后端
+        const res = await facebookRegister({ code })
+        const redirectCookie = useCookie('redirectPath')
+        const backTo = redirectCookie.value || '/myorders'   // 没有就回首页
+        redirectCookie.value = null                  // 清除，避免下次误跳
+        await navigateTo(backTo, { replace: true })
+
+    } catch (error) {
+        router.replace('/login')
+    }
+
+}
 </script>
 
 <template>

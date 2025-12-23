@@ -17,6 +17,7 @@ const curactivity = ref<any>({})      // 当前要展示/手动弹的活动对�
 const isshow = ref(false)             // 由自动逻辑或点击 CouponIcon 控制
 let emailactivity: any = null
 let couponactivity: any = null
+let merryactivity: any = null
 
 /** 判断是否已有“今天不再弹/永久不弹”的 cookie */
 function hasHideCookie(id?: string | number) {
@@ -39,16 +40,19 @@ function isEmptyObject(obj: any) {
  *    - 无 hide cookie：自动弹
  *    - 有 hide cookie：不自动弹
  */
+const merryIds = ['1998573680116084736']
 const getactivitylistlist = async () => {
   const res = await listInProgressMarketingActivity()
   const lists = res.result || []
 
   // 采集两个候选活动
-  lists.forEach((element: any) => {
-    if (element.couponReceiveMethod == 50) {
+  for (let i = 0; i < lists.length; i++) {
+    const element = lists[i];
+    if (merryIds.includes(element.id)) {
+      merryactivity = element;
+    } else if (element.couponReceiveMethod == 50) {
       emailactivity = element
-    }
-    if (
+    } else if (
       element.couponReceiveMethod == 10 &&
       !hasHideCookie(element.id) &&
       !couponactivity &&
@@ -56,12 +60,31 @@ const getactivitylistlist = async () => {
     ) {
       couponactivity = element
     }
-  })
+  }
+  // lists.forEach((element: any) => {
+  //   // if(merryIds.includes(element.id)) {
+  //   //   curactivity.value = element;
+  //   // }
+  //   if (element.couponReceiveMethod == 50) {
+  //     emailactivity = element
+  //   }
+  //   if (
+  //     element.couponReceiveMethod == 10 &&
+  //     !hasHideCookie(element.id) &&
+  //     !couponactivity &&
+  //     element.popupTriggerEvent != 10
+  //   ) {
+  //     couponactivity = element
+  //   }
+  // })
 
   // 是否需要自动弹
   let shouldAutoShow = false
 
-  if (emailactivity) {
+  if (merryactivity) {
+    curactivity.value = merryactivity;
+    shouldAutoShow = true;
+  } else if (emailactivity) {
     curactivity.value = emailactivity
     // 邮箱订阅：有 cookie -> 不自动弹；无 cookie -> 自动弹
     if (!hasHideCookie(emailactivity.id)) {
@@ -92,23 +115,13 @@ getactivitylistlist()
       subtitle="Custom shades celebrated by design enthusiasts everywhere" />
     <PopularProducts tag="New Arrivals" :tagIdList="['31d26a6487e08357bd771619e894b0c6']" title="New Arrivals"
       subtitle="Fresh custom shades designed for your home and garden" />
-    <!-- <Needs /> -->
 
     <HomeCompoents />
-    <!-- <Howwork /> -->
-    <!-- <Integration /> -->
-    <!-- <Integration2 /> -->
-    <!-- <Views /> -->
     <Faq />
     <Business />
     <CouponIcon v-model:isshow="isshow" :curactivity="curactivity" />
     <ActivityModal v-model:isshow="isshow" :curactivity="curactivity" />
     <Cookiemodal />
-    <!-- <HeroSection />
-    <UContainer class="pt-8">
-      <LaunchSale class="mt-8" />
-      <HotDeals class="mt-8" />
-    </UContainer> -->
   </div>
 </template>
 <style scoped></style>

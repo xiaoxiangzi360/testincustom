@@ -13,6 +13,7 @@ const pageMeta = computed(() => {
 })
 
 useHeadAndMeta(pageMeta)
+
 useOgImage()
 </script>
 

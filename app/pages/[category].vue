@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { toRaw } from 'vue'
 const route = useRoute()
 
 definePageMeta({
@@ -14,7 +15,7 @@ const categorybanner = ref('')
 const categorytitle = ref('')
 const categorydesc = ref('')
 const categoryalt = ref('')
-const contentConfigView = ref(false)
+const contentConfigView = ref(null)
 const bannerLoading = ref(true)   // ✅ 背景图骨架屏状态
 const capitalize = (s: string) => (s && s[0].toUpperCase() + s.slice(1)) || ''
 
@@ -34,7 +35,7 @@ useServerSeoMeta({
 
 const catename = ref('')
 const cateid = rawCategory.value?.split?.('-')?.pop() ?? ''
-
+const cateLevel = ref(0)
 const sortarray = [
   'Name Alphabetic, a-z',
   'Name Alphabetic, z-a',
@@ -82,14 +83,49 @@ const pageSize = 12
 const hasMore = ref(true)
 const isBottomLoading = ref(false)
 
-const { getUserProductRollPage, getMallProductCatalogById } = ProductAuth()
-const router = useRouter()
+const { getSpuCatalogPropByCatalogId, getProductSpuLevelTwo, getUserProductRollPage, getMallProductCatalogById } = ProductAuth()
 
 const breadcrumbLinks = computed(() => [
   { label: 'Home', to: '/', title: 'Home' },
   { label: catename.value, to: '/' + catename.value + '-' + cateid, title: catename.value },
 ])
 
+const drawerData = ref({ open: false, data: null })
+const isLoadedFilterTree = ref(false)
+const filterTree = ref({
+  levelTwoCatalog: [],
+  spuCatalogProp: [],
+})
+const curFilter = ref({
+  curCatalogId: '',
+  curCatalogPropIds: [],
+  curAllCatalogProps: []
+})
+// 打开和关闭 FilterDrawer 的方法
+const openFilterDrawer = () => {
+  drawerData.value = {
+    open: true,
+    data: {
+      cateid: cateid,
+      cateLevel: cateLevel.value,
+      filterTree: filterTree.value,
+      curFilter: curFilter.value
+    }
+  }
+}
+
+const closeFilterDrawer = () => {
+  drawerData.value.open = false
+}
+const handleFilterSure = (data: any) => {
+  console.log('筛选结果:', data);
+  curFilter.value = { ...data };
+  drawerData.value.open = false;
+  // 根据筛选条件重新获取商品列表
+  pageNum.value = 1
+  hasMore.value = true
+  getlistlist(true)
+}
 // 监听筛选
 const handleChange = (value: string) => {
   selected.value = selected.value === value ? '' : value
@@ -104,12 +140,54 @@ watch(selectedsort, () => {
   getlistlist(true)
 })
 
+const isFixed = ref(false)
+const stickyElement = ref(null)
+const { navBarHeight } = useNavBar() // 默认监听 id 为 "navBar" 的元素
+const initTop = ref(0)
+const handleScroll = () => {
+  if (!stickyElement.value) return
+
+  // 获取滚动位置
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+
+  // 获取元素距离顶部的距离
+  const { top: elementTop, height: elementHeight } = stickyElement.value.getBoundingClientRect()
+  if (initTop.value <= 0) {
+    initTop.value = elementTop - navBarHeight.value - 10
+    isFixed.value = false
+    return
+  }
+  // console.log('scrollTop:', scrollTop, 'elementTop:', elementTop, 'initTop:', initTop.value, 'navBarHeight:', navBarHeight.value)
+  isFixed.value = scrollTop > initTop.value
+}
+
+const { throttledFunction: throttledHandleScroll } = useThrottled(handleScroll, 100)
+
 // ====== 列表数据加载（客户端分页/懒加载） ======
 // 将数据加载放到 onMounted 生命周期钩子中
 onMounted(async () => {
   await getlistlist(true)
   await getcateinfo()
 })
+
+const fetchCateListById = async () => {
+  try {
+    const params = {
+      catalogId: cateid,
+    }
+    let res
+    if (cateLevel.value === 1) {
+      res = await getProductSpuLevelTwo(params)
+      filterTree.value.levelTwoCatalog = res.result || []
+    } else {
+      res = await getSpuCatalogPropByCatalogId(params)
+      filterTree.value.spuCatalogProp = res.result || []
+    }
+    isLoadedFilterTree.value = true
+  } catch (error) {
+    console.error('Load filter tree failed:', error)
+  }
+}
 
 const getlistlist = async (isReset = false) => {
   if (loading.value || isBottomLoading.value || (!hasMore.value && !isReset)) return
@@ -121,10 +199,33 @@ const getlistlist = async (isReset = false) => {
   } else {
     isBottomLoading.value = true
   }
+  // let catalogPropValueIdList = []
+  let catalogPropList = []
+  const { curCatalogId, curCatalogPropIds, curAllCatalogProps } = toRaw(curFilter.value)
+  // catalogPropValueIdList = curCatalogPropIds;
+  let catalogPropAllList = cateLevel.value > 1 ? filterTree.value.spuCatalogProp : curAllCatalogProps;
+  catalogPropList = catalogPropAllList.map(item => {
+    return {
+      propId: item.propId,
+      propValueIdList: item.propValueList.map((val: any) => curCatalogPropIds.includes(val.propValueId) ? val.propValueId : null).filter((v: any) => v !== null)
+    }
+  }).filter((prop: any) => prop.propValueIdList.length > 0)
 
+  // console.log('curFilter-----:', curCatalogPropIds, catalogPropAllList);
+  // if (cateLevel.value > 1) {
+  //   tagIdList = curCatalogPropIds || []
+  // } else {
+  //   if (curCatalogPropIds.length > 0) {
+  //     tagIdList = curCatalogPropIds
+  //   }else{
+  //     // 如果没有选中任何属性，则使用所有属性进行过滤
+  //     tagIdList = curAllCatalogProps.map((prop: any) => prop.propId)
+  //   }
+  // }
   try {
     const parmes: Record<string, any> = {
-      catalogPathIdList: [cateid],
+      catalogPropList,
+      catalogPathIdList: curCatalogId ? [curCatalogId] : [cateid],
       pageNum: pageNum.value,
       needCount: true,
       pageSize,
@@ -171,7 +272,8 @@ const getcateinfo = async () => {
       categorydesc.value = result.contentConfigSubtitle || result.desc || ''
       catename.value = result.catalogEnName || ''
       contentConfigView.value = result.contentConfigView || false
-
+      cateLevel.value = result.level || 0
+      fetchCateListById();
       if (categorybanner.value) {
         bannerLoading.value = true
         const img = new Image()
@@ -208,11 +310,19 @@ const getcateinfo = async () => {
   }
 }
 
+watch(() => contentConfigView.value, async () => {
+  initTop.value = 0
+  await nextTick()
+  handleScroll()
+})
+
 // IntersectionObserver 懒加载更多
 const bottomRef = ref<HTMLElement | null>(null)
 const observer = ref<IntersectionObserver | null>(null)
 
 onMounted(() => {
+  window.addEventListener('scroll', throttledHandleScroll)
+
   observer.value = new IntersectionObserver((entries) => {
     if (entries[0].isIntersecting && hasMore.value && !loading.value && !isBottomLoading.value) {
       getlistlist()
@@ -224,6 +334,10 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  initTop.value = 0
+
+  window.removeEventListener('scroll', throttledHandleScroll)
+
   if (observer.value && bottomRef.value) {
     observer.value.unobserve(bottomRef.value)
     observer.value.disconnect()
@@ -287,20 +401,102 @@ const onSelectItem = (p: any, index: number) => {
 watch([products, loading, selectedsort, () => selected.value], () => {
   if (!loading.value && products.value?.length) reportListImpression()
 })
+
+const filterLabelList = computed(() => {
+  const { curCatalogId, curCatalogPropIds, curAllCatalogProps } = curFilter.value;
+  // 遍历 curCatalogPropIds，找到对应的 propValueList，并组装成指定格式
+  let matchingTags = curCatalogPropIds.flatMap((propValueId) =>
+    curAllCatalogProps.flatMap((prop) =>
+      prop.propValueList
+        .filter((value) => value.propValueId === propValueId) // 找到匹配的 propValueId
+        .map((value) => ({
+          label: value.propValueEnName, // 使用 propValueEnName 作为 label
+          value: value.propValueId, // 使用 propValueId 作为 value
+          type: 'PropValue', // 使用 propEnName 作为 type
+        }))
+    )
+  );
+
+  if (filterTree.value.levelTwoCatalog.length > 0 && curCatalogId) {
+    const matchedCatalog = filterTree.value.levelTwoCatalog.find(catalog => catalog.catalogId === curCatalogId);
+    if (matchedCatalog) {
+      matchingTags.unshift({
+        label: matchedCatalog.catalogEnName,
+        value: matchedCatalog.id,
+        type: 'Category',
+      });
+    }
+  }
+  if (filterTree.value.spuCatalogProp.length > 0 && curCatalogPropIds?.length > 0) {
+    matchingTags = filterTree.value.spuCatalogProp.flatMap((prop) => {
+      // console.log('propValueList:', prop.propValueList);
+      return prop.propValueList
+        .filter((value) => curCatalogPropIds.includes(String(value.propValueId)))
+        .map((value) => ({
+          label: value.propValueEnName, // 使用 propValueEnName 作为 label
+          value: value.propValueId, // 使用 propValueId 作为 value
+          type: 'PropValue', // 使用 propEnName 作为 type
+        }));
+    });
+  }
+  return matchingTags;
+});
+// const filterLabelList = Array.from({ length: 28 }, (_, index) => ({
+//   label: `Property ${index + 1}`, // 属性名称
+//   options: Array.from({ length: 5 }, (_, optionIndex) => ({
+//     label: `Option ${optionIndex + 1}`, // 属性值名称
+//     value: `prop-${index + 1}-value-${optionIndex + 1}`, // 属性值 ID
+//     count: Math.floor(Math.random() * 50) + 1, // 随机商品数量
+//   })),
+// }));
+
+const handleTagClear = ({ isClearAll, tag }: { isClearAll?: boolean; tag?: any }) => {
+  const curV = toRaw(curFilter.value)
+  if (isClearAll) {
+    // 清除所有标签
+    curFilter.value = {
+      curCatalogId: '',
+      curCatalogPropIds: [],
+      curAllCatalogProps: []
+    };
+  } else {
+    if (tag?.type === 'Category') {
+      // 清除分类标签
+      curFilter.value.curCatalogId = ''
+      curFilter.value.curCatalogPropIds = []
+    } else if (tag?.type === 'PropValue') {
+      // 清除属性标签
+      curFilter.value.curCatalogPropIds = curV.curCatalogPropIds.filter(
+        id => tag?.value !== id
+      );
+    }
+
+  }
+  pageNum.value = 1
+  hasMore.value = true
+  getlistlist(true)
+  return;
+};
+
+const handleTagMore = () => {
+  console.log('Show More Tags');
+};
 </script>
 
 
 <template>
   <div class="bg-white">
-    <div class="max-row py-3 md:py-8">
+    <!-- <div>{{ JSON.stringify(`${filterLabelList}----${JSON.stringify(curFilter)}`) }}
+    </div> -->
+    <div class="max-row py-4">
       <!-- 面包屑 -->
-      <UBreadcrumb divider=">" :links="breadcrumbLinks"
-        class="mb-3 text-blackcolor custom-breadcrumb text-lg sm:text-2xl" :ui="{
-          base: 'hover:underline font-normal',
-          li: 'text-sm sm:text-sm font-normal text-gray-400',
-          active: 'text-customblack dark:text-primary-400 no-underline hover:no-underline',
-          divider: { base: 'px-2 text-text-gray-400 no-underline' }
-        }" />
+      <UBreadcrumb divider=">" :links="breadcrumbLinks" class=" text-lg sm:text-2xl" :ui="{
+        base: 'hover:underline font-normal',
+        ol: 'mb-4',
+        li: 'text-sm sm:text-sm font-normal text-customblack',
+        active: 'text-gray-300 dark:text-primary-400 no-underline hover:no-underline',
+        divider: { base: 'px-2 text-text-gray-400 no-underline' }
+      }" />
 
       <!-- Hero Section -->
       <div class="relative h-[180px] sm:h-[300px] overflow-hidden rounded-lg" v-show="contentConfigView">
@@ -314,7 +510,7 @@ watch([products, loading, selectedsort, () => selected.value], () => {
         </div>
 
         <!-- 文字层 -->
-        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 h-full flex flex-col justify-center sm:items-start"
+        <div class="relative z-10 px-4 h-full flex flex-col justify-center sm:items-start"
           style="text-shadow: 0px 2px 4px rgba(34,34,34,0.6);">
           <h1 class="text-xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 leading-snug">
             {{ categorytitle }}
@@ -326,33 +522,37 @@ watch([products, loading, selectedsort, () => selected.value], () => {
       </div>
 
       <!-- Main Content -->
-      <div class="container mx-auto px-4 sm:px-6 mt-3 md:mt-12">
-        <!-- Filters -->
-        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-3 md:mb-8"
-          v-show="products.length != 0">
-          <div class="flex flex-wrap gap-4">
-            <UCheckbox :checked="selected === 'Hot Selling'" @change="handleChange('Hot Selling')" label="Hot Selling"
-              class="text-sm" :ui="{ label: 'font-normal', background: 'dark:bg-white dark:text-gray-700' }" />
-            <UCheckbox :checked="selected === 'New Arrival'" @change="handleChange('New Arrival')" label="New Arrival"
-              class="text-sm font-normal"
-              :ui="{ label: 'font-normal', background: 'dark:bg-white dark:text-gray-700' }" />
-            <UCheckbox :checked="selected === 'Discount'" @change="handleChange('Discount')" label="Discount"
-              class="text-sm font-normal"
-              :ui="{ label: 'font-normal', background: 'dark:bg-white dark:text-gray-700' }" />
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-sm dark:text-gray-900">Sort</span>
-            <USelect size="xs" v-model="selectedsort" :options="sortarray" color="white" :ui="{
-              color: {
-                white: {
-                  outline:
-                    'bg-white dark:bg-white dark:text-gray-900 ring-1 ring-gray-300 dark:ring-gray-300'
-                }
-              }
-            }" />
+      <div class="mx-auto">
+        <!-- 占位元素，防止布局跳动 -->
+        <div :class="[isFixed ? 'h-16' : 'h-0',]" aria-hidden="true" />
+
+        <!-- Sticky 元素 -->
+        <div ref="stickyElement" :class="[
+          isFixed
+            ? 'fixed top-[100px] left-0 right-0 z-50 max-lg:top-[80px] shadow-sm'
+            : '',
+          contentConfigView || isFixed ? '' : '!pt-0',
+          'py-4 max-lg:py-2 bg-white',
+        ]">
+          <!-- Filters -->
+          <div :class="[isFixed ? 'max-row' : '', isLoadedFilterTree ? '' : 'hidden']">
+            <div class="flex gap-2">
+              <UButton @click="openFilterDrawer"
+                v-show="!(filterTree.levelTwoCatalog.length == 0 && filterTree.spuCatalogProp.length == 0)"
+                class="flex items-center rounded-[4px] border border-[#ccc] hover:border-[#00B2E3]" variant="none">
+                <span class="text-[#0C1013] font-hind font-normal font-Inter">Filter</span>
+                <img src="/filter_icon.png" alt="Filter Icon" class="w-4 h-4" />
+              </UButton>
+
+              <div class="flex items-center">
+                <USelect v-model="selectedsort" :options="sortarray" variant="none"
+                  class=" rounded-[4px] border border-[#ccc] hover:border-[#00B2E3] dark:text-[#0C1013]"
+                  color="white" />
+              </div>
+            </div>
+            <TagList :tagList="deepToRaw(filterLabelList)" @clear="handleTagClear" @more="handleTagMore" />
           </div>
         </div>
-
         <!-- Product Grid with Loading -->
         <div class="relative min-h-[200px]">
           <!-- Loading Layer -->
@@ -390,7 +590,7 @@ watch([products, loading, selectedsort, () => selected.value], () => {
                   style="aspect-ratio: 1 / 1;" loading="lazy" />
               </div>
               <div>
-                <h3 class="text-sm sm:text-sm text-customblack my-2 lg:my-4 cursor-default font-normal mb-4 title"
+                <h3 class="text-sm sm:text-sm text-customblack my-2 cursor-default font-normal line-clamp-[2]"
                   :title="product.productEnglishName">
                   {{ product.productEnglishName }}
                 </h3>
@@ -420,20 +620,13 @@ watch([products, loading, selectedsort, () => selected.value], () => {
       </div>
     </div>
   </div>
+  <UIcon name="adjustments" class="hidden animate-spin" />
 
+  <FilterDrawer :open="deepToRaw(drawerData?.open)" :data="deepToRaw(drawerData?.data)" @close="closeFilterDrawer"
+    @ok="handleFilterSure" />
   <!-- 底部懒加载提示区 -->
   <div ref="bottomRef" class="flex justify-center items-center h-16">
     <span v-if="isBottomLoading" class="text-sm text-gray-400">Loading more products...</span>
     <span v-else-if="!hasMore && products.length > 0" class="text-sm text-gray-300">No more products</span>
   </div>
 </template>
-
-<style scoped>
-.title {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  /* Ensure two lines max */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-</style>

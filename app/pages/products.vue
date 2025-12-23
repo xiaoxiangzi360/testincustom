@@ -179,8 +179,8 @@ const slugify = (str) => {
             <UBreadcrumb divider=">" :links="breadcrumbLinks"
                 class="mb-3 md:mb-6 text-blackcolor custom-breadcrumb text-lg sm:text-2xl" :ui="{
                     base: 'hover:underline',
-                    li: 'text-xs sm:text-sm font-normal text-gray-400',
-                    active: 'text-customblack dark:text-primary-400 no-underline hover:no-underline',
+                    li: 'text-xs sm:text-sm font-normal',
+                    active: 'text-gray-300 dark:text-primary-300 no-underline hover:no-underline',
                     divider: { base: 'px-2 text-text-gray-400 no-underline' }
                 }" />
 

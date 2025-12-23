@@ -6,7 +6,7 @@
       <Userleft />
 
       <!-- Main Content -->
-      <main class="flex-1 p-4 md:p-6 space-y-6 bg-white">
+      <main class="flex-1 px-6 py-8 max-lg:px-0 bg-white max-lg:py-2">
         <!-- Account Info -->
         <section class="border border-blackcolor/10 rounded-lg">
           <div class="p-4 md:px-6 text-customblack font-semibold text-lg">Account</div>
@@ -26,10 +26,9 @@
         </section>
 
         <!-- Address Cards -->
-        <section class="border border-blackcolor/10 rounded-lg">
+        <section class="border border-blackcolor/10 rounded-lg mt-4">
           <div class="p-4 md:px-6 text-customblack font-semibold text-lg">Address</div>
-          <div
-            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 border-t border-t-blackcolor/10 p-4 md:p-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 border-t border-t-blackcolor/10 p-4">
             <!-- 新增地址 -->
             <div @click="addnewaddress"
               class="flex items-center justify-center border border-blackcolor/10 rounded-lg cursor-pointer hover:bg-gray-50 text-gray-400 min-h-36 text-center">
@@ -61,9 +60,11 @@
         </section>
 
         <!-- Pagination -->
-        <div class="flex justify-center md:justify-end mt-4">
-          <UPagination v-model="page" :page-count="5" :total="addresscount"
-            :prev-button="{ icon: 'i-material-symbols:chevron-left' }"
+        <div class="flex justify-center md:justify-end mt-4" v-show="addresscount > 0">
+          <!-- <span class="mr-4 text-gray-600">Total {{ addresscount }} items</span> -->
+          <UPagination v-model="page" :page-count="5" :total="addresscount" :active-button="{ variant: 'outline' }" :ui="{
+            base: 'ring-[#d9d9d9] dark:ring-[#d9d9d9]',
+          }" :prev-button="{ icon: 'i-material-symbols:chevron-left' }"
             :next-button="{ icon: 'i-material-symbols:chevron-right' }" />
         </div>
       </main>

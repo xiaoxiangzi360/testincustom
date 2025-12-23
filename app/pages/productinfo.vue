@@ -66,11 +66,11 @@
 
         <!-- 原有内容，只有在非loading状态下显示 -->
         <div v-else class="max-row">
-            <UBreadcrumb divider=">" :links="breadcrumbLinks" class="mb-6 text-blackcolor custom-breadcrumb text-2xl"
+            <UBreadcrumb divider=">" :links="breadcrumbLinks" class="mb-6 custom-breadcrumb text-2xl"
                 :ui="{
                     base: 'hover:underline',
-                    li: 'text-sm font-normal text-gray-400',
-                    active: 'text-customblack dark:text-primary-400 no-underline hover:no-underline',
+                    li: 'text-sm font-normal text-customblock',
+                    active: 'text-gray-300 dark:text-primary-300 no-underline hover:no-underline',
                     divider: {
                         base: 'px-2 text-text-gray-400 no-underline'
                     }

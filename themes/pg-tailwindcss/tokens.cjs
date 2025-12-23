@@ -223,6 +223,14 @@ const pg_colors = {
   customblack: {
     DEFAULT: '#0C1013',
   },
+  black: {
+    DEFAULT: '#0C1013',
+    sub1:'#333',
+    sub2:'#5A5B5B',
+    sub3:'#858789',
+    divider:'#CCCCCC',
+    bg:'#F8F8F8'
+  },
   arialblack: {
     DEFAULT: '#000000',
   },
@@ -238,11 +246,14 @@ const pg_fonts = {
   hind: ["'Hind', sans-serif"],
   sans: ["'Inter', sans-serif"],
   serif: ["'Kalam', sans-serif"],
+  arial: ["'Arial', sans-serif"],
+  arialBlock: ["'Arial Block', sans-serif"],
+
 }
 
 const pg_font_urls = [
   'https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&display=swap',
-  // 'https://fonts.googleapis.com/css?family=Inter:100,200,300,400,500,600,700,800,900|Kalam:300,400,700&display=swap',
+  'https://fonts.googleapis.com/css2?family=Arial:wght@400;700&display=swap',
 ]
 
 const pg_backgrounds = {

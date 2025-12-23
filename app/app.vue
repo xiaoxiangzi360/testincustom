@@ -69,8 +69,8 @@ useHead({
   @apply max-w-[1440px] mx-auto px-4 md:px-8 lg:px-12 xl:px-32;
 } */
 .max-row {
-  @apply max-w-[1440px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-16;
-
+  @apply w-[84%] mx-auto max-lg:w-[100%] max-lg:px-4;
+  /* @apply max-w-[1440px] mx-auto px-3 max-lg:px-4; */
 }
 
 .ant-input:focus {

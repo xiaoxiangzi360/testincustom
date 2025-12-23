@@ -1,5 +1,5 @@
 <template>
-    <div class="max-row mx-auto px-32">
+    <div class="max-row">
         <div class="grid sm:grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
             <NuxtLink v-for="(item, index) in items" :key="index"
                 :to="`/collections/${formatTitle(item.tag)}-${item.tagid}`"
