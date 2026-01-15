@@ -209,7 +209,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-    	 paypalClientId: 'AS0rf0QTNmoMKyMcTwzpF8BY-euIR3ipXSHaqLD2Yeb6WZSufWRB9LueT0HytkAY0DFJPGQURHCYdur8',
+    	 paypalClientId: 'AWVya-REAJ9WaVV8Mzm56_EXtp__TyhjRapzK8JTmePsjqTYCcpDnUAyUIJyQgkBPlNmHR7h3hL472el',
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://mallapi.incustom.com',
       airwallexEnv: process.env.NUXT_PUBLIC_AIRWALLEX_ENV || 'prod',
       gmpApiKey: process.env.GMP_API_KEY,
