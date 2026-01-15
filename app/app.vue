@@ -1,6 +1,6 @@
 <template>
   <div class="bg-[#F8F8F8]">
-    <NuxtLoadingIndicator />
+    <!-- <NuxtLoadingIndicator /> -->
     <ConfigProvider :theme="{
       token: {
         colorPrimary: '#25B9EC',   // ✅ 主色，改这里
@@ -13,11 +13,18 @@
       },
       // 切暗色可这样：algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm
     }">
-      <NuxtLayout>
+      <template v-if="!isTestSpeed">
+        <NuxtLayout>
+          <NuxtPage />
+        </NuxtLayout>
+      </template>
+      <template v-else>
         <NuxtPage />
-      </NuxtLayout>
+      </template>
     </ConfigProvider>
     <UNotifications />
+    <GActivityModal/>
+    <Cookiemodal />
     <div v-if="loading" class="global-loading">
       <Spin size="large" :style="{ color: '#999' }" />
     </div>
@@ -28,6 +35,8 @@
 </template>
 <script setup lang="ts">
 import { Spin, ConfigProvider } from 'ant-design-vue'
+const params = useRoute()
+const isTestSpeed = computed(() => params.path.includes('/testBlock'))
 
 const loading = useState<boolean>('global-loading')
 
@@ -42,49 +51,5 @@ useHead({
     { rel: 'dns-prefetch', href: 'https://mallapi.incustom.com' },
   ]
 })
+
 </script>
-<style>
-.global-loading {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(255, 255, 255, 0.85);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.ant-spin-dot-item {
-  background-color: #999 !important
-}
-
-:where(.css-dev-only-do-not-override-1p3hq3p).ant-message-notice .ant-message-success .anticon {
-  color: #25B9EC;
-}
-
-/* .max-row {
-  @apply max-w-[1440px] mx-auto px-4 md:px-8 lg:px-12 xl:px-32;
-} */
-.max-row {
-  @apply w-[84%] mx-auto max-lg:w-[100%] max-lg:px-4;
-  /* @apply max-w-[1440px] mx-auto px-3 max-lg:px-4; */
-}
-
-.ant-input:focus {
-  border-color: #25B9EC !important;
-  border: none;
-}
-
-/* 全局覆盖 */
-.ant-input:focus {
-  --tw-ring-color: #25B9EC !important;
-}
-
-/* 带 suffix/prefix 的情况 */
-.ant-input-affix-wrapper:focus-within {
-  --tw-ring-color: #25B9EC !important;
-}
-</style>

@@ -22,7 +22,7 @@
       @splide:mounted="onMountedSplide" @splide:move="onMove">
       <SplideSlide v-for="(s, i) in slides" :key="i">
         <!-- 固定纵横比，避免 CLS -->
-        <div class="relative w-full min-h-[300px] md:min-h-0 md:aspect-[21/9] overflow-hidden">
+        <div class="relative w-full min-h-[300px] md:min-h-0 md:aspect-[21/9] overflow-hidden cursor-pointer" @click="s.onClick?.()">
           <picture class="absolute inset-0">
             <!-- 平板：1024–1279 -->
             <source media="(min-width:1024px) and (max-width:1279px)" :srcset="img(baseImages[i], { w: 1280 })" />
@@ -45,7 +45,8 @@
           <!-- A款 -->
           <div v-if="s.variant === 'A'" class="h-full flex"
             :class="s.align === 'center' ? 'items-center justify-center text-center' : 'items-center'">
-            <div class="pointer-events-auto" :class="s.align === 'center' ? 'px-8' : 'pl-[calc(0.75rem+60px)] max-md:pl-12'">
+            <div class="pointer-events-auto"
+              :class="s.align === 'center' ? 'px-8' : 'pl-[calc(0.75rem+60px)] max-md:pl-12'">
               <h2 class="text-white font-semibold leading-tight"
                 :class="['text-3xl sm:text-5xl lg:text-6xl', textShadowClass]">
                 {{ s.title }}
@@ -97,21 +98,43 @@
               </div>
             </div>
           </div>
+
+          <!-- C款 -->
+          <div v-if="s.variant === 'C'" class="h-full flex items-center justify-center font-arial px-4">
+            <div class="text-center">
+              <div class="flex items-center justify-center">
+                <div
+                  class="py-4 px-8 max-md:px-2 bg-[rgba(156,9,15,0.5)] flex items-center justify-center text-center flex-col gap-4 rounded-[8px] text-white">
+                  <div class="text-[50px] max-md:text-[22px] font-[800] ">{{ s.title }}</div>
+                  <div class="text-[28px]  max-md:text-[16px] font-semibold">TAKE UP TO <span
+                      class="text-[48px] font-[800]  max-md:text-[22px]">18%</span> OFF EVERYTHING.
+                  </div>
+                  <div>
+                    <div class="text-[18px] max-md:text-[12px] mb-1" v-for="(item, index) in s.features" :key="index">{{ item
+                      }}</div>
+                  </div>
+                </div>
+              </div>
+              <button
+                class="mt-11 max-md:mt-6 rounded-md px-4 sm:px-5 py-2 sm:py-[14px] bg-black text-white"
+                @click="s.onClick?.()">
+                {{ s.ctaText || 'View More' }}
+              </button>
+            </div>
+          </div>
         </div>
       </SplideSlide>
     </Splide>
 
     <!-- 左右箭头按钮 - 使用文字箭头 -->
     <div v-if="isReady" class="home-button-prev absolute top-1/2 -translate-y-1/2 z-30 cursor-pointer opacity-60
-      left-[calc(0.75rem+12px)]"
-      @click="goPrev">
+      left-[calc(0.75rem+12px)]" @click="goPrev">
       <div class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
         <BaseIcon name="i-raphael:arrowleft2" class="text-primary w-4 h-4" />
       </div>
     </div>
     <div v-if="isReady" class="home-button-next absolute top-1/2 -translate-y-1/2 z-30 cursor-pointer opacity-60
-      right-[calc(0.75rem+12px)]"
-      @click="goNext">
+      right-[calc(0.75rem+12px)]" @click="goNext">
       <div class="w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary">
         <BaseIcon name="i-raphael:arrowright2" class="text-primary w-4 h-4" />
       </div>
@@ -154,11 +177,18 @@ type VariantB = SlideBase & {
   mission?: string
   logo?: string
 }
-type Slide = VariantA | VariantB
+type VariantC = SlideBase & {
+  variant: 'C'
+  align?: 'left' | 'center'
+  title?: string
+  subtitle?: string
+  features?: string[]
+}
+type Slide = VariantA | VariantB | VariantC
 
 /** 原始图片（保持干净，无查询参数） */
 const baseImages = [
-  'https://cdn.incustom.com/upload/web/13113.webp',
+  'https://cdn.incustom.com/upload/web/home/banner1.webp',
   'https://cdn.incustom.com/upload/web/banner1119-2-1.webp',
   'https://cdn.incustom.com/upload/web/banner1119-3-1.webp',
   'https://cdn.incustom.com/upload/web/banner1119-4-1.webp',
@@ -168,12 +198,21 @@ const baseImages = [
 
 /** slides 配置 */
 const slides = ref<Slide[]>([
+  // {
+  //   variant: 'A',
+  //   align: 'left',
+  //   title: 'Indoor Roller Shade',
+  //   subtitle: 'From harsh sun to nosy neighbors—your all-in-one window solution.',
+  //   onClick: () => { router.push('/collections/Roller-Shades-b9fa7f1d4aa0f81a2700b79658bd530d') },
+  // },
   {
-    variant: 'A',
+    variant: 'C',
     align: 'left',
-    title: 'Indoor Roller Shade',
-    subtitle: 'From harsh sun to nosy neighbors—your all-in-one window solution.',
-    onClick: () => { router.push('/Roller-Shades-1996472144640589824') },
+    title: 'HOLIDAY HOME REFRESH SALE',
+    subtitle: 'TAKE UP TO 18% OFF EVERYTHING.',
+    features: ['Spend over $200 → Get a $20 Gift Card', 'Spend over $400 → Get a $50 Gift Card'],
+    ctaText: 'SHOP NOW',
+    onClick: () => { router.push('/activityPage/NewYearSale-2002649538686058496') },
   },
   {
     variant: 'A',
@@ -181,14 +220,14 @@ const slides = ref<Slide[]>([
     title: 'Adjustable Zebra Shades',
     subtitle:
       'Effortlessly transition between light filtering \nand privacy with our modern,  streamlined, \nand custom-fit shades.',
-    onClick: () => { router.push('/Zebra-Blinds-1996475338619863040') },
+    onClick: () => { router.push('/collections/Zebra-Blinds-1998944860874358807') },
   },
   {
     variant: 'A',
     align: 'left',
     title: 'Pergola Shade Cloth',
     subtitle: 'All-day UV protection with cool, breathable, and durable shade.',
-    onClick: () => { router.push('/Fence-Screen-1996477845018492928') },
+    onClick: () => { router.push('/collections/Fence-Screen-2000747693634469888') },
   },
   {
     variant: 'B',
@@ -196,14 +235,14 @@ const slides = ref<Slide[]>([
     mission: 'Is Our Mission',
     ctaText: 'View More',
     logo: '/images/incustom.png',
-    onClick: () => { router.push('/article/our-mission') },
+    onClick: () => { router.push('/our-mission') },
   },
   {
     variant: 'A',
     align: 'center',
     title: 'Outdoor Roller Shade',
     subtitle: 'Protect your outdoors from harsh sun Enjoy breezy comfort',
-    onClick: () => { router.push('/Printed-Outdoor-Roller-Shades-1996476229502615552') },
+    onClick: () => { router.push('/collections/Printed-Outdoor-Roller-Shades-1998944860874358797') },
   },
   {
     variant: 'A',
@@ -211,7 +250,7 @@ const slides = ref<Slide[]>([
     title: 'Shade Sail',
     subtitle:
       'Block harsh sun, enjoy cool comfort, \n and upgrade your outdoor space with a \ndurable shade sail.',
-    onClick: () => { router.push('/Outdoor-Shades-&-Sails-1996475891458392064') },
+    onClick: () => { router.push('/collections/Breathable-Shade-Sail-1998944860874358789') },
   },
 ])
 
@@ -219,8 +258,8 @@ const slides = ref<Slide[]>([
 const img = (url: string, opt: { w?: number; h?: number }) => {
   const size = opt.w ? `w_${opt.w}` : `h_${opt.h}`
   // auto-orient + webp + 质量 82 + 限制
-  return `${url}`
-  // return `${url}?x-oss-process=image/auto-orient,1/format,webp/quality,q_82/resize,${size},limit_0`
+  // return `${url}`
+  return `${url}?x-oss-process=image/auto-orient,1/format,webp/resize,${size},m_lfit`
 }
 
 /** ✅ 首屏优化：预连接 + 仅预加载第0张（按断点） */
@@ -231,7 +270,7 @@ useHead({
     {
       rel: 'preload',
       as: 'image',
-      href: img(baseImages[0], { w: 1600 }),
+      href: img(baseImages[0], { w: 1200 }),
       media: '(min-width: 1280px)',
       fetchpriority: 'high',
       crossorigin: ''
@@ -240,7 +279,7 @@ useHead({
     {
       rel: 'preload',
       as: 'image',
-      href: img(baseImages[0], { w: 1280 }),
+      href: img(baseImages[0], { w: 900 }),
       media: '(min-width: 1024px) and (max-width: 1279px)',
       fetchpriority: 'high',
       crossorigin: ''

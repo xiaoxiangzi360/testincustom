@@ -10,9 +10,9 @@
             We use cookies and similar technologies to improve your shopping experience and to better understand how our
             site is used.
             By clicking <strong>"Accept All"</strong>, you agree to the use of cookies as described in our
-            <NuxtLink to="/article/privacy-policy" class="text-primary hover:underline">Privacy Policy</NuxtLink><span
+            <NuxtLink to="/privacy-policy" class="text-primary hover:underline">Privacy Policy</NuxtLink><span
                 class="text-primary">,</span>
-            <NuxtLink to="/article/terms-of-service" class="text-primary hover:underline">Terms</NuxtLink><span
+            <NuxtLink to="/terms-service" class="text-primary hover:underline">Terms</NuxtLink><span
                 class="text-primary">,</span> and
             <a href="https://policies.google.com/technologies/cookies" target="_blank"
                 class="text-primary hover:underline">Google Cookie Policy</a>.
@@ -36,30 +36,50 @@
 </template>
 
 <script setup>
-// Cookie 状态持久化
-const cookieConsent = useCookie('cookie_consent', {
-    maxAge: 60 * 60 * 24 * 365, // 1年
-})
 
 const show = ref(false)
-
 onMounted(() => {
+    const cookieConsent = useCookie('cookie_consent')
     if (!cookieConsent.value) {
         show.value = true
     }
 })
 
 const accept = () => {
+    // 设置 cookie，过期时间为当天24时
+    const cookieConsent = useCookie('cookie_consent', {
+        maxAge: 60 * 60 * 24 * 365, // 1年
+    })
     cookieConsent.value = 'accepted'
     show.value = false
 }
 
 const reject = () => {
-    // cookieConsent.value = 'rejected'
+    // 计算当天剩余时间（秒）
+    const now = new Date()
+    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0) // 次日零点
+    const secondsUntilMidnight = Math.floor((midnight - now) / 1000)
+    // 设置 cookie，过期时间为当天24时
+    const cookieConsent = useCookie('cookie_consent', {
+        maxAge: secondsUntilMidnight,
+    })
+    cookieConsent.value = 'rejected'
+
     show.value = false
 }
 
 const close = () => {
+    // 计算当天剩余时间（秒）
+    const now = new Date()
+    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0) // 次日零点
+    const secondsUntilMidnight = Math.floor((midnight - now) / 1000)
+
+    // 设置 cookie，过期时间为当天24时
+    const cookieConsent = useCookie('cookie_consent', {
+        maxAge: secondsUntilMidnight,
+    })
+    cookieConsent.value = 'rejected'
+
     show.value = false
 }
 </script>

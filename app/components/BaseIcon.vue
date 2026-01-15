@@ -29,14 +29,14 @@ const addUnit = (val: any) => {
 }
 
 const iconStyle = computed(() => {
-  const width = addUnit(props.width) || addUnit(props.height) || '20px'
-  const height = addUnit(props.height) || width
-  const display = 'inline-block'
-  return {
-    width,
-    height,
-    display,
-  }
+  // const width = addUnit(props.width) || addUnit(props.height) || '20px'
+  // const height = addUnit(props.height) || width
+  // const display = 'inline-block'
+  // return {
+  //   width,
+  //   height,
+  //   display,
+  // }
 })
 </script>
 <template>

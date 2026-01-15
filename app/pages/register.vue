@@ -75,12 +75,12 @@
                 <UCheckbox v-model="formState.isChecked" name="agreement" />
                 <span class="text-sm text-title">
                     I have read the
-                    <a href="/article/terms-of-service" target="_blank"
+                    <a href="/terms-service" target="_blank"
                         class="text-primary underline hover:text-primary-600">
                         Terms Of Service
                     </a>
                     and
-                    <a href="/article/privacy-policy" target="_blank"
+                    <a href="/privacy-policy" target="_blank"
                         class="text-primary underline hover:text-primary-600">
                         Privacy Policy
                     </a>

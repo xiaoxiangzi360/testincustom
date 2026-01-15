@@ -102,7 +102,8 @@
                                                     </div>
                                                     <div class="">
                                                         <Tooltip :title="item.productName">
-                                                            <NuxtLink :to="`/product/${item.productSpuId}`">
+                                                            <NuxtLink
+                                                                :to="`/products/${slugify(item.seoUrlKeyword || item.productName)}-${item.productSpuId}`">
                                                                 <span
                                                                     class="md:ml-auto font-medium text-customblack line-clamp-2">
                                                                     {{ item.productName }}
@@ -146,12 +147,12 @@
                                         <div
                                             class="md:col-span-3 flex flex-wrap gap-2 items-center justify-end md:flex-col md:items-end md:justify-center">
                                             <UButton
-                                                class="w-auto px-4 md:w-28 rounded-[4px] flex justify-center items-center"
+                                                class="w-auto px-4 md:w-28 rounded-[4px] flex justify-center items-center  dark:text-white"
                                                 v-if="order.status == 500" @click="gotopay(order.orderNumber)">
                                                 Pay
                                             </UButton>
                                             <UButton color="white"
-                                                class="w-auto px-4 md:w-28 rounded-[4px] flex justify-center items-center"
+                                                class="w-auto px-4 md:w-28 rounded-[4px] flex justify-center items-center dark:bg-white dark:text-customblack dark:hover:bg-white"
                                                 variant="solid" v-if="order.status <= 1200"
                                                 @click="setCancleOrder(order.id)">
                                                 Cancel
@@ -172,11 +173,21 @@
 
                             <!-- Pagination -->
                             <div class="flex justify-center items-center md:justify-end mt-6" v-show="ordercount > 0">
-                                <UPagination v-model="page" :page-count="pageSize" :total="ordercount"
-                                    :active-button="{ variant: 'outline' }" :ui="{
-                                        base: 'ring-[#d9d9d9] dark:ring-[#d9d9d9]',
-                                    }" :prev-button="{ icon: 'i-material-symbols:chevron-left' }"
-                                    :next-button="{ icon: 'i-material-symbols:chevron-right' }" />
+                                <UPagination v-model="page" :page-count="pageSize" :total="ordercount" :ui="{
+                                    base: 'ring-0 dark:ring-0 shadow-none dark:bg-white dark:text-gray-400 dark:hover:text-primary dark:hover:bg-white hover:bg-white',
+                                    default: {
+                                        activeButton: {
+                                            color: 'dark:primary',
+                                            class: 'dark:!bg-primary dark:!text-white',
+                                        },
+                                        prevButton: {
+                                            color: 'white', variant: 'none'
+                                        },
+                                        nextButton: {
+                                            color: 'white', variant: 'none'
+                                        },
+                                    }
+                                }" />
                             </div>
 
                         </div>

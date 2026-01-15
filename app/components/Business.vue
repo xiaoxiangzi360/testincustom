@@ -43,7 +43,7 @@
 
                 <p class="mt-4 text-xs text-white">
                     You can unsubscribe at any time. See our
-                    <a href="/article/privacy-policy" class="underline hover:text-primary">Privacy
+                    <a href="/privacy-policy" class="underline hover:text-primary">Privacy
                         Policy</a>.
                 </p>
             </div>

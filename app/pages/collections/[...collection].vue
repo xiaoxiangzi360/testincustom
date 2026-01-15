@@ -1,33 +1,32 @@
 <template>
     <div class="bg-white">
         <div class="max-row py-4">
-            <UBreadcrumb divider=">" :links="breadcrumbLinks"
-                class="mb-3 custom-breadcrumb text-lg sm:text-2xl" :ui="{
-                    base: 'hover:underline font-normal',
-                    ol: 'mb-4',
-                    li: 'text-sm sm:text-sm font-normal text-customblack',
-                    active: 'text-gray-300 dark:text-primary-300 no-underline hover:no-underline',
-                    divider: { base: 'px-2 text-text-gray-400 no-underline' },
-                }" />
-
+            <CustomBreadcrumb :links="breadcrumbLinks" />
             <!-- Hero Section -->
-            <div class="relative h-[180px] sm:h-[300px] overflow-hidden" v-if="bannerInfo?.contentConfigView">
-                <div class="absolute inset-0">
+            <div class="relative h-[330px] overflow-hidden max-md:w-full max-md:h-auto max-md:aspect-[2/1]"
+                v-if="bannerInfo?.contentConfigView">
+                <div class="absolute inset-0 md:block hidden">
                     <NuxtImg :src="bannerInfo?.contentConfigImageUrl"
-                        class="w-full h-full object-cover object-center sm:object-top rounded-lg"
-                        :alt="bannerInfo?.categoryalt" />
+                        class="w-full h-full object-cover object-center rounded-lg"
+                        :alt="bannerInfo?.contentConfigAltText" />
+                </div>
+                <div class="absolute inset-0 md:hidden block">
+                    <NuxtImg :src="bannerInfo?.contentConfigImageUrlForMobile || bannerInfo?.contentConfigImageUrl"
+                        class="w-full h-full object-cover object-center rounded-lg"
+                        :alt="bannerInfo?.contentConfigAltTextForMobile || bannerInfo?.contentConfigAltText" />
                 </div>
                 <div class="relative z-10 px-4 h-full flex flex-col justify-center sm:items-start"
                     style="text-shadow: 0px 2px 4px rgba(34,34,34,0.6);">
-                    <h1 class="text-xl sm:text-5xl font-bold text-white mb-2 sm:mb-4 leading-snug">
+                    <h1 class="text-[20px] md:text-[40px] font-bold text-white mb-2 md:mb-4 leading-snug md:line-clamp-[1] line-clamp-[2]"
+                        :title="bannerInfo?.contentConfigTitle">
                         {{ bannerInfo?.contentConfigTitle }}
                     </h1>
-                    <p class="text-sm sm:text-xl text-white max-w-md sm:max-w-none">
+                    <p class="text-sm sm:text-xl text-white max-w-md sm:max-w-none md:line-clamp-2 line-clamp-[3]"
+                        :title="bannerInfo?.contentConfigSubtitle">
                         {{ bannerInfo?.contentConfigSubtitle }}
                     </p>
                 </div>
             </div>
-
             <!-- Main Content -->
             <div class="">
                 <!-- Filters -->
@@ -88,7 +87,8 @@
                     <!-- Product List -->
                     <div v-show="products.length > 0 && !loading"
                         class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
-                        <NuxtLink :to="`/product/${product.id}/${slugify(product.productEnglishName)}`"
+                        <NuxtLink
+                            :to="`/products/${slugify(product.seoUrlKeyword || product.productEnglishName)}-${product.id}`"
                             v-for="(product, index) in products" :key="index"
                             class="bg-white rounded-lg cursor-pointer group">
                             <div class="aspect-square overflow-hidden rounded-t-lg">
@@ -139,6 +139,8 @@
 
 <script lang="ts" setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue'
+
+const PageTag = 'Collections标签====='
 const sortarray = [
     'Name Alphabetic, a-z',
     'Name Alphabetic, z-a',
@@ -182,10 +184,59 @@ const splitCollection = collectionFull.split('-')
 const collectionName = splitCollection.slice(0, -1).join('-').replace(/-/g, ' ')
 const tagId = splitCollection.pop() // Tagid (the last part)
 
-const breadcrumbLinks = [
-    { label: 'Home', to: '/', title: 'Home' },
-    { label: decodeURIComponent(collectionName), to: '/collections/' + collectionFull, title: collectionName },
-]
+const bannerInfo = ref<any>(null)
+const collectionInfo = ref<any>(null)
+const breadcrumbLinks = ref<any>([])
+const { data: serverProductInfo, pending: pending, error: error } = await useAsyncData(
+    () => `fetchCateListById-${tagId}`, () => {
+        console.log('服务端重新渲染----tagId in useAsyncData:', tagId);
+        return getProductTagById({ id: tagId })
+    }
+)
+const initData = (dataInfo) => {
+    if (dataInfo.result) {
+        const result = dataInfo.result
+        bannerInfo.value = dataInfo.result
+        collectionInfo.value = dataInfo.result
+        console.log(PageTag, 'collections======initData===:', result);
+        if (collectionInfo.value?.tagName) {
+            breadcrumbLinks.value = [
+                { label: 'Home', to: convertToAbsolutePath('/') },
+                { label: collectionInfo.value?.tagName, to: convertToAbsolutePath(`/collections/${slugify(collectionInfo.value?.tagName)}-${collectionInfo.value?.id}`), disabled: true }]
+        }
+        const breadcrumbParams = {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": breadcrumbLinks.value.map((link, index) => ({
+                "@type": "ListItem",
+                "position": index + 1,
+                "name": link.label,
+                "item": link.to
+            }))
+        }
+        useHead({
+            title: result.seoPageTitle || result.tagName,
+            meta: [
+                {
+                    name: 'description',
+                    content: result.seoMetaDescription
+                }
+            ],
+            script: [
+                {
+                    type: 'application/ld+json',
+                    innerHTML: JSON.stringify(breadcrumbParams),
+                },
+            ],
+        })
+    }else{
+        throwPageError('Collection not found or not published.')
+    }
+}
+initData(serverProductInfo.value)
+
+
+console.log('结果=serverProductInfo:=====', serverProductInfo);
 
 const drawerData = ref({ open: false, data: null })
 const isLoadedFilterTree = ref(false)
@@ -215,6 +266,7 @@ const openFilterDrawer = () => {
 const closeFilterDrawer = () => {
     drawerData.value.open = false
 }
+
 
 const fetchCateListById = async () => {
     try {
@@ -409,7 +461,7 @@ const { throttledFunction: throttledHandleScroll } = useThrottled(handleScroll, 
 
 onMounted(() => {
     getlistlist(true)
-    fetchProductTagById()
+    // fetchProductTagById()
     fetchCateListById()
     window.addEventListener('scroll', throttledHandleScroll)
     handleScroll()
@@ -427,27 +479,17 @@ onMounted(() => {
     if (bottomRef.value) observer.value.observe(bottomRef.value)
 })
 
-const bannerInfo = ref<any>(null)
 watch(() => bannerInfo.value, async () => {
     initTop.value = 0
     await nextTick()
     handleScroll()
 }, { deep: true })
+
 const fetchProductTagById = async () => {
     try {
         const res = await getProductTagById({ id: tagId })
         if (res.result) {
-            const result = res.result
-            bannerInfo.value = res.result
-            useHead({
-                title: result.seoPageTitle || result.tagName,
-                meta: [
-                    {
-                        name: 'description',
-                        content: result.seoMetaDescription
-                    }
-                ]
-            })
+            initData(res.result)
         }
     } catch (error) {
         console.error('获取标签信息失败:', error)
@@ -456,19 +498,10 @@ const fetchProductTagById = async () => {
 }
 
 onUnmounted(() => {
+    clearAllJsonLdScripts()
     window.removeEventListener('scroll', throttledHandleScroll)
 
     if (observer.value && bottomRef.value) observer.value.unobserve(bottomRef.value)
     observer.value = null
 })
-
-
-const slugify = (str: string) =>
-    str
-        .normalize('NFKD')
-        .replace(/[^\w\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .toLowerCase()
 </script>

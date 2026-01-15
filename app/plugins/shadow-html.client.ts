@@ -9,6 +9,9 @@ export default defineNuxtPlugin((nuxtApp) => {
             // ✅ 注入 CKEditor 样式
             const styleEl = document.createElement('style')
             styleEl.textContent = ckContentCss + `
+             * {
+      --ck-content-image-style-spacing: 1.5em;
+    }
         /* 🔧 媒体容器自适应比例 */
         .media {
           position: relative;
@@ -85,12 +88,16 @@ function transformOembeds(root: HTMLElement) {
     root.querySelectorAll('img').forEach((img) => {
         const src = img.getAttribute('src')
         if (src && !src.includes('?x-oss-process')) {
-            img.setAttribute('src', `${src}?x-oss-process=image/quality,q_70`)
+            // 将原始 src 存储到 data-src，并清空 src
+            img.setAttribute('src', `${src}?x-oss-process=image/quality,q_70`);
+            // img.removeAttribute('src');
 
         }
 
         // 添加 lazyload 属性
         img.setAttribute('loading', 'lazy')
+        // 将图片添加到观察者
+        // observer.observe(img);
     })
 }
 

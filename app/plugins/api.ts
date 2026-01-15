@@ -1,5 +1,3 @@
-// plugins/api.ts
-import { message } from 'ant-design-vue'
 
 export default defineNuxtPlugin((nuxtApp) => {
     const config = useRuntimeConfig()

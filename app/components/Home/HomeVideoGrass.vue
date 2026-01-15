@@ -15,6 +15,7 @@ type Product = {
     price?: number
     video?: string
     videoCover?: string
+    seoUrlKeyword?: string
 }
 type ModuleConfig = {
     componentType: number
@@ -40,6 +41,7 @@ const items = computed(() => {
             thumbAlt: p.productImg?.altText || '',
             video: p.video,
             price: p.price,
+            seoUrlKeyword: p.seoUrlKeyword || ''
         }))
 })
 
@@ -114,15 +116,6 @@ const goNext = () => {
     (splideRef.value as any)?.splide?.go('>')
 }
 
-const slugify = (str: string) => {
-    return str
-        .normalize('NFKD')
-        .replace(/[^\w\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .toLowerCase()
-}
 
 /** 标题与副标题（带兜底） */
 const title = computed(() => props.item?.name?.trim() || '')
@@ -167,7 +160,7 @@ const subtitle = computed(() => props.item?.desc?.trim() || '')
 
                             <!-- 商品信息 -->
                             <div class="mt-3">
-                                <ULink :to="`/product/${p.id}/${slugify(p.title)}`" class="block">
+                                <ULink :to="`/products/${slugify(p.seoUrlKeyword || p.title)}-${p.id}`" class="block">
                                     <div class="flex items-start gap-3">
                                         <div
                                             class="w-[72px] h-[72px] shrink-0 overflow-hidden border border-black/10 rounded">

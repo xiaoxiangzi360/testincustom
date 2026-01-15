@@ -27,5 +27,36 @@ export const ActivityAuth = () => {
             throw error
         }
     }
-    return { listInProgressMarketingActivity, createMarketingActivityEmailSubscribe }
+
+    // 新版弹框
+    const getSortInProgressMarketingActivityFromLocation = async (params) => {
+        try {
+            const response = await $api('/order/marketingActivity/getSortInProgressMarketingActivityFromLocation', {
+                method: 'POST',
+                body: params,
+            })
+
+            return response
+        } catch (error) {
+
+            throw error
+        }
+    }
+
+     const getMarketingActivityById = async (params) => {
+        try {
+            const query = new URLSearchParams(params).toString()
+
+            const response = await $api(`/order/marketingActivity/getMarketingActivityById?${query}`, {
+                method: 'GET',
+            })
+
+            return response
+        } catch (error) {
+
+            throw error
+        }
+    }
+
+    return { getMarketingActivityById, listInProgressMarketingActivity, createMarketingActivityEmailSubscribe, getSortInProgressMarketingActivityFromLocation }
 }

@@ -15,13 +15,13 @@ export default () => {
             })(window, document, "clarity", "script", "sx1h9qcyr4");
         }
         // 延迟加载：页面加载完成后 4 秒，或用户交互时立即加载
-        if (document.readyState === 'complete') {
-            setTimeout(loadClarity, 4000);
-        } else {
-            window.addEventListener('load', function() { setTimeout(loadClarity, 4000); });
-            ['mousedown', 'touchstart', 'scroll'].forEach(function(event) {
-                window.addEventListener(event, loadClarity, { once: true, passive: true });
-            });
-        }
+        // if (document.readyState === 'complete') {
+        //     setTimeout(loadClarity, 4000);
+        // } else {
+        window.addEventListener('load', function () { setTimeout(loadClarity, 4000); });
+        ['mousedown', 'touchstart', 'scroll'].forEach(function (event) {
+            window.addEventListener(event, loadClarity, { once: true, passive: true });
+        });
+        // }
     }
 }

@@ -19,9 +19,10 @@
           <!-- 社交图标（设计图在右下角，这里放在桌面端底部栏右侧；移动端保持这里也显示） -->
           <div class="flex md:hidden flex-wrap gap-3 mt-4 cursor-pointer">
             <NuxtLink :to="item.url" target="_blank" v-for="item in medialist" :key="item.id" aria-label="social link">
-              <NuxtImg format="webp" loading="lazy" @mouseover="hovered = item.id" @mouseleave="hovered = null"
+              <ComSvg :href="item.svg" class="w-[24px] h-[24px]" />
+              <!-- <NuxtImg format="webp" loading="lazy" @mouseover="hovered = item.id" @mouseleave="hovered = null"
                 :alt="item.url" :src="hovered === item.id ? item.img + '-active.png' : item.img + '.png'"
-                class="w-[24px] h-[24px] " />
+                class="w-[24px] h-[24px] " /> -->
             </NuxtLink>
           </div>
         </div>
@@ -87,8 +88,8 @@
             <NuxtImg loading="lazy" format="webp" v-for="(b, i) in badges" :key="'bd-' + i" :src="b" alt="badge"
               class="h-5" />
           </div>
-          <!-- <NuxtLink to="" class="block hover:text-primary mt-4 text-white/80 text-sm">Payment Methods
-              </NuxtLink> -->
+          <a href="/sitemap.xml" target="_blank" class="block hover:text-primary mt-4 text-white/80 text-sm">Site Map
+          </a>
         </div>
       </div>
 
@@ -96,33 +97,34 @@
       <div class="border-t border-white/10 mt-6 md:mt-10 max-md:hidden"></div>
 
       <!-- 底部信息栏 -->
-      <div
-        class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-2 py-4 md:py-6 text-sm text-white/70">
+      <div class="flex flex-col md:flex-row md:justify-between gap-2 md:gap-2 py-4 md:py-6 text-sm text-white/70">
         <!-- 左侧：隐私条款 -->
-        <div class="flex flex-wrap items-center gap-2">
-          <NuxtLink to="/article/privacy-policy" class="hover:text-primary">Privacy</NuxtLink><span>|</span>
-          <NuxtLink to="/article/terms-of-service" class="hover:text-primary">Terms</NuxtLink><span>|</span>
-          <NuxtLink to="" class="hover:text-primary">Cookie Policy</NuxtLink><span>|</span>
-          <NuxtLink to="" class="hover:text-primary">Accessibility</NuxtLink>
+        <div class="flex flex-wrap  gap-2">
+          <NuxtLink to="/privacy-policy" class="hover:text-primary">Privacy</NuxtLink><span>|</span>
+          <NuxtLink to="/terms-service" class="hover:text-primary">Terms</NuxtLink><span>|</span>
+          <NuxtLink to="">Cookie Policy</NuxtLink><span>|</span>
+          <NuxtLink to="">Accessibility</NuxtLink>
         </div>
 
         <!-- 中间：语言 & 支付 -->
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap  gap-2">
           <NuxtImg format="webp" loading="lazy" v-for="(item, idx) in payicons" :key="'pay-' + idx" :src="item"
             class="h-[26px]" />
         </div>
 
         <!-- 右侧：保障 + 社媒 -->
-        <div class="flex items-center gap-4 md:gap-6">
-          <div class="flex items-center gap-2">
+        <div class="flex  gap-4 md:gap-6">
+          <div class="flex gap-2">
             Secure Checkout | Satisfaction Guarantee
           </div>
-          <div class="hidden flex-wrap md:flex items-center gap-2 cursor-pointer">
+          <div class="hidden flex-wrap md:flex gap-2 cursor-pointer">
             <NuxtLink :to="item.url" target="_blank" v-for="item in medialist" :key="'s2-' + item.id"
               aria-label="social link">
-              <NuxtImg format="webp" loading="lazy" @mouseover="hovered = item.id" @mouseleave="hovered = null"
+              <ComSvg :href="item.svg" 
+                class="w-[32px] h-[32px] hover:text-primary" />
+              <!-- <NuxtImg format="webp" loading="lazy" @mouseover="hovered = item.id" @mouseleave="hovered = null"
                 :alt="item.url" :src="hovered === item.id ? item.img + '-active.png' : item.img + '.png'"
-                class="w-[32px] h-[32px] " />
+                class="w-[32px] h-[32px] " /> -->
             </NuxtLink>
           </div>
         </div>
@@ -145,14 +147,13 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const token = useCookie('token')
 const userType = useCookie('userType', { sameSite: 'lax', path: '/' })
-
 const isuserTokenValid = computed(() => {
   const isMember = userType.value != 2
   return !!token.value && isMember
 })
 
 const needsTokenValidation = (linkLabel) => {
-  const protectedLinks = ['My Account', 'My Returns', 'Tracking My Order']
+  const protectedLinks = ['My Account', 'My Returns']
   return protectedLinks.includes(linkLabel)
 }
 
@@ -183,12 +184,12 @@ const handleTrackingNavigation = () => {
 
 /** 社媒图标（保持你原来的 hover 切换） */
 const medialist = [
-  { id: 1, img: 'https://cdn.incustom.com/upload/icons/media1', url: 'https://www.instagram.com/incustom_official/' },
-  { id: 2, img: 'https://cdn.incustom.com/upload/icons/media2', url: 'https://www.facebook.com/profile.php?id=61578243120322' },
-  { id: 3, img: 'https://cdn.incustom.com/upload/icons/media3', url: 'https://www.linkedin.com/company/incustom/' },
-  { id: 5, img: 'https://cdn.incustom.com/upload/icons/media5', url: 'https://www.tiktok.com/@incustomofficial' },
-  { id: 6, img: 'https://cdn.incustom.com/upload/icons/media6', url: 'https://www.pinterest.com/incustomstore/' },
-  { id: 7, img: 'https://cdn.incustom.com/upload/icons/media7', url: 'https://www.youtube.com/@Incustom-official' },
+  { id: 1, img: 'https://cdn.incustom.com/upload/icons/media1', svg: '#icon-platform1', url: 'https://www.instagram.com/incustom_home/' },
+  { id: 2, img: 'https://cdn.incustom.com/upload/icons/media2', svg: '#icon-platform2', url: 'https://www.facebook.com/profile.php?id=61585363529171' },
+  { id: 3, img: 'https://cdn.incustom.com/upload/icons/media3', svg: '#icon-platform3', url: 'https://www.linkedin.com/company/incustom/' },
+  { id: 5, img: 'https://cdn.incustom.com/upload/icons/media5', svg: '#icon-platform4', url: 'https://www.tiktok.com/@incustomofficial' },
+  { id: 6, img: 'https://cdn.incustom.com/upload/icons/media6', svg: '#icon-platform5', url: 'https://www.pinterest.com/incustomstore/' },
+  { id: 7, img: 'https://cdn.incustom.com/upload/icons/media7', svg: '#icon-platform6', url: 'https://www.youtube.com/@Incustom-official' },
 ]
 const payicons = [
   'https://cdn.incustom.com/upload/icons/payicon1.png',
@@ -206,11 +207,12 @@ const sections = [
   {
     title: 'Customer Service',
     links: [
-      { label: 'FAQs', to: '/article/faq' },
-      { label: 'Shipping & Delivery', to: '/article/shipping-delivery' },
-      { label: 'Returns & Exchanges', to: '/article/returns-exchanges' },
-      { label: 'Warranty Policy', to: '/article/warranty-policy' },
-      { label: 'Contact Us', to: '/article/contact-us' },
+      { label: 'FAQs', to: '/faq' },
+      { label: 'Shipping & Delivery', to: '/shipping-delivery' },
+      { label: 'Returns & Exchanges', to: '/returns-exchanges' },
+      { label: 'Warranty Policy', to: '/warranty-policy' },
+      { label: 'Contact Us', to: '/contact-us' },
+      { label: 'Payment Information', to: '/payment-information' },
     ],
   },
   {
@@ -218,13 +220,13 @@ const sections = [
     links: [
       { label: 'My Account', to: '/userinfo' },
       { label: 'My Returns', to: '/userinfo' },
-      { label: 'Tracking My Order', to: '/myorders' },
+      // { label: 'Tracking My Order', to: '/myorders' },
     ],
   },
   {
     title: 'Company & Brand',
     links: [
-      { label: 'About Us', to: '/article/about-us' },
+      { label: 'About Us', to: '/about-us' },
       // { label: 'Sustainability & Materials', to: '' },
       // { label: 'Blog / Shade Tips', to: '' },
       // { label: 'Affiliate / Influencer Program', to: '' },
@@ -250,15 +252,3 @@ const accordionItems = [
   { label: 'Trust', type: 'trust' },
 ]
 </script>
-
-<style scoped>
-/* 去除 UAccordion 默认背景 */
-:deep(.u-accordion-item),
-:deep(.u-accordion-item button) {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
-</style>

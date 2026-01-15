@@ -8,15 +8,15 @@
       <!-- Main Content -->
       <main class="flex-1 px-6 py-8 max-lg:px-0 bg-white max-lg:py-2">
         <!-- Account Info -->
-        <section class="border border-blackcolor/10 rounded-lg">
+        <section class="border border-blackcolor/10 rounded-lg text-blackcolor">
           <div class="p-4 md:px-6 text-customblack font-semibold text-lg">Account</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 border-t border-t-blackcolor/10 p-4 md:p-6">
             <div>
-              <span class="text-blackcolor/50 mb-2">Account email</span>
+              <span class="text-blackcolor mb-2">Account email</span>
               <div class="font-medium mt-1">{{ userinfo.email }}</div>
             </div>
             <div>
-              <span class="text-blackcolor/50 mb-2">Password</span>
+              <span class="text-blackcolor mb-2">Password</span>
               <div class="mt-1">
                 <a href="#" class="text-primary-500 hover:underline">Set New Password</a>
               </div>
@@ -26,7 +26,7 @@
         </section>
 
         <!-- Address Cards -->
-        <section class="border border-blackcolor/10 rounded-lg mt-4">
+        <section class="border border-blackcolor/10 rounded-lg mt-4 text-blackcolor">
           <div class="p-4 md:px-6 text-customblack font-semibold text-lg">Address</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 border-t border-t-blackcolor/10 p-4">
             <!-- 新增地址 -->
@@ -62,10 +62,21 @@
         <!-- Pagination -->
         <div class="flex justify-center md:justify-end mt-4" v-show="addresscount > 0">
           <!-- <span class="mr-4 text-gray-600">Total {{ addresscount }} items</span> -->
-          <UPagination v-model="page" :page-count="5" :total="addresscount" :active-button="{ variant: 'outline' }" :ui="{
-            base: 'ring-[#d9d9d9] dark:ring-[#d9d9d9]',
-          }" :prev-button="{ icon: 'i-material-symbols:chevron-left' }"
-            :next-button="{ icon: 'i-material-symbols:chevron-right' }" />
+          <UPagination v-model="page" :page-count="5" :total="addresscount" :ui="{
+            base: 'ring-0 dark:ring-0 shadow-none dark:bg-white dark:text-gray-400 dark:hover:text-primary dark:hover:bg-white hover:bg-white',
+            default: {
+              activeButton: {
+                color: 'dark:primary',
+                class: 'dark:!bg-primary dark:!text-white',
+              },
+              prevButton: {
+                color: 'white', variant: 'none'
+              },
+              nextButton: {
+                color: 'white', variant: 'none'
+              },
+            }
+          }" />
         </div>
       </main>
     </div>

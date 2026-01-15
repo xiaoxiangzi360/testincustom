@@ -1,5 +1,5 @@
 // composables/useTrack.ts
-import { getUtmData } from '~/composables/useUtm'
+// import { getUtmData } from '~/composables/useUtm'
 export type TrackItem = {
     item_id: string | number
     item_name: string
@@ -53,17 +53,17 @@ const DEBUG_TRACK = process.dev
 
 function sendGA4(eventName: string, payload: Record<string, any>) {
     if (typeof window === 'undefined') return
-    const utm = getUtmData()
+    // const utm = getUtmData()
     const finalPayload = {
         ...payload,
-        ...utm,
+        // ...utm,
     }
 
-    if (typeof window.gtag === 'function') {
-        DEBUG_TRACK && console.log('[GA4 gtag]', eventName, finalPayload)
-        window.gtag('event', eventName, finalPayload)
-        return
-    }
+    // if (typeof window.gtag === 'function') {
+    //     DEBUG_TRACK && console.log('[GA4 gtag]', eventName, finalPayload)
+    //     window.gtag('event', eventName, finalPayload)
+    //     return
+    // }
 
     // Fallback: GTM dataLayer
     window.dataLayer = window.dataLayer || []

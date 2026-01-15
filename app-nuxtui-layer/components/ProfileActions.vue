@@ -227,7 +227,7 @@ const sanitizeInput = (index: number) => {
 }
 function goToCart() { router.push('/cart'); menuOpen.value = false }
 function goShopping() { router.push('/'); menuOpen.value = false }
-const checkdetai = (id: any, sku: any, name: string) => { router.push('/product/' + id + '/' + slugify(name) + '?sku=' + sku) }
+const checkdetai = (id: any, sku: any, name: string) => { router.push('/products/' + slugify(name) + '-' + id + '?sku=' + sku) }
 // 从 propList 构建规格属性字符串
 
 const getSpecArray = (propList: any[]) => {
@@ -438,15 +438,6 @@ const checkout = () => {
   router.push(`/checkout?from=cart&items=${encodeURIComponent(itemsParam)}`)
 
 }
-const slugify = (str: string) => {
-  return str
-    .normalize('NFKD')
-    .replace(/[^\w\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .toLowerCase()
-}
 function goLogin(overrideTarget?: string) {
   const target = overrideTarget || route.fullPath
   if (target.startsWith('/cart') || target.startsWith('/checkout')) {
@@ -479,11 +470,13 @@ if (process.client) {
         placement: 'bottom'
       }">
         <template #default>
-          <div class="relative flex items-center justify-center pt-[3px]">
-            <HoverImg class="w-[24px] h-[24px] object-cover" defaultImg="/home/cart_default.webp"
-              hoverImg="/home/cart_highlight.webp" />
+          <div class="relative flex items-center justify-center">
+            <HoverSvg class="w-[24px] h-[24px] ml-1 cursor-pointer" defaultImg="#icon-shop-car"
+              hoverImg="#icon-shop-car-primary" />
+            <!-- <HoverImg class="w-[24px] h-[24px] object-cover" :defaultImg="getImgCdnSrc('home/cart_default.webp')"
+              :hoverImg="getImgCdnSrc('home/cart_highlight.webp')" /> -->
             <div v-if="cart.itemCount > 0"
-              class="absolute top-[-7px] right-[-8px] w-4 h-4 flex items-center justify-center rounded-full text-white bg-primary text-[12px] font-semibold">
+              class="absolute top-[-10px] right-[-10px] w-4 h-4 flex items-center justify-center rounded-full text-white bg-primary text-[12px] font-semibold">
               {{ cart.itemCount }}</div>
           </div>
         </template>
@@ -498,9 +491,10 @@ if (process.client) {
                     index !== cart.itemList.length - 1 ? 'border-b' : ''
                   ]">
                     <div class="w-20 rounded-lg overflow-hidden">
-                      <NuxtImg :src="`${item.productImage || item.product?.mainPic?.url}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`" :alt="item.productName"
-                        class="w-full h-full object-cover object-top cursor-pointer"
-                        @click="checkdetai(item.product?.id, item.productSku, item.productName)" />
+                      <NuxtImg
+                        :src="`${item.productImage || item.product?.mainPic?.url}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`"
+                        :alt="item.productName" class="w-full h-full object-cover object-top cursor-pointer"
+                        @click="checkdetai(item.product?.id, item.productSku, item.seoUrlKeyword || item.productName)" />
                     </div>
 
                     <div class="ml-6 ">
@@ -606,17 +600,19 @@ if (process.client) {
     </div>
     <!-- 登录按钮 / 用户信息（保留） -->
     <div v-if="!isuserTokenValid" class="flex items-center text-white h-full text-sm gap-1" @click.prevent="goLogin()">
-      <HoverImg class="w-[24px] h-[24px] " defaultImg="/home/user_default.webp" hoverImg="/home/user_highlight.webp" />
+      <HoverSvg class="w-[24px] h-[24px] cursor-pointer" defaultImg="#icon-person" hoverImg="#icon-person-primary" />
+      <!-- <HoverImg class="w-[24px] h-[24px] " defaultImg="/home/user_default.webp" hoverImg="/home/user_highlight.webp" /> -->
     </div>
 
     <div class="text-white cursor-pointer h-full flex items-center justify-center" v-if="isuserTokenValid">
       <UPopover color="white" v-model:open="infoOpen" mode="hover"
-        :ui="{ base: 'border-none  shadow-2xl bg-white rounded-md focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow' }"
+        :ui="{ base: 'border-none  shadow-2xl bg-white rounded-md focus:outline-none focus:ring-0 !ring-0 custom-popover-shadow dark:bg-white' }"
         :popper="{ placement: 'bottom' }">
         <template #default>
-          <NuxtLink to="/userinfo" class=" pt-[3px]">
-            <HoverImg class=" w-[24px] h-[24px] text-white ml-1 cursor-pointer" defaultImg="/home/in_default.webp"
-              hoverImg="/home/in_highlight.webp" />
+          <NuxtLink to="/userinfo" class="">
+            <HoverSvg class="w-[24px] h-[24px] cursor-pointer" defaultImg="#icon-in" hoverImg="#icon-in-primary" />
+            <!-- <HoverImg class=" w-[24px] h-[24px] text-white ml-1 cursor-pointer" defaultImg="/home/in_default.webp"
+              hoverImg="/home/in_highlight.webp" /> -->
 
             <!-- <HoverImg class="w-[24px] h-[24px]" defaultImg="/home/user_default.webp" hoverImg="/home/user_highlight.webp" /> -->
           </NuxtLink>
@@ -650,8 +646,10 @@ if (process.client) {
       @click="langOpen = true">
       <UTooltip :text="displayLocationLabel || 'Select location'">
         <div class="text-white hover:text-primary flex items-center">
-          <HoverImg class="w-[24px] h-[24px] mr-2" defaultImg="/home/map_mark_default.webp"
-            hoverImg="/home/map_mark_highlight.webp" />
+          <HoverSvg class="w-[24px] h-[24px] mr-2 cursor-pointer" defaultImg="#icon-map-mark"
+            hoverImg="#icon-map-mark-primary" />
+          <!-- <HoverImg class="w-[24px] h-[24px] mr-2" defaultImg="/home/map_mark_default.webp"
+            hoverImg="/home/map_mark_highlight.webp" /> -->
           <div class="truncate max-w-[120px] text-sm cursor-pointer text-left">
             <div class="text-[12px]">Delivery to</div>
             <div class="truncate">
@@ -665,8 +663,9 @@ if (process.client) {
     </button>
 
     <!-- Modal 本体 -->
-    <UModal v-model="langOpen" :ui="{ width: 'sm:max-w-[500px]', base: 'p-0' }">
-      <UCard :ui="{ ring: 'ring-0', body: { padding: 'p-6' }, header: 'hidden', footer: 'hidden' }">
+    <UModal v-model="langOpen" :ui="{ width: 'sm:max-w-[500px]', base: 'p-0 dark:bg-white' }">
+      <UCard class="dark:bg-white"
+        :ui="{ ring: 'ring-0', body: { padding: 'p-6' }, header: 'hidden', footer: 'hidden' }">
         <div class="text-base font-semibold text-black mb-4">
           Choose Your Location
         </div>
@@ -697,7 +696,7 @@ if (process.client) {
           <!-- 提交按钮 -->
           <div class="flex justify-end mt-4 gap-2">
             <!-- <UButton color="gray" variant="ghost" class="rounded-md" @click="langOpen = false">Cancel</UButton> -->
-            <UButton type="submit" color="primary" class="rounded-md">Done</UButton>
+            <UButton type="submit" color="primary" class="rounded-md dark:text-white">Done</UButton>
           </div>
         </form>
       </UCard>

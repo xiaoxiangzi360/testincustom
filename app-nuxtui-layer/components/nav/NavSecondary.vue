@@ -68,4 +68,3 @@ const dropdownItems = [
     </template>
   </UDropdown>
 </template>
-<style scoped></style>

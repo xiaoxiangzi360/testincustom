@@ -50,10 +50,13 @@ export default defineNuxtPlugin((nuxtApp) => {
 
         // 页面加载完成后延迟 3 秒加载，或用户交互时立即加载
         if (document.readyState === 'complete') {
-            setTimeout(loadTikTokPixel, 3000);
+            console.log('页面已加载，开始监听用户行为---tiktok');
+            ['mousedown', 'touchstart', 'scroll'].forEach(function (event) {
+                window.addEventListener(event, loadTikTokPixel, { once: true, passive: true });
+            });
         } else {
-            window.addEventListener('load', function() { setTimeout(loadTikTokPixel, 3000); });
-            ['mousedown', 'touchstart', 'scroll'].forEach(function(event) {
+            window.addEventListener('load', function () { setTimeout(loadTikTokPixel, 3000); });
+            ['mousedown', 'touchstart', 'scroll'].forEach(function (event) {
                 window.addEventListener(event, loadTikTokPixel, { once: true, passive: true });
             });
         }

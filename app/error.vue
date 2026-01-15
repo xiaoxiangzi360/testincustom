@@ -36,15 +36,6 @@ const isDev = import.meta.dev
 function handleError() {
   return clearError({ redirect: '/' })
 }
-const slugify = (str) => {
-  return str
-    .normalize('NFKD')           // 去掉重音符号
-    .replace(/[^\w\s-]/g, '')    // 去掉非字母数字/下划线/空格/连字符
-    .trim()
-    .replace(/\s+/g, '-')        // 空格转-
-    .replace(/-+/g, '-')         // 合并多个-
-    .toLowerCase()
-}
 </script>
 <template>
   <NuxtLoadingIndicator />
@@ -55,15 +46,16 @@ const slugify = (str) => {
         <!-- <h1 class="text-[60px] font-extrabold text-primary mb-2">404</h1>
         <p class="text-xl font-medium text-gray-800 mb-3">Page Not Found</p> -->
         <NuxtImg src="/empty.png" alt="404 Not Found" width="180" class="lg:mt-10" />
-        <p class="text-[#5A5B5B] mb-8 max-w-md ">
-          The product you want to access has been removed from the shelves. We recommend you to view similar products.
+        <p class="text-[#5A5B5B] mb-4 ">
+          The page or product you are trying to access does not exist.
         </p>
+        <a href="/" class="text-primary underline mb-12">Return to Home</a>
         <!-- 推荐产品部分（原样） -->
         <div class="max-row">
           <div class="mt-6 pb-4" v-if="products.length > 0">
             <h1 class="text-lg font-semibold mb-3 md:mb-4 dark:text-black text-left">Similar item you might like</h1>
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <NuxtLink :to="`/product/${product.id}/${slugify(product.productEnglishName)}`"
+              <NuxtLink :to="`/products/${slugify(product.seoUrlKeyword || product.productEnglishName)}-${product.id}`"
                 v-for="(product, index) in products" :key="index"
                 class="product-card rounded-lg transition-transform duration-300  hover:scale-[1.02] md:hover:-translate-y-0.5 cursor-pointer">
                 <div class="relative overflow-hidden">
@@ -75,7 +67,7 @@ const slugify = (str) => {
                 </div>
                 <div class="mt-2">
                   <h3 class="text-sm font-normal mb-2 line-clamp-1 dark:text-black">{{ product.productEnglishName
-                  }}
+                    }}
                   </h3>
                   <div class="flex items-center">
 

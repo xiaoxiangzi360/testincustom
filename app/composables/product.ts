@@ -201,11 +201,11 @@ export const ProductAuth = () => {
     }
   }
 
-  const checkProductAvailablePurchase = async (params) => {
+  const getProductSpuLevelTwo = async (params) => {
     try {
-      const response = await $api('/product/product/checkProductAvailablePurchase', {
-        method: 'POST',
-        body: params,
+      const query = new URLSearchParams(params).toString()
+      const response = await $api(`/product/product/groupProductSpuLevelTwoCatalogByCatalogId?${query}`, {
+        method: 'GET',
       })
 
       return response
@@ -214,12 +214,11 @@ export const ProductAuth = () => {
       throw error
     }
   }
-
-  const getProductSpuLevelTwo = async (params) => {
+  const checkProductAvailablePurchase = async (params) => {
     try {
-      const query = new URLSearchParams(params).toString()
-      const response = await $api(`/product/product/groupProductSpuLevelTwoCatalogByCatalogId?${query}`, {
-        method: 'GET',
+      const response = await $api('/product/product/checkProductAvailablePurchase', {
+        method: 'POST',
+        body: params,
       })
 
       return response
@@ -270,6 +269,22 @@ export const ProductAuth = () => {
       throw error
     }
   }
-  return { getProductTagById, getProductSpuLevelTwo, getSpuCatalogTwoLevelByTagId, getSpuCatalogPropByCatalogId, checkProductAvailablePurchase, listGuidingStarPublishTree, getProductSpuV2ById, getProductDetailsById, randomRecommendationProductByCatalogId, getUserProductRollPage, getmapProductSpuV2ByProductSkuV2IdList, customizedProductPriceTrialCalculation, erpTryToCreateSkuV2, getproductSearch, productSearchRecommendation, listOnlineMallProductCatalogTree, trialPriceCalculationBySpuV4, getMallProductCatalogById, getconfigRollPage, propSideLengthTool }
+
+  //批量查询商品信息
+
+  const listProductSpuV2ByIdList = async (params) => {
+    try {
+      const response = await $api('/product/product/listProductSpuV2ByIdList', {
+        method: 'POST',
+        body: params,
+      })
+
+      return response
+    } catch (error) {
+
+      throw error
+    }
+  }
+  return { listProductSpuV2ByIdList, getProductTagById, getProductSpuLevelTwo, getSpuCatalogTwoLevelByTagId, getSpuCatalogPropByCatalogId, checkProductAvailablePurchase, listGuidingStarPublishTree, getProductSpuV2ById, getProductDetailsById, randomRecommendationProductByCatalogId, getUserProductRollPage, getmapProductSpuV2ByProductSkuV2IdList, customizedProductPriceTrialCalculation, erpTryToCreateSkuV2, getproductSearch, productSearchRecommendation, listOnlineMallProductCatalogTree, trialPriceCalculationBySpuV4, getMallProductCatalogById, getconfigRollPage, propSideLengthTool }
 }
 

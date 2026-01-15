@@ -1,57 +1,100 @@
-<script setup lang="ts">
-  definePageMeta({
-    // layout: 'default',
-    // name: 'contact-us',
-    // alias: 'contact-us',
-    title: 'Contact Us',
-    description: "Get in Touch: We're All Ears!",
-    navOrder: '11',
-    type: 'secondary',
-    icon: 'i-mdi-home',
-    // ogImage: 'images/ogImage.png', // url or local images inside public folder, for eg, ~/public/images/ogImage.png
-  })
-</script>
 <template>
-  <div
-    class="pb-12 text-center bg-primary-600 dark:bg-primary-200 text-white dark:text-primary-800"
-  >
-    <div class="container mx-auto px-4">
-      <div class="-mx-4 flex flex-wrap">
-        <div class="mx-auto px-4 rounded-2xl w-full lg:w-8/12">
-          <div class="px-6 py-12 rounded-lg tertiary-card">
-            <h2 class="font-bold leading-tight mb-2 text-3xl">
-              Subscribe To Our Newsletter
-            </h2>
-            <p class="mb-8">
-              Sign up for our newsletter to receive updates and exclusive offers
-            </p>
-            <form
-              class="mx-auto sm:w-9/12 xl:w-8/12"
-              action="https://www.getdrip.com/forms/243852739/submissions"
-              method="post"
-              target="_blank"
-              rel="noopener"
-              data-drip-embedded-form="243852739"
-            >
-              <div class="flex items-center overflow-hidden p-2 rounded-full">
-                <label for="emailfield" class="sr-only">Email address:</label>
-                <input
-                  id="emailfield"
-                  class="border-0 flex-1 outline-none px-5 py-2 rounded-full w-full"
-                  placeholder="email@example.com"
-                  type="email"
-                  required
-                  name="fields[email]"
-                />
-                <UButton type="submit" class="ml-2" size="md" color="secondary">
-                  Sign Up
-                </UButton>
-              </div>
-            </form>
-          </div>
+    <section class="px-6 py-12 max-w-3xl mx-auto text-gray-800">
+        <h1 class="text-3xl font-bold mb-4">Contact Us</h1>
+
+        <p class="mb-6">
+            We’re here to help you design the perfect shade solution for your space.<br />
+            Reach out anytime — we reply within 12 hours.
+        </p>
+
+        <div class="mb-6">
+            <p class="font-semibold">Email:</p>
+            <ul class="list-disc ml-6 ">
+                <li>
+                    <div class="hover:underline">hello@incustom.com</div>
+                </li>
+                <li>
+                    <div class="hover:underline">service@incustom.com</div>
+                </li>
+            </ul>
         </div>
-      </div>
-    </div>
-  </div>
+
+        <div class="mt-6">
+            <h2 class="text-2xl font-semibold mb-2">Contact Form</h2>
+            <p class="mb-4">Have a question or custom request? Tell us more.</p>
+
+            <form class="space-y-4" @submit.prevent="handleSubmit">
+                <div>
+                    <label for="name" class="block font-medium mb-1">Name</label>
+                    <input id="name" type="text" v-model="name"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2" />
+                </div>
+
+                <div>
+                    <label for="email" class="block font-medium mb-1">Email</label>
+                    <input id="email" type="email" v-model="email"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2" />
+                </div>
+
+                <div>
+                    <label for="message" class="block font-medium mb-1">Message</label>
+                    <textarea id="message" rows="5" v-model="content"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2"></textarea>
+                </div>
+
+                <button type="submit" :disabled="isLoading"
+                    class="bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50">
+                    {{ isLoading ? 'Sending...' : 'Send Message' }}
+                </button>
+            </form>
+
+        </div>
+    </section>
 </template>
-<style scoped></style>
+
+<script setup>
+import { ref } from 'vue'
+import { message } from 'ant-design-vue'
+useHead({
+    title: 'Contact Us - Customer Support',
+    meta: [
+        { name: 'description', content: 'Need help? Our inCustom support team is here for you. Find our contact form, email address, and expected response times here.' }
+    ]
+})
+const { createContactUs } = useAuth()
+
+const name = ref('')
+const email = ref('')
+const content = ref('')
+const isLoading = ref(false)
+
+const handleSubmit = async () => {
+    if (!name.value || !email.value || !content.value) {
+        message.warning('Please fill in all fields.')
+        return
+    }
+
+    isLoading.value = true
+    try {
+        await createContactUs({
+            name: name.value,
+            email: email.value,
+            message: content.value,
+        })
+        message.success('Message sent successfully!')
+        name.value = ''
+        email.value = ''
+        content.value = ''
+    } catch (err) {
+        console.error(err)
+        message.error('Failed to send message. Please try again.')
+    } finally {
+        isLoading.value = false
+    }
+}
+</script>
+
+
+<style scoped>
+/* You can adjust spacing or add transition styles here */
+</style>

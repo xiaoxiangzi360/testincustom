@@ -22,11 +22,21 @@
                 <div class="flex justify-between items-center mt-4" v-show="total > 0">
                     <!-- <span class="mr-4 text-gray-600">Total {{ total }} items</span> -->
                     <!-- <span>共 {{ total }} 条记录 第 {{ page }} / {{ totalPages }} 页</span> -->
-                    <UPagination v-model="page" :page-count="pageSize" :total="total"
-                        :active-button="{ variant: 'outline' }" :ui="{
-                            base: 'ring-[#d9d9d9] dark:ring-[#d9d9d9]',
-                        }" :prev-button="{ icon: 'i-material-symbols:chevron-left' }"
-                        :next-button="{ icon: 'i-material-symbols:chevron-right' }" />
+                    <UPagination v-model="page" :page-count="pageSize" :total="total" :ui="{
+                        base: 'ring-0 dark:ring-0 shadow-none dark:bg-white dark:text-gray-400 dark:hover:text-primary dark:hover:bg-white hover:bg-white',
+                        default: {
+                            activeButton: {
+                                color: 'dark:primary',
+                                class: 'dark:!bg-primary dark:!text-white',
+                            },
+                            prevButton: {
+                                color: 'white', variant: 'none'
+                            },
+                            nextButton: {
+                                color: 'white', variant: 'none'
+                            },
+                        }
+                    }" />
                 </div>
             </div>
         </div>

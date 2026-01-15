@@ -32,7 +32,8 @@
                     <SplideSlide v-for="product in products"
                         :key="product.id || product.productEnglishName || Math.random()"
                         class="px-[14px] pt-3 rounded-[8px] bg-white transition-transform transition-shadow duration-300 shadow-[0_4px_10px_0_rgba(167,167,167,0.2)] hover:scale-[1.02] md:hover:-translate-y-0.5">
-                        <ULink :to="`/product/${product.id}/${slugify(product.productEnglishName)}`"
+                        <ULink
+                            :to="`/products/${slugify(product.seoUrlKeyword || product.productEnglishName)}-${product.id}`"
                             class="block rounded-[8px] cursor-pointer focus:outline-none">
                             <!-- 产品图片 -->
                             <div class="relative w-full aspect-square overflow-hidden rounded-[8px]">
@@ -218,21 +219,6 @@ const getpopularlist = async () => {
     } finally {
         isLoading.value = false;
     }
-};
-
-const slugify = (str: string) => {
-    if (!str || str === null || str === undefined) {
-        return 'product'; // 提供一个默认值
-    }
-    return encodeURIComponent(
-        String(str)
-            .normalize("NFKD")
-            .replace(/[^\w\s-]/g, "")
-            .trim()
-            .replace(/\s+/g, "-")
-            .replace(/-+/g, "-")
-            .toLowerCase()
-    );
 };
 
 // 轮播控制方法

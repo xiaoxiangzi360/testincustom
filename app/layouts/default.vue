@@ -1,5 +1,8 @@
 <script setup lang="ts">
 const route = useRoute()
+const isHiddenFooter = computed(() => route.path.includes('/testHeader'))
+const isNewFooter = computed(() => route.path.includes('/testFooter'))
+const isOldFooter = computed(() => route.path.includes('/testOldFooter'))
 
 const pageMeta = computed(() => {
   return {
@@ -11,8 +14,8 @@ const pageMeta = computed(() => {
     tags: route.meta.tags,
   }
 })
-
-useHeadAndMeta(pageMeta)
+console.log('pageMeta==canonicalUrl===', pageMeta.value, route.meta.canonicalUrl, route.fullPath)
+useHeadAndMeta(pageMeta.value)
 useOgImage()
 </script>
 
@@ -20,12 +23,20 @@ useOgImage()
   <div>
     <!-- <div class="container mx-auto"> -->
     <div class="min-h-screen flex flex-col dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50 font-hind">
-
-      <NavBar />
+      <template v-if="!(isNewFooter || isOldFooter)">
+        <NavBar />
+      </template>
       <main class="mt-[80px] lg:mt-[100px] bg-white">
         <slot />
       </main>
-      <TheFooter />
+      <template v-if="!isHiddenFooter">
+        <template v-if="isOldFooter">
+          <TheFooter1 />
+        </template>
+        <template v-else>
+          <TheFooter />
+        </template>
+      </template>
     </div>
     <!-- </div> -->
   </div>

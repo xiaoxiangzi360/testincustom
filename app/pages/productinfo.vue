@@ -421,7 +421,7 @@
                 <h1 class="text-lg font-normal mb-8">Recommended products</h1>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-12">
                     <div v-for="(product, index) in products" :key="index"
-                        @click="checkdetail(product.id, product.erpProduct.productEnglishName)"
+                        @click="checkdetail(product.id, product.erpProduct.seoUrlKeyword||product.erpProduct.productEnglishName)"
                         class="product-card rounded-lg transition-transform duration-300 ease-in-out hover:scale-105 cursor-pointer">
                         <div class="relative  overflow-hidden">
                             <img :src="product.erpProduct.mainPic ?? '/images/empty.jpg'"
@@ -976,13 +976,13 @@ if (lastpage) {
 }
 
 const updateBreadcrumbProduct = (productName) => {
-    const productPath = `/product/${productid.value}/${productName.replace(/\s+/g, '-')}`
+    const productPath = `/products/${slugify(productName)}-${productid.value}`
 
     // 检查最后一项是否已经是产品详情
     const lastIndex = breadcrumbLinks.value.length - 1
     const lastItem = breadcrumbLinks.value[lastIndex]
 
-    if (lastItem && lastItem.to?.startsWith('/product')) {
+    if (lastItem && lastItem.to?.startsWith('/products')) {
         // ✅ 替换最后一项
         breadcrumbLinks.value[lastIndex] = {
             label: productName,
@@ -1004,7 +1004,7 @@ const handleGetProudct = async () => {
         isLoading.value = true; // 开始加载
         let parmes = { id: productid.value, needPropData: true };
         let res = await getProductById(parmes);
-        updateBreadcrumbProduct(res.result.erpProduct.productEnglishName)
+        updateBreadcrumbProduct(res.result.erpProduct.seoUrlKeyword||res.result.erpProduct.productEnglishName)
 
 
         orginproductinfo.value = res.result;
@@ -1132,7 +1132,7 @@ const customFilter = (input, option) => {
 const checkdetail = (id, productName) => {
     // const productPath = `/product/${productid.value}/${productName}`
 
-    router.push(`/product/${id}/${productName.replace(/\s+/g, '-')}`);
+    router.push(`/products/${slugify(productName)}-${id}`);
 };
 
 const changeshow = (index) => {

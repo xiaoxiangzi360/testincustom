@@ -39,17 +39,20 @@ export const useHeadAndMeta = (pageMeta: any) => {
     // ),
     {
       rel: 'icon',
-      type: 'image/x-icon',
       // type: 'image/png',
-      href: '/favicon.ico',
+      href: '/favicon.png',
     },
+    //   {
+    //   rel: 'stylesheet',
+    //   href: './iconSvg/iconfont.css', // 添加 iconfont.css 的链接
+    // },
   ]
   const noscript: any = []
 
   const canonicalUrl = pageMeta.canonicalUrl || siteUrl
   if (canonicalUrl) {
     // Canonical URL
-    link.push({ rel: 'canonical', href: canonicalUrl.href })
+    // link.push({ rel: 'canonical', href: canonicalUrl.href })
   }
 
   if (fontUrls.length) {
@@ -93,7 +96,11 @@ export const useHeadAndMeta = (pageMeta: any) => {
     ],
 
     // useScript can also be used to load scripts
-    script: [{ innerHTML: checkDarkTheme, once: true } as TurboScript],
+    script: [{
+      src: '/iconSvg/iconfont.js', // 指定 iconfont.js 的路径
+      async: true, // 异步加载
+      defer: true, // 延迟执行
+    }, { innerHTML: checkDarkTheme, once: true } as TurboScript],
     link,
     noscript,
     htmlAttrs: { lang: 'en-US' },
@@ -127,7 +134,7 @@ export const useHeadAndMeta = (pageMeta: any) => {
     description,
     author,
     charset: 'utf-8',
-    viewport: 'width=device-width, initial-scale=1',
+    viewport: 'width=device-width, initial-scale=1, user-scalable=no',
     generator,
     keywords,
 

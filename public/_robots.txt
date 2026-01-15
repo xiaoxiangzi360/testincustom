@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://incustom.com/sitemap.xml
+Sitemap: https://incustom.com/sitemap-pages.xml
+Sitemap: https://incustom.com/sitemap-guidingstar.xml
+Sitemap: https://incustom.com/sitemap-products-1.xml

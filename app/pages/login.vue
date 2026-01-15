@@ -56,7 +56,7 @@
                 </div>
 
                 <UButton type="submit" size="xl"
-                    class="text-primary w-full max-w-md mt-6 p-3 block text-center text-white">Log In
+                    class=" w-full max-w-md mt-6 p-3 block text-center text-white dark:text-white">Log In
                 </UButton>
             </UForm>
 
@@ -74,19 +74,19 @@
 
             <div class="flex justify-center gap-4 mt-4">
                 <UButton variant="ghost"
-                    class="bg-gray-50 w-28 sm:w-32 h-12 flex items-center justify-center gap-2 rounded-lg p-3 text-gray-700 hover:bg-primary hover:text-white transition-colors duration-300"
+                    class="bg-gray-50 w-28 sm:w-32 h-12 flex items-center justify-center gap-2 rounded-lg p-3 text-gray-700 dark:text-gray-700 hover:bg-primary hover:text-white transition-colors duration-300"
                     @click="socialLogin('google')">
                     <img src="/images/google.png" class="w-5 h-5" alt="Google" />
                     <span class="font-medium">Google</span>
                 </UButton>
                 <UButton variant="ghost"
-                    class="bg-gray-50 w-28 sm:w-32 h-12 flex items-center justify-center gap-2 rounded-lg p-3 text-gray-700 hover:bg-primary hover:text-white transition-colors duration-300"
+                    class="bg-gray-50 w-28 sm:w-32 h-12 flex items-center justify-center gap-2 rounded-lg p-3 text-gray-700 dark:text-gray-700 hover:bg-primary hover:text-white transition-colors duration-300"
                     @click="socialLogin('apple')">
                     <img src="/images/apple.png" class="w-5 h-5" alt="Apple" />
                     <span class="font-medium">Apple</span>
                 </UButton>
                 <UButton variant="ghost"
-                    class="bg-gray-50 w-28 sm:w-32 h-12 flex items-center justify-center gap-2 rounded-lg p-3 text-gray-700 hover:bg-primary hover:text-white transition-colors duration-300"
+                    class="bg-gray-50 w-28 sm:w-32 h-12 flex items-center justify-center gap-2 rounded-lg p-3 text-gray-700 dark:text-gray-700 hover:bg-primary hover:text-white transition-colors duration-300"
                     @click="socialLogin('facebook')">
                     <img src="/images/facebook.png" class="w-5 h-5" alt="Facebook" />
                     <span class="font-medium">Facebook</span>

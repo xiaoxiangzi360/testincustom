@@ -17,7 +17,7 @@ const isuserTokenValid = computed(() => {
   return !!token.value && isMember
 })
 // 控制移动菜单
-const { isMobileMenuOpen } = useMobileMenu()
+const { isMobileMenuOpen, openMobileMenu } = useMobileMenu()
 const { isMobileCartMenuOpen } = useMobileCartMenu()
 const showAuthSheet = ref(false)
 
@@ -188,19 +188,21 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
     <div class="bg-[#222222]">
       <div class="flex items-center justify-between navbar-grid py-[2px] max-lg:py-[6px] max-row">
         <div style="grid-area: logo" class="flex">
-          <TheLogo class=""></TheLogo>
+          <ULink data-pg-name="Logo" class="flex sm:flex-row" to="/">
+            <NuxtImg src="https://cdn.incustom.com/upload/web/incustom.png" loading="lazy" alt="InCustom" class="h-8" />
+          </ULink>
         </div>
         <div data-pg-name="Hamburger" style="grid-area: hamburger" class="lg:hidden flex">
-          <NavHamburger @click="isMobileMenuOpen = true"></NavHamburger>
+          <ComSvg href="#icon-all" class="h-[24px] w-[24px] text-white" @click="isMobileMenuOpen = true"/>
         </div>
         <div data-pg-name="Profile" class="flex gap-2 justify-end lg:justify-start cursor-pointer">
           <ProfileActions class="!hidden lg:!flex"></ProfileActions>
-          <NuxtImg v-show="isuserTokenValid" @click="checklogin" src="/home/in_default.webp" alt="user"
+          <ComSvg v-show="isuserTokenValid" @click="checklogin" href="#icon-in" alt="user"
             class="lg:!hidden w-[24px] h-[24px] cursor-pointer" />
-          <NuxtImg src="/home/user_default.webp" class="lg:!hidden w-[24px] h-[24px]" @click="openAuthSheet"
+          <ComSvg href="#icon-person" class="lg:!hidden w-[24px] h-[24px]" @click="openAuthSheet"
             v-show="!isuserTokenValid" />
           <div class="relative lg:!hidden">
-            <NuxtImg src="/home/cart_default.webp" class="w-[24px] h-[24px]" @click="goToCart" />
+            <ComSvg href="#icon-car" class="w-[24px] h-[24px]" @click="goToCart" />
             <div v-if="cart.itemCount > 0"
               class="absolute top-[-7px] right-[-8px] w-4 h-4 flex items-center justify-center rounded-full text-white bg-primary text-[12px] font-semibold">
               {{ cart.itemCount }}</div>
@@ -273,7 +275,7 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
       class="w-72 lg:hidden z-[999]" side="left">
       <div class="flex flex-col h-full">
         <!-- 主体内容 -->
-        <div class="flex-1 overflow-y-auto px-3">
+        <div class="flex-1 overflow-y-auto px-3 bg-white">
           <NavPrimary />
         </div>
       </div>
@@ -288,7 +290,7 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
       </div>
     </USlideover>
     <UModal v-model="showAuthSheet"
-      :ui="{ width: 'max-w-full sm:max-w-sm', container: 'items-end', base: 'rounded-t-2xl p-6 pb-8' }">
+      :ui="{ width: 'max-w-full sm:max-w-sm', container: 'items-end', base: 'rounded-t-2xl p-6 pb-8 dark:bg-white' }">
       <div class="space-y-4 text-center">
         <button class="w-full py-3 rounded-full bg-primary text-white font-medium" @click="goAuthPage('/login')">
           Sign In

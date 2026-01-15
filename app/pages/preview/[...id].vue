@@ -767,7 +767,7 @@
       <div class="mt-6 pb-4" v-if="products.length > 0">
         <h1 class="text-lg font-semibold mb-3 md:mb-4 dark:text-black">Similar item you might like</h1>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <NuxtLink :to="`/product/${product.id}/${slugify(product.productEnglishName)}`"
+          <NuxtLink :to="`/products/${slugify(product.seoUrlKeyword || product.productEnglishName)}-${product.id}`"
             v-for="(product, index) in products" :key="index"
             class="product-card rounded-lg transition-transform duration-300  hover:scale-[1.02] md:hover:-translate-y-0.5 cursor-pointer">
             <div class="relative overflow-hidden">
@@ -3621,15 +3621,6 @@ onUnmounted(() => {
   if (!process.client) return
   window.removeEventListener('scroll', handleScroll)
 })
-const slugify = (str) => {
-  return str
-    .normalize('NFKD')           // 去掉重音符号
-    .replace(/[^\w\s-]/g, '')    // 去掉非字母数字/下划线/空格/连字符
-    .trim()
-    .replace(/\s+/g, '-')        // 空格转-
-    .replace(/-+/g, '-')         // 合并多个-
-    .toLowerCase()
-}
 </script>
 
 <style scoped>

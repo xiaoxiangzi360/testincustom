@@ -1,4 +1,67 @@
 /* global.css */
+.icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  fill: currentColor;
+  overflow: hidden;
+}
+
+.max-row {
+  @apply w-[84%] mx-auto max-lg:w-[100%] max-lg:px-4;
+  /* @apply max-w-[1440px] mx-auto px-3 max-lg:px-4; */
+}
+
+.ant-input:focus {
+  border-color: #25B9EC !important;
+  border: none;
+}
+
+/* 全局覆盖 */
+.ant-input:focus {
+  --tw-ring-color: #25B9EC !important;
+}
+
+/* 带 suffix/prefix 的情况 */
+.ant-input-affix-wrapper:focus-within {
+  --tw-ring-color: #25B9EC !important;
+}
+.skeleton-animation {
+  animation: pulse 1.5s infinite;
+}
+
+/* 定义动画效果 */
+@keyframes pulse {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+.max-row {
+  @apply w-[84%] mx-auto max-lg:w-[100%] max-lg:px-4;
+  /* @apply max-w-[1440px] mx-auto px-3 max-lg:px-4; */
+}
+
+.ant-input:focus {
+  border-color: #25B9EC !important;
+  border: none;
+}
+
+/* 全局覆盖 */
+.ant-input:focus {
+  --tw-ring-color: #25B9EC !important;
+}
+
+/* 带 suffix/prefix 的情况 */
+.ant-input-affix-wrapper:focus-within {
+  --tw-ring-color: #25B9EC !important;
+}
+
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;

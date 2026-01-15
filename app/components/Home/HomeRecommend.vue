@@ -76,7 +76,7 @@ const onLeave = () => {
 }
 
 /** 产品列表 */
-type Product = { id: string; title: string; image: string; price?: number; originPrice?: number; alt?: string }
+type Product = { id: string; title: string; image: string; price?: number; originPrice?: number; alt?: string, seoUrlKeyword?:string }
 const products = computed<Product[]>(() => {
     const list = Array.isArray(cfg.value?.productlist) ? cfg.value.productlist : []
     return list.map((p: any) => ({
@@ -85,7 +85,8 @@ const products = computed<Product[]>(() => {
         image: p.coverImg || p.productImg?.url || '/images/empty.jpg',
         alt: p.alt || p.productName || '',
         price: p.price,
-        originPrice: p.originPrice
+        originPrice: p.originPrice,
+        seoUrlKeyword: p.seoUrlKeyword || ''
     }))
 })
 
@@ -94,16 +95,6 @@ const splideRef = ref<InstanceType<typeof Splide> | null>(null)
 const splideOptions = { type: 'loop', gap: '12px', pagination: false, perPage: 1, arrows: false } as const
 const goPrev = () => splideRef.value?.splide?.go('<')
 const goNext = () => splideRef.value?.splide?.go('>')
-
-/** slug */
-const slugify = (str: string) =>
-    str
-        .normalize('NFKD')
-        .replace(/[^\w\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .toLowerCase()
 
 /** 标题与副标题（带兜底） */
 const title = computed(() => props.item?.name?.trim() || '')
@@ -149,7 +140,9 @@ const subtitle = computed(() => props.item?.desc?.trim() || '')
                             <ClientOnly>
                                 <Splide ref="splideRef" :options="splideOptions" aria-label="Products" class="min-w-0">
                                     <SplideSlide v-for="p in products" :key="p.id" class="min-w-0">
-                                        <ULink :to="`/product/${p.id}/${slugify(p.title)}`" class="block min-w-0">
+                                        <ULink
+                                            :to="`/products/${slugify(p?.seoUrlKeyword || p.title) || 'product'}-${p.id}`"
+                                            class="block min-w-0">
                                             <div class="flex gap-3 items-start md:block rounded min-w-0">
                                                 <!-- 图片 -->
                                                 <div
@@ -161,8 +154,7 @@ const subtitle = computed(() => props.item?.desc?.trim() || '')
                                                 </div>
 
                                                 <div class="flex-1 md:mt-2 min-w-0">
-                                                    <div class="mb-2 md:mb-2 lg:mb-3 text-sm line-clamp-2 text-d3black"
-                                                        style="min-height: 2.8em">
+                                                    <div class="mb-2 text-sm line-clamp-2 text-d3black">
                                                         {{ p.title }}
                                                     </div>
                                                     <div v-if="p.price" class="text-sm text-customblack">

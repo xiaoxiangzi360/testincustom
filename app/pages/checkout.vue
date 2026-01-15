@@ -64,7 +64,7 @@
                                                                     :key="i" class="whitespace-normal">
                                                                     {{ spec.label }}
                                                                     <span class="text-[#0C1013] ml-1">{{ spec.value
-                                                                        }}</span>
+                                                                    }}</span>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -81,7 +81,7 @@
                                                             <UButton @click="applyCoupon"
                                                                 :disabled="!couponCode || applyLoading"
                                                                 :loading="applyLoading"
-                                                                class="shrink-0 rounded px-4 text-white"
+                                                                class="shrink-0 rounded px-4 text-white dark:text-white"
                                                                 :class="[(!couponCode) ? '!bg-gray-300 cursor-not-allowed' : 'bg-primary hover:bg-[#00a9d8]']">
                                                                 Apply
                                                             </UButton>
@@ -100,15 +100,15 @@
                                                         </div>
                                                         <div class="flex justify-between  mt-4  font-medium  text-sm">
                                                             <span class="text-gray-600">SubTotal . {{ selectedQuantity
-                                                                }} items</span>
+                                                            }} items</span>
                                                             <span class="text-primary">${{ selectedTotal.toFixed(2)
-                                                                }}</span>
+                                                            }}</span>
                                                         </div>
                                                         <div class="flex justify-between mt-4 font-medium text-sm"
                                                             v-if="discount > 0">
                                                             <span class="text-customblack">Discount</span>
                                                             <span class="text-primary">- ${{ discount.toFixed(2)
-                                                                }}</span>
+                                                            }}</span>
                                                         </div>
 
                                                         <div class="flex justify-between mt-4 font-medium text-sm">
@@ -189,7 +189,7 @@
                                             <div class="bg-white px-4 py-4 pt-[10px] rounded address-form">
                                                 <ClientOnly>
                                                     <Form layout="vertical" ref="formRef" :model="form"
-                                                        class="max-w-[980px]">
+                                                        class="max-w-[980px] dark:text-[red]">
                                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
                                                             <FormItem label="First Name :" required>
                                                                 <Input :disabled="from == 'order'"
@@ -277,21 +277,21 @@
                                         <div class="flex flex-col md:flex-row justify-between p-4 pt-[10px] gap-3">
                                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 flex-1">
                                                 <div>
-                                                    <span class="text-blackcolor/50 text-sm mb-1 block">Full name</span>
-                                                    <div class="font-medium text-sm">
+                                                    <span class="text-customblack text-sm mb-1 block">Full name</span>
+                                                    <div class="font-medium text-sm text-gray-300">
                                                         {{ addressinfo.firstName }} {{ addressinfo.lastName }}
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <span class="text-blackcolor/50 text-sm mb-1 block">Number</span>
-                                                    <div class="font-medium text-sm">
+                                                    <span class="text-blackcolor text-sm mb-1 block">Number</span>
+                                                    <div class="font-medium text-sm text-gray-300">
                                                         ({{ addressinfo.numberCode }}) {{ addressinfo.number }}
                                                     </div>
                                                 </div>
                                                 <div class="col-span-2">
-                                                    <span class="text-blackcolor/50 text-sm mb-1 block">Address
+                                                    <span class="text-blackcolor text-sm mb-1 block">Address
                                                         detail</span>
-                                                    <div class="font-medium text-sm">
+                                                    <div class="font-medium text-sm text-gray-300">
                                                         {{ addressinfo.countryName }} {{ addressinfo.provinceName }} {{
                                                             addressinfo.city }}
                                                         {{ addressinfo.address }}
@@ -331,8 +331,8 @@
                                         </div>
 
                                         <div class="grid grid-cols-1 p-4 pt-[10px]">
-                                            <div v-for="(option, index) in options" :key="option.value" class=""
-                                                :class="index !== 0 ? 'mt-4' : ''">
+                                            <div v-for="(option, _) in options" :key="option.value" class=""
+                                                :class="option.value !== 1 ? 'mt-4' : ''">
                                                 <div class="flex items-center">
                                                     <div class="flex items-center space-x-2 px-4 py-[6px] rounded cursor-pointer"
                                                         :class="selected === option.value ? 'border border-primary' : 'border border-[#F0F0F0]'"
@@ -376,7 +376,7 @@
                                                 <div>
                                                     <!-- ✅ Airwallex Split Card 输入区（卡号整行；下行 Expiry+CVC 横排） -->
                                                     <div :class="['py-2', { hidden: selected !== 2 }]"
-                                                        v-if="index == 1">
+                                                        v-if="option.value == 2">
                                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                             <!-- 顶部：卡号独占整行 -->
                                                             <div
@@ -404,7 +404,7 @@
 
                                                         <!-- 内联错误提示 -->
                                                         <p v-if="awxError" class="text-red-500 text-sm mt-2">{{ awxError
-                                                            }}</p>
+                                                        }}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -420,12 +420,12 @@
                                         <div class="p-4 pb-0 text-customblack font-semibold text-base sm:text-lg">Notes
                                         </div>
                                         <div class="p-4 pt-[10px]">
-                                            <UTextarea :disabled="from == 'order'" v-model="notes"
+                                            <UTextarea class="dark:bg-white" :disabled="from == 'order'" v-model="notes"
                                                 placeholder="Enter you order notes" :ui="{
                                                     color: {
                                                         white: {
                                                             outline:
-                                                                'shadow-sm bg-white placeholder-[#EAEAEA] focus:ring-1 focus:ring-primary text-gray-900 ring-1 ring-inset ring-[rgba(0,0,0,0.15)]'
+                                                                'shadow-sm bg-white dark:bg-white placeholder-[#EAEAEA] focus:ring-1 focus:ring-primary text-gray-900 ring-1 ring-inset ring-[rgba(0,0,0,0.15)]'
                                                         }
                                                     }
                                                 }" />
@@ -552,7 +552,7 @@
                                                 class="whitespace-normal">
                                                 {{ spec.label }}
                                                 <span class="text-[#0C1013] ml-1">{{ spec.value
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                         </div>
 
@@ -573,7 +573,8 @@
                                             placeholder="Enter the coupon code"
                                             class="flex-1 border border-gray-300 focus:border-primary focus:ring-primary text-customblack placeholder-[#EAEAEA]" />
                                         <UButton @click="applyCoupon" :disabled="!couponCode || applyLoading"
-                                            :loading="applyLoading" class="shrink-0 rounded px-4 text-white"
+                                            :loading="applyLoading"
+                                            class="shrink-0 rounded px-4 text-white dark:text-white"
                                             :class="[(!couponCode) ? '!bg-gray-300 cursor-not-allowed' : 'bg-primary hover:bg-[#00a9d8]']">
                                             Apply
                                         </UButton>
@@ -613,7 +614,7 @@
                                 <!-- Airwallex 支付按钮（仅当选中 Airwallex） -->
                                 <div v-show="selected === 2" class="">
                                     <UButton size="lg" :loading="awxPayLoading"
-                                        class="w-full rounded bg-primary hover:bg-[#00a9d8] text-white items-center justify-center"
+                                        class="w-full rounded bg-primary hover:bg-[#00a9d8] text-white dark:text-white items-center justify-center"
                                         @click="handleAirwallexPay">
                                         {{ awxPayLoading ? 'Processing...' : 'Pay Now' }}
                                     </UButton>
@@ -625,7 +626,7 @@
                                 <div v-show="selected === 4" class="">
                                     <div id="awx-apple-pay"></div>
                                     <p v-if="awxAppleError" class="text-red-500 text-sm mt-2">{{ awxAppleError
-                                    }}</p>
+                                        }}</p>
                                 </div>
                             </div>
                             <!-- 无商品 -->
@@ -648,7 +649,7 @@
         <!-- Address Select Modal -->
         <UModal v-model="showModal" width="w-full"
             :ui="{ width: 'sm:max-w-5xl', rounded: 'rounded', container: 'items-center' }">
-            <section class="border border-blackcolor/10 rounded">
+            <section class="border border-blackcolor/10 rounded dark:bg-white">
                 <div class="relative p-2 md:p-3 px-6 text-customblack font-semibold text-lg">
                     Address
                     <button @click="showModal = false"
@@ -660,7 +661,7 @@
                     <div v-for="(item, idx) in addressarr" :key="idx"
                         class="relative border border-blackcolor/10 rounded p-4 hover:shadow cursor-pointer"
                         :class="{ 'border-primary-500 bg-primary-50': item.selected == 1 }" @click="selectaddress(idx)">
-                        <div class="space-y-1">
+                        <div class="space-y-1 text-gray-500">
                             <p><span class="text-gray-500">Full name:</span> {{ item.firstName }}{{ item.lastName }}</p>
                             <p><span class="text-gray-500">Number:</span>({{ item.numberCode }}) {{ item.number }}</p>
                             <p>
@@ -690,7 +691,8 @@
         </UModal>
 
         <!-- Sign In Modal -->
-        <UModal v-model="showSignIn" :ui="{ width: 'sm:max-w-md', rounded: 'rounded-xl', container: 'items-center' }">
+        <UModal v-model="showSignIn"
+            :ui="{ width: 'sm:max-w-md', rounded: 'rounded-xl', container: 'items-center', wrapper: 'z-[999]', base: 'dark:bg-white' }">
             <div class="relative">
                 <!-- 右上角关闭按钮 -->
                 <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" @click="showSignIn = false">
@@ -709,7 +711,7 @@
                     <!-- 表单内容 -->
                     <div>
                         <UInput v-model="signinForm.email" :ui="{
-                            color: { white: { outline: 'ring-1 ring-[rgba(0,0,0,0.15)] focus:ring-1 focus:ring-primary' } },
+                            color: { white: { outline: 'dark:bg-white ring-1 ring-[rgba(0,0,0,0.15)] focus:ring-1 focus:ring-primary' } },
                             placeholder: 'placeholder-[#D9D9D9]'
                         }" placeholder="Please enter email" size="lg" />
                         <UInput v-model="signinForm.password" :ui="{
@@ -743,7 +745,7 @@
                     <div>
                         <UButton block variant="outline" size="lg" class="rounded-md" :ui="{
                             variant: {
-                                outline: 'ring-0 shadow-none bg-white hover:bg-gray-50 border !border-[#D9D9D9]'
+                                outline: 'ring-0 shadow-none bg-white hover:dark:bg-white hover:bg-gray-50 border !border-[#D9D9D9]'
                             }
                         }" @click="socialLogin('google')">
                             <div class="flex items-center justify-center text-customblack font-normal">
@@ -753,7 +755,7 @@
                         </UButton>
                         <UButton block variant="outline" class="mt-4 rounded-md" :ui="{
                             variant: {
-                                outline: 'ring-0 shadow-none bg-white hover:bg-gray-50 border !border-[#D9D9D9]'
+                                outline: 'ring-0 shadow-none bg-white border hover:dark:bg-white !border-[#D9D9D9]'
                             }
                         }" size="lg" @click="socialLogin('facebook')">
                             <div class="flex items-center justify-center text-customblack font-normal">
@@ -824,14 +826,7 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const signingIn = ref(false);
 const showSignIn = ref(false);
 const signinForm = reactive({ email: '', password: '' });
-function validateContactEmail() {
-    contactEmailError.value = '';
-    if (!emailRegex.test(contactEmail.value)) {
-        contactEmailError.value = 'Please enter a valid email address';
-        return false;
-    }
-    return true;
-}
+
 const awxClientSecret = ref<string>('');
 const awxIntentId = ref<string>('');
 
@@ -1029,6 +1024,7 @@ const clampQty = (n: any) => {
 }
 const applyCoupon = async () => {
     couponError.value = '';
+    couponCode.value = couponCode.value.trim();
     if (!couponCode.value) {
         couponError.value = 'Please enter a coupon code';
         return;
@@ -1055,7 +1051,7 @@ const applyCoupon = async () => {
             addressinfo.value.countryName ||
             countryarr.value.find((c: any) => c.countryCode === form.value.country)?.countryName ||
             '',
-        buyerEmail: addressinfo.value.email || contactEmail.value || form.value.email,
+        buyerEmail: contactEmail.value || addressinfo.value.email || form.value.email,
         buyerFirstName: addressinfo.value.firstName || form.value.firstName,
         buyerAddress: addressinfo.value.address || form.value.address,
         buyerLastName: addressinfo.value.lastName || form.value.lastName,
@@ -1342,7 +1338,7 @@ const form = ref({
     master: true
 });
 const notes = ref('');
-const selected = ref(1);
+const selected = ref(2);
 const countryarr = ref([]) as any;
 const provincearr = ref([]) as any;
 const cityarr = ref([]) as any;
@@ -1451,7 +1447,9 @@ const paynow = async () => {
         addressinfo.value.postalCode = addressinfo.value.postalCode || (form.value as any)?.postalCode;
         addressinfo.value.numberCode = addressinfo.value.numberCode || (form.value as any)?.numberCode;
         addressinfo.value.number = addressinfo.value.number || (form.value as any)?.number;
-        if (!addressinfo.value.email) return message.error('Please add contact email'), null
+
+        console.log('4444444444:', addressinfo.value.email)
+        if (!contactEmail.value) return message.error('Please add contact email'), null
         if (!addressinfo.value.firstName) return message.error('Please add first name'), null
         if (!addressinfo.value.lastName) return message.error('Please add last name'), null
         if (!addressinfo.value.address) return message.error('Please add a address'), null;
@@ -1503,7 +1501,7 @@ const handleSubmit = async () => {
         buyerCity: addressinfo.value.city,
         buyerCountryCode: addressinfo.value.country,
         buyerCountryName: addressinfo.value.countryName,
-        buyerEmail: (addressinfo.value as any)?.email || contactEmail.value,
+        buyerEmail: contactEmail.value || (addressinfo.value as any)?.email,
         buyerFirstName: addressinfo.value.firstName,
         buyerAddress: addressinfo.value.address,
         buyerLastName: addressinfo.value.lastName,
@@ -1816,9 +1814,11 @@ watch(
     }
 )
 
-watch(contactEmail, (val) => {
-    if (!isEmptyObject(addressinfo.value)) (addressinfo.value as any).email = val;
-});
+// watch(contactEmail, (val) => {
+//     addressinfo.value.email = val;
+//     // console.log('contactEmail changed=====:', val);
+//     // if (!isEmptyObject(addressinfo.value)) (addressinfo.value as any).email = val;
+// });
 watch(
     () => form.value.province,
     (v) => {
@@ -2045,7 +2045,7 @@ async function ensureAwxPaymentIntent(payType): Promise<string> {
                 buyerCity: addressinfo.value.city,
                 buyerCountryCode: addressinfo.value.country,
                 buyerCountryName: addressinfo.value.countryName,
-                buyerEmail: addressinfo.value.email || contactEmail.value || form.value.email,
+                buyerEmail: contactEmail.value || addressinfo.value.email || form.value.email,
                 buyerFirstName: addressinfo.value.firstName,
                 buyerAddress: addressinfo.value.address,
                 buyerLastName: addressinfo.value.lastName,
@@ -2111,7 +2111,7 @@ async function ensureAwxPaymentIntent(payType): Promise<string> {
 }
 
 async function handleAirwallexPay() {
-    awxError.value = ''
+    // awxError.value = ''
     awxPayLoading.value = true
 
     try {
@@ -2144,6 +2144,8 @@ async function handleAirwallexPay() {
         addressinfo.value.number = addressinfo.value.number || (form.value as any)?.number;
 
         // }
+        console.log('11111111111:', addressinfo.value.email)
+        if (!contactEmail.value) return message.error('Please add contact email'), null
         if (!addressinfo.value.firstName) return message.error('Please add first name'), null
         if (!addressinfo.value.lastName) return message.error('Please add last name'), null
         if (!addressinfo.value.address) return message.error('Please add a address')
@@ -2157,12 +2159,17 @@ async function handleAirwallexPay() {
         if (!templateid.value) return message.error('Shipping methods is required')
         if (!productlists.value?.length) return message.error('No items to pay')
 
-        // --- B. 准备 PaymentIntent：失败不跳转 ---
         const clientSecret = await ensureAwxPaymentIntent('airwallex')
         if (!clientSecret) {
             // 理论上不会走到这，但为了稳妥：不跳转
             return message.error('Airwallex is not ready yet')
         }
+        const result1 = await awxCardNumberEl.confirm({ client_secret: clientSecret });
+        const result2 = await awxExpiryEl.confirm({ client_secret: clientSecret });
+        const result3 = await awxCvcEl.confirm({ client_secret: clientSecret });
+
+        //    console.log('result1====:',result1)
+        //    const result2 = await awxCardNumberEl.confirm({ client_secret: clientSecret });
 
         // --- C. 挂载分体元素（若未挂）：失败不跳转 ---
         if (!awxCardNumberEl) {
@@ -2392,7 +2399,9 @@ async function mountApplePay() {
             addressinfo.value.postalCode = addressinfo.value.postalCode || (form.value as any)?.postalCode
             addressinfo.value.numberCode = addressinfo.value.numberCode || (form.value as any)?.numberCode
             addressinfo.value.number = addressinfo.value.number || (form.value as any)?.number
+            console.log('22222222222:', addressinfo.value.email)
 
+            if (!contactEmail.value) return message.error('Please add contact email')
             if (!addressinfo.value.firstName) return message.error('Please add first name')
             if (!addressinfo.value.lastName) return message.error('Please add last name')
             if (!addressinfo.value.address) return message.error('Please add an address')
@@ -2404,7 +2413,7 @@ async function mountApplePay() {
             if (templateid.value < 0) return message.error('The current country does not support delivery')
             if (!templateid.value) return message.error('Shipping methods is required')
             if (!productlists.value?.length) return message.error('No items to pay')
-
+            debugger
 
             awxClientSecret.value = await ensureAwxPaymentIntent('airwallex_apple_pay')
             console.log(awxClientSecret.value);
@@ -2591,6 +2600,8 @@ async function mountGooglePay() {
                 } catch { }
                 return
             }
+            console.log('333333333333:', addressinfo.value.email)
+            if (!contactEmail.value) return await bail('Please add contact email')
             if (!addressinfo.value.firstName) return await bail('Please add first name')
             if (!addressinfo.value.lastName) return await bail('Please add last name')
             if (!addressinfo.value.address) return await bail('Please add an address')

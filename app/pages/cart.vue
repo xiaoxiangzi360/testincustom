@@ -1,15 +1,17 @@
 <template>
     <main class="bg-white">
         <div class="min-h-screen max-row max-md:px-6 max-md:min-h-0">
-            <div class="rounded-s">
-                <UBreadcrumb divider=">" :links="breadcrumbLinks"
+            <div class="rounded-s pt-4">
+                <ComBreadcrumb :links="breadcrumbLinks" />
+
+                <!-- <UBreadcrumb divider=">" :links="breadcrumbLinks"
                     class="mb-3 text-blackcolor custom-breadcrumb text-lg sm:text-2xl" :ui="{
                         base: 'hover:underline font-normal',
                         ol: 'py-4 max-md:pb-0 mb-0',
                         li: 'text-sm sm:text-sm font-normal text-customblock',
                         active: 'text-gray-300 dark:text-gray-300 no-underline hover:no-underline',
                         divider: { base: 'px-2 text-text-gray-400 no-underline' }
-                    }" />
+                    }" /> -->
                 <div class="rounded-[4px] h-full ">
                     <div class="flex gap-6">
                         <!-- Cart Items -->
@@ -25,13 +27,13 @@
                                         <div class="flex gap-2">
                                             <NuxtImg
                                                 :src="`${item.productImage || item.product?.mainPic.url}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`"
-                                                @click="checkdetai(item.product?.id, item.productSku, item.productName)"
+                                                @click="checkdetai(item.product?.id, item.productSku, item.product?.seoUrlKeyword || item.productName)"
                                                 alt="Product image"
                                                 class="w-[120px] h-[120px] max-md:w-[82px] max-md:h-[82px] object-cover rounded-[4px] cursor-pointer" />
                                             <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
                                                 :title="item.productName"
                                                 :overlayStyle="{ maxWidth: '250px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
-                                                <div @click="checkdetai(item.product?.id, item.productSku, item.productName)"
+                                                <div @click="checkdetai(item.product?.id, item.productSku, item.product?.seoUrlKeyword || item.productName)"
                                                     class="text-sm hover:underline cursor-pointer line-clamp-[4] hidden max-md:block">
                                                     {{ item.productName }}
                                                 </div>
@@ -41,7 +43,7 @@
                                             <Tooltip color="white" :overlayInnerStyle="{ color: '#333' }"
                                                 :title="item.productName"
                                                 :overlayStyle="{ maxWidth: '250px', whiteSpace: 'pre-line', wordBreak: 'break-word' }">
-                                                <div @click="checkdetai(item.product?.id, item.productSku, item.productName)"
+                                                <div @click="checkdetai(item.product?.id, item.productSku, item.product?.seoUrlKeyword || item.productName)"
                                                     class="text-sm hover:underline cursor-pointer line-clamp-1 max-md:hidden">
                                                     {{ item.productName }}
                                                 </div>
@@ -51,7 +53,7 @@
                                                     class="whitespace-normal">
                                                     {{ spec.label }}
                                                     <span class="text-[#0C1013] ml-1">{{ spec.value
-                                                        }}</span>
+                                                    }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -107,7 +109,8 @@
                             </div>
 
                             <!-- Invalid Items -->
-                            <div class="flex justify-between items-center mt-4" v-show="cart.saleDownList?.length > 0">
+                            <div class="flex justify-between items-center mt-4 text-customblack"
+                                v-show="cart.saleDownList?.length > 0">
                                 <div>Out of Stock & Invalid Items</div>
                                 <div>
                                     <button class="text-primary hover:text-primary-600 mr-4"
@@ -132,13 +135,15 @@
                                                     <span class="text-white text-base">Invalid</span>
                                                 </div>
                                             </div>
-                                            <div class=" flex-1 text-sm font-medium line-clamp-3 hidden max-md:flex">
+                                            <div
+                                                class=" flex-1 text-sm font-medium line-clamp-3 hidden max-md:flex text-customblack">
                                                 {{ item.product ? item.product.productEnglishName ||
                                                     item.product.productName : '' }}
                                             </div>
                                         </div>
                                         <div class="flex-1">
-                                            <div class="text-sm w-full font-medium line-clamp-1 max-md:hidden">
+                                            <div
+                                                class="text-sm w-full font-medium line-clamp-1 max-md:hidden text-customblack">
                                                 {{ item.product ? item.product.productEnglishName ||
                                                     item.product.productName : '' }}
                                             </div>
@@ -147,7 +152,7 @@
                                                     :key="i" class="whitespace-normal">
                                                     {{ spec.label }}
                                                     <span class="text-[#0C1013] ml-1">{{ spec.value
-                                                        }}</span>
+                                                    }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -185,9 +190,10 @@
                                     <span class="text-primary">$ {{ (selectedTotal + shipping).toFixed(2) }}</span>
                                 </div>
                             </div>
-                            <div class="text-[14px] text-[#00B2E3] flex items-start mb-2 mt-4" v-show="false">
-                                <span>Get up to 15% off, Made the Coupon: <span
-                                        class='underline mx-1'>Order15</span></span>
+                            <div class="text-[14px] text-[#00B2E3] cursor-pointer mt-4 mb-2"
+                                v-show="activityInfo?.mallView" @click="copyCode(activityInfo.couponCode)">
+                                <span>{{ activityInfo.discountStr }}:</span>
+                                <span class='underline mx-1'>{{ activityInfo.couponCode }}</span>
                             </div>
                             <button @click="checkout()"
                                 class="!rounded-button rounded w-full bg-primary text-white py-3 whitespace-nowrap hidden md:block sticky  bottom-1">
@@ -210,9 +216,10 @@
                                 <span>TOTAL PRICE：</span>
                                 <span class="text-primary">$ {{ (selectedTotal + shipping).toFixed(2) }}</span>
                             </div>
-                            <div class="text-[14px] text-[#00B2E3] flex items-start " v-show="false">
-                                <span>Get up to 15% off, Made the Coupon: <span
-                                        class='underline mx-1'>Order15</span></span>
+                            <div class="text-[14px] text-[#00B2E3] cursor-pointer" v-show="activityInfo?.mallView"
+                                @click="copyCode(activityInfo.couponCode)">
+                                <span>{{ activityInfo.discountStr }}:</span>
+                                <span class='underline mx-1'>{{ activityInfo.couponCode }}</span>
                             </div>
                             <button @click="checkout()"
                                 class="rounded w-full bg-primary text-white py-3 whitespace-nowrap  mt-4">
@@ -232,14 +239,17 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { message, Tooltip } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
+import { ActivityScope } from '~/types/Activity'
+const { getSortInProgressMarketingActivityFromLocation } = ActivityAuth()
 
 const payList = ['/product/pay1.webp', '/product/pay2.webp', '/product/pay3.webp', '/product/pay4.webp', '/product/pay5.webp', '/product/pay6.webp', '/product/pay7.webp']
+const activityInfo = ref({} as any)
 
 const router = useRouter()
 const cart = useCartStore() // ✅ 只通过 Pinia 操作删除
 const breadcrumbLinks = [
     { label: 'Home', to: '/', title: 'Home' },
-    { label: 'Shopping Cart', title: 'Shopping Cart' },
+    { label: 'Shopping Cart', to: '', title: 'Shopping Cart' },
 ]
 const activeTab = ref<'cart' | 'expired'>('cart')
 const min = 1
@@ -321,7 +331,26 @@ const refreshFromStore = async () => {
         console.error(e)
     }
 }
-
+const fetchActivityInfo = async () => {
+    try {
+        const res = await getSortInProgressMarketingActivityFromLocation({ location: ActivityScope.shoppingCart, spuId: '' })
+        if (!res.result) {
+            return
+        }
+        const { discountStr } = getDiscountStr({ discountType: res.result.discountType, discountRuleList: res.result.discountRuleList })
+        activityInfo.value = {
+            mallView: res.result.mallView,
+            couponCode: res.result.couponCode,
+            discountStr: discountStr,
+        }
+        console.log('活动列表', res.result, activityInfo.value)
+    } catch (error) {
+        // message.error('Failed to load activities.')
+    } finally {
+        // toast.add({ title: 'Failed to load activities.' })
+        // loading.value = false
+    }
+}
 
 const toggleSelectAll = () => {
     cart.itemList.forEach(item => {
@@ -352,16 +381,7 @@ const updateSelection = () => {
 }
 
 const checkdetai = (id: string, sku: string, name: string) => {
-    router.push('/product/' + id + '/' + slugify(name) + '?sku=' + sku)
-}
-const slugify = (str: string) => {
-    return str
-        .normalize('NFKD')
-        .replace(/[^\w\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .toLowerCase()
+    router.push('/products/' + slugify(name) + '-' + id + '?sku=' + sku)
 }
 
 /** =========================
@@ -410,6 +430,7 @@ const handleResize = () => {
     // }
 }
 onMounted(() => {
+    fetchActivityInfo();
     handleResize()
     window.addEventListener('resize', handleResize)
     if (isTokenValid.value) {

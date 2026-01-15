@@ -1,6 +1,6 @@
 <template>
     <div class="bg-white">
-        <div class="flex flex-col md:flex-row min-h-screen text-sm max-row">
+        <div class="flex flex-col md:flex-row min-h-screen text-sm max-row text-customblack">
             <!-- Sidebar -->
             <Userleft v-show="isLoggedIn" />
             <!-- Main Content -->
