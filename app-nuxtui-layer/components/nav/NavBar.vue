@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useCookie } from 'nuxt/app'
 import { useRouter, useRoute } from 'vue-router'
 import { useCartStore } from '~/stores/cart';
+import ActivityBar from './ActivityBar.vue';
 const { logout } = useAuth();
 
 const router = useRouter()
@@ -185,6 +186,7 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
 
 <template>
   <nav class="w-full mx-auto text-white fixed z-[100]" id="navBar">
+    <ActivityBar />
     <div class="bg-[#222222]">
       <div class="flex items-center justify-between navbar-grid py-[2px] max-lg:py-[6px] max-row">
         <div style="grid-area: logo" class="flex">
@@ -193,7 +195,7 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
           </ULink>
         </div>
         <div data-pg-name="Hamburger" style="grid-area: hamburger" class="lg:hidden flex">
-          <ComSvg href="#icon-all" class="h-[24px] w-[24px] text-white" @click="isMobileMenuOpen = true"/>
+          <ComSvg href="#icon-all" class="h-[24px] w-[24px] text-white" @click="isMobileMenuOpen = true" />
         </div>
         <div data-pg-name="Profile" class="flex gap-2 justify-end lg:justify-start cursor-pointer">
           <ProfileActions class="!hidden lg:!flex"></ProfileActions>
@@ -268,7 +270,7 @@ watch([filteredSearchHistory, isSearchHistoryVisible], () => {
       </div>
     </div>
 
-    <div class="hidden lg:flex bg-primary">
+    <div class="hidden lg:flex bg-white text-customblack shadow-sm">
       <NavPrimary class="lg:w-full max-row"></NavPrimary>
     </div>
     <USlideover v-model="isMobileMenuOpen" data-pg-name="NavBarSecondary" style="grid-area: primary-nav"

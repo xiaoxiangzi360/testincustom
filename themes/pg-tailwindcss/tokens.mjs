@@ -222,7 +222,7 @@ const pg_fonts = {
 }
 
 const pg_font_urls = [
-  'https://fonts.googleapis.com/css?family=Inter:100,200,300,400,500,600,700,800,900|Kalam:300,400,700|Arial:400,500,600,700,800,900&display=swap',
+  'https://fonts.googleapis.com/css?family=Inter:100,200,300,400,500,600,700,800,900|Kalam:300,400,700|Arial:400,500,600,700,800,900|Roboto:400,500,600,700,800&display=swap',
   // 'https://fonts.googleapis.com/css2?family=Hind:wght@400;700&display=swap',
 ]
 

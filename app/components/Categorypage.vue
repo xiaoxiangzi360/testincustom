@@ -4,7 +4,7 @@
             <NuxtLink v-for="(item, index) in items" :key="index"
                 :to="`/collections/${formatTitle(item.tag)}-${item.tagid}`"
                 class="relative h-[160px] lg:h-[220px] rounded overflow-hidden group cursor-pointer transition-shadow duration-300">
-                <NuxtImg :src="item.image"
+                <NuxtImg :src="`${item.image}?x-oss-process=image/auto-orient,1/quality,q_90`"
                     class="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                     format="webp" alt="InCustom" loading="lazy" />
                 <div class="absolute inset-0 flex items-center">
@@ -31,32 +31,32 @@ import { ref } from 'vue'
 // 原始数据
 const items = ref([
     {
-        title: 'Outdoor Shade Solutions',
-        tag: 'Outdoor Shade Solutions',
-        tagid: '2009187613642219530',
-        description: 'UV protection for outdoor living. >',
-        image: 'https://cdn.incustom.com/upload/web/collect1119-1-1.webp',
+        title: 'Cellular Shades',
+        tag: 'Cellular Shades',
+        tagid: '1998944860874358794',
+        description: 'Elegant solutions for energy savings and light control. >',
+        image: 'https://cdn.incustom.com/upload/web/collect0120-1-1.webp',
+    },
+     {
+        title: 'Fence Screen',
+        tag: 'Fence Screen',
+        tagid: '2000747693634469888',
+        description: 'Outdoor panels with personalized patterns and sizes. >',
+        image: 'https://cdn.incustom.com/upload/web/collect0120-1-2.webp',
     },
     {
-        title: 'Privacy & Garden Decor',
-        tag: 'Privacy & Garden Decor',
-        tagid: '2009187613642219520',
-        description: 'Stylish privacy for your backyard. >',
-        image: 'https://cdn.incustom.com/upload/web/collect1119-2-1.webp',
+        title: 'Zebra Shades',
+        tag: 'Zebra Shades',
+        tagid: '1998944860874358807',
+        description: 'Easily switch between privacy and natural light. >',
+        image: 'https://cdn.incustom.com/upload/web/collect0120-1-3-2.webp',
     },
     {
-        title: 'Indoor Window Shades',
-        tag: 'Indoor Window Shades',
-        tagid: '2009187613642219529',
-        description: 'Elegant shading for modern homes. >',
-        image: 'https://cdn.incustom.com/upload/web/collect1119-3.webp',
-    },
-    {
-        title: 'Printed Shade & Screen',
-        tag: 'Printed Shade & Screen',
-        tagid: '2009187613642219533',
-        description: 'Print your ideas on fabric. >',
-        image: 'https://cdn.incustom.com/upload/web/collect1119-4.webp',
+        title: 'Waterproof Shade Cloth',
+        tag: 'Waterproof Shade Cloth',
+        tagid: '1998944860874358804',
+        description: '100% waterproof fabric for all-weather outdoor protection. >',
+        image: 'https://cdn.incustom.com/upload/web/collect0120-1-4.webp',
     },
 ])
 

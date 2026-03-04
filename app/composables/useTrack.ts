@@ -78,11 +78,14 @@ function sendGA4(eventName: string, payload: Record<string, any>) {
         'add_payment_info',
         'purchase'
     ].includes(eventName)
-    if (isEcom) window.dataLayer.push({ event: eventName, ecommerce: null })
+    if (isEcom) {
+        console.log('[GA4 dataLayer]===', eventName, { ecommerce: finalPayload })
+        window.dataLayer.push({ event: eventName, ecommerce: finalPayload })
+    }
 
-    const dlObj: any = { event: eventName, ...finalPayload }
-    DEBUG_TRACK && console.log('[GA4 dataLayer]', dlObj)
-    window.dataLayer.push(dlObj)
+    // const dlObj: any = { event: eventName, ...finalPayload }
+    // DEBUG_TRACK && console.log('[GA4 dataLayer]', dlObj)
+    // window.dataLayer.push(dlObj)
 }
 
 function calcValueFromItems(items?: TrackItem[]) {
@@ -117,9 +120,20 @@ export function useTrack() {
 
     /** 加入购物车（单件/当前项） */
     const addToCart = (item: TrackItem) => {
+
         const price = Number(item.price ?? 0)
         const quantity = item.quantity ?? 1
         const currency = item.currency || 'USD'
+        if (window.gtag) {
+            window.gtag('event', 'conversion', {
+                'send_to': 'AW-17805456624/lsbFCO7rqeYbEPDppqpC',
+                'value': Number((price * quantity).toFixed(2)),
+                'currency': 'USD'
+            });
+        } else {
+            console.warn('gtag not found, gtag失败')
+        }
+
         sendGA4('add_to_cart', {
             currency,
             value: Number((price * quantity).toFixed(2)),
@@ -127,45 +141,46 @@ export function useTrack() {
         })
     }
 
+    /** 加入购物车（单件/当前项） */
+    const addPaymentInfo = (payload) => {
+        sendGA4('add_payment_info', payload)
+    }
+
     /** 启动结账（begin_checkout） */
-    const beginCheckout = (payload: BeginCheckoutPayload) => {
+    const beginCheckout = (payload) => {
         const currency = payload.currency || payload.items?.[0]?.currency || 'USD'
-        const value =
-            typeof payload.value === 'number' ? payload.value : calcValueFromItems(payload.items)
-        const gaPayload: any = {
-            currency,
-            value,
+        const value = Number(payload.value).toFixed(2) || calcValueFromItems(payload.items)
+        if (window.gtag) {
+            window.gtag('event', 'conversion', {
+                'send_to': 'AW-17805456624/_-MoCPHrqeYbEPDppqpC',
+                'value': value,
+                'currency': 'USD'
+            });
+        } else {
+            console.warn('gtag not found, gtag失败')
         }
-        if (payload.coupon) gaPayload.coupon = payload.coupon
-        if (payload.items?.length) gaPayload.items = payload.items
-        sendGA4('begin_checkout', gaPayload)
+
+        sendGA4('begin_checkout', payload)
     }
 
     /** 购买（purchase） */
-    const purchaseorder = (payload: PurchasePayload) => {
-        const {
-            transaction_id,
-            items,
-            value,
-            currency,
-            tax,
-            shipping,
-            coupon,
-            affiliation,
-        } = payload
-
-        const gaPayload: any = {
-            transaction_id,
-            value,
-            currency,
-            items,
+    const purchaseorder = (payload) => {
+        gtag('set', 'user_data', {
+            "email": payload?.email,
+            "phone_number": payload?.phone_number
+        });
+        if (window.gtag) {
+            window.gtag('event', 'conversion', {
+                'send_to': 'AW-17805456624/QT6PCPTrqeYbEPDppqpC',
+                'value': Number(payload.value).toFixed(2),
+                'currency': 'USD',
+                'transaction_id': payload.transaction_id
+                // 'new_customer': true /* calculate dynamically, populate with true/false */,
+            });
+        } else {
+            console.log('gtag not found, gtag失败')
         }
-        if (typeof tax === 'number') gaPayload.tax = tax
-        if (typeof shipping === 'number') gaPayload.shipping = shipping
-        if (coupon) gaPayload.coupon = coupon
-        if (affiliation) gaPayload.affiliation = affiliation
-
-        sendGA4('purchase', gaPayload)
+        sendGA4('purchase', payload)
     }
 
     return {
@@ -175,5 +190,6 @@ export function useTrack() {
         addToCart,
         beginCheckout,
         purchaseorder,
+        addPaymentInfo
     }
 }

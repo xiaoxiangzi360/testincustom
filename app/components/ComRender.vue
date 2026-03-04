@@ -3,7 +3,7 @@
     <!-- 显示 loading 状态 -->
     <div v-if="loading || !show">
         <slot name="fallback">
-            <div class="bg-[red] p-4">
+            <div class="p-4">
                 加载中...
             </div>
         </slot>

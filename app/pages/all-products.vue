@@ -224,31 +224,31 @@ onUnmounted(() => {
                     <!-- Product List -->
                     <div v-show="products.length > 0 && !loading"
                         class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
-                        <NuxtLink :to="`/products/${slugify(product.seoUrlKeyword || product.productEnglishName)}-${product.id}`"
+                        <NuxtLink :to="`/products/${slugify(product?.seoUrlKeyword || product?.productEnglishName)}-${product?.id}`"
                             v-for="(product, index) in products" :key="index"
                             class="bg-white rounded-lg cursor-pointer group">
                             <div class="aspect-square overflow-hidden rounded-t-lg">
-                                <NuxtImg :src="product.mainPic?.url
-                                    ? `${product.mainPic.url}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`
+                                <NuxtImg :src="product?.mainPic?.url
+                                    ? `${product?.mainPic?.url}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`
                                     : '/images/empty.jpg'"
-                                    :alt="product.mainPic?.altText || product.productEnglishName || 'Product image'"
+                                    :alt="product?.mainPic?.altText || product?.productEnglishName || 'Product image'"
                                     class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                                     style="aspect-ratio: 1 / 1;" loading="lazy" />
                             </div>
                             <div>
                                 <h3 class="text-sm sm:text-sm text-customblack my-2 lg:my-4 cursor-default font-normal mb-4 title"
-                                    :title="product.productEnglishName">
-                                    {{ product.productEnglishName }}
+                                    :title="product?.productEnglishName">
+                                    {{ product?.productEnglishName }}
                                 </h3>
                                 <div class="flex items-center">
 
                                     <!-- Regular price -->
                                     <span class="text-sm sm:text-base font-medium text-primary">
-                                        ${{ product.basePrice }}
+                                        ${{ product?.basePrice }}
                                     </span>
                                     <!-- Crossed-out price -->
-                                    <span v-if="product.originPrice" class="text-sm text-gray-400 line-through ml-3">
-                                        ${{ product.originPrice }}
+                                    <span v-if="product?.originPrice" class="text-sm text-gray-400 line-through ml-3">
+                                        ${{ product?.originPrice }}
                                     </span>
                                 </div>
                             </div>

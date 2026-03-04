@@ -4,5 +4,8 @@
   "compilerOptions": {
     "allowJs": true,
     "strict": false
-  }
+  },
+  "types": [
+    "google.maps"
+  ]
 }

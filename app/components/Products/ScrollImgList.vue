@@ -13,8 +13,8 @@
                     <!-- <video muted preload="metadata" playsinline :src="item.url"
                         class="w-full h-full object-cover rounded-[6px]"></video> -->
                     <div
-                        class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50  rounded-[6px]">
-                        <span class="text-white text-sm">▶</span>
+                        class="absolute inset-0 flex items-center justify-center rounded-[6px]">
+                        <ComSvg href="#icon-play" class="w-6 h-6 md:w-[40px] md:h-[40px]"/>
                     </div>
                 </template>
                 <template v-else>

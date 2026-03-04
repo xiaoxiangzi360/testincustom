@@ -43,7 +43,7 @@ export const ActivityAuth = () => {
         }
     }
 
-     const getMarketingActivityById = async (params) => {
+    const getMarketingActivityById = async (params) => {
         try {
             const query = new URLSearchParams(params).toString()
 
@@ -58,5 +58,33 @@ export const ActivityAuth = () => {
         }
     }
 
-    return { getMarketingActivityById, listInProgressMarketingActivity, createMarketingActivityEmailSubscribe, getSortInProgressMarketingActivityFromLocation }
+    const getLatestPublishedNoticeBoard = async (params) => {
+        try {
+            const query = new URLSearchParams(params).toString()
+
+            const response = await $api(`/user/noticeBoard/getLatestPublishedNoticeBoard?${query}`, {
+                method: 'GET',
+            })
+
+            return response
+        } catch (error) {
+
+            throw error
+        }
+    }
+
+    const countDisTotalAmountOrdered = async (params) => {
+        try {
+            const response = await $api('/product/product/countDisTotalAmountOrdered', {
+                method: 'POST',
+                body: params,
+            })
+
+            return response
+        } catch (error) {
+
+            throw error
+        }
+    }
+    return { countDisTotalAmountOrdered, getMarketingActivityById, listInProgressMarketingActivity, createMarketingActivityEmailSubscribe, getSortInProgressMarketingActivityFromLocation, getLatestPublishedNoticeBoard }
 }

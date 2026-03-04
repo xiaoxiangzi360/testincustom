@@ -24,3 +24,8 @@ components.d.ts
 composables.d.ts
 ## rollup visualizer
 stats.html
+
+pnpm-lock.yaml
+
+.env
+.env.production

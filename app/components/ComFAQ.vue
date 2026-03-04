@@ -1,7 +1,7 @@
 <template>
     <div class="w-full mt-[30px] max-md:mt-0">
         <div class="md:py-4">
-            <h1 class="text-xl md:text-[40px] text-primary font-semibold text-center mb-3 sm:mb-12 dark:text-primary">
+            <h1 class="text-xl md:text-[40px] text-primary font-semibold text-center mb-0 dark:text-primary">
                 FAQ
             </h1>
             <UAccordion variant="solid" size="xl" :items="list" :ui="{ container: 'border-b border-[#00000014]' }"
@@ -23,7 +23,10 @@
 
                 <template #item="{ item }">
                     <div class="px-5 py-0 text-[#4B5563] sm:text-base">
-                        <p class="whitespace-pre-line" v-html="item.content"></p>
+                        <ShadowHtml :html="item.content" class="prose max-w-none whitespace-pre-line"
+                            :style="{ display: isHtml ? 'block' : 'none' }" />
+                        <p class="whitespace-pre-line" v-html="item.content"
+                            :style="{ display: isHtml ? 'none' : 'block' }"></p>
                     </div>
                 </template>
             </UAccordion>
@@ -37,6 +40,10 @@ defineProps({
         type: Array,
         required: true,
         default: () => []
+    },
+    isHtml: {
+        type: Boolean,
+        default: false
     }
 })
 </script>

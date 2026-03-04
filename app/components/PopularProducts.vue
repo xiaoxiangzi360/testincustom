@@ -33,13 +33,13 @@
                         :key="product.id || product.productEnglishName || Math.random()"
                         class="px-[14px] pt-3 rounded-[8px] bg-white transition-transform transition-shadow duration-300 shadow-[0_4px_10px_0_rgba(167,167,167,0.2)] hover:scale-[1.02] md:hover:-translate-y-0.5">
                         <ULink
-                            :to="`/products/${slugify(product.seoUrlKeyword || product.productEnglishName)}-${product.id}`"
+                            :to="`/products/${slugify(product?.seoUrlKeyword || product?.productEnglishName)}-${product?.id}`"
                             class="block rounded-[8px] cursor-pointer focus:outline-none">
                             <!-- 产品图片 -->
                             <div class="relative w-full aspect-square overflow-hidden rounded-[8px]">
                                 <NuxtImg format="webp"
-                                    :src="`${product.mainPic?.url || '/images/empty.jpg'}?x-oss-process=image/auto-orient,1/resize,w_360,limit_0`"
-                                    :alt="product.mainPic?.altText || product.productEnglishName || 'Product image'"
+                                    :src="`${product?.mainPic?.url || '/images/empty.jpg'}?x-oss-process=image/auto-orient,1/resize,w_360,limit_0`"
+                                    :alt="product?.mainPic?.altText || product?.productEnglishName || 'Product image'"
                                     loading="lazy" :width="360" :height="360" quality="70"
                                     class="w-full h-full object-cover object-top transition-all duration-300" />
 
@@ -48,14 +48,14 @@
                             <!-- 产品详情 -->
                             <div class="pt-[14px] pb-[10px]">
                                 <h3 class="text-sm font-normal mb-2 truncate dark:text-neutral-900">
-                                    {{ product.productEnglishName || 'Product Name' }}
+                                    {{ product?.productEnglishName || 'Product Name' }}
                                 </h3>
 
                                 <div class="flex items-center">
                                     <span class="text-primary font-medium text-sm sm:text-lg dark:text-primary">
-                                        $ {{ product.basePrice }}
+                                        $ {{ product?.basePrice }}
                                     </span>
-                                    <span v-if="product.originPrice"
+                                    <span v-if="product?.originPrice"
                                         class="text-sm sm:text-lg text-gray-400 line-through ml-3">
                                         ${{ product.originPrice }}
                                     </span>

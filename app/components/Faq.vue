@@ -42,38 +42,66 @@ const faqItems = [
     {
         label: "How long does it take to produce and ship an custom order?",
         content:
-            "Custom orders usually take 2–5 business days to produce. Shipping times vary by country, typically 7–15 days. If you choose the Expedited Shipping, you will get the package within 7-10 days after it shipped."
+            "Custom orders usually take 2-3 business days to produce. Shipping times vary by country, typically 7–12 days. If you choose the Expedited Shipping, you will get the package within 7-10 days after it shipped."
     },
     {
-        label: "Can I print my own design or logo on the product?",
+        label: "Can l print my own design or logo on the product?",
         content:
-            "Yes, we offer pattern and logo printing services—ideal for homes, businesses, and events."
+            "Yes, we offer pattern and logo printing services—ideal for homes, businesses, and events. For custom printing inquiries, please email us or contact online support."
     },
     {
-        label: "What if I don’t know how to measure the size?",
+        label: "What if i don't know how to measure the size?",
         content:
-            "We offer detailed measurement guides and online customer support to help you choose the size."
+            "A detailed measurement guide is available in the \"SPECIFY YOUR SIZE\" section on the product page. Need help? Feel free to contact our online support."
     },
     {
-        label: "Can I see the status of my order after placing it?",
+        label: "Can l see the status of my order after placing it?",
         content:
             "Yes! After you place an order, we’ll verify your details → start production → ship → deliver. You’ll get email updates or can track progress in your account—we keep you informed at every step."
     },
     {
-        label: "Are your materials eco-friendly and certified?",
+        label: "Are your materials eco-friendly and certifed?",
         content:
             "Yes, we use eco-friendly HDPE and other high-performance fabrics with UV resistance and certified sustainability."
     },
     {
         label: "Do your products come with a warranty?",
         content:
-            "Yes — we offer a 1-year limited warranty covering material defects and manufacturing issues under normal use. If there’s a problem, just contact us — we’ll make it right."
+            "Yes. All our products come with a lifetime warranty covering material defects and manufacturing issues under normal use. If you ever encounter a problem, just contact us — we'll make it right."
     },
     {
-        label: "Can I return a custom product if I’m not satisfied?",
+        label: "Can l return a custom product if i'm not satisfed?",
         content:
-            "All items are made-to-order and non-returnable, unless there’s a quality issue or major error. If your item arrives damaged or incorrect, contact us within 7 days — we’ll remake or refund it."
-    }
+            "All items are made-to-order and non-returnable, unless there’s a quality issue or major error. If your item arrives damaged or incorrect, contact us within 30 days — we’ll remake or refund it."
+    },
+    {
+        label: "What if I measure my windows incorrectly and the blinds don’t fit?",
+        content:
+            `No worries – we’ve got you covered with our free <strong>Measurement Protection</strong>! If your custom blinds arrive in the wrong size (too long, short, narrow, or wide) due to a measuring mistake, we’ll remake them once for free (up to 3 pieces per residential order).
+
+            <strong>Here’s how it works:</strong>
+            Contact us within 30 days of delivery.
+            Provide your order number and photos showing the measurement issue (window + blind).
+            We’ll review and confirm within 2 business days, then arrange the remake.
+            This protection is automatically included with every order – no sign-up needed, no extra cost.
+
+            <strong>⚠️ Exclusions apply for:</strong>
+            Windows that are out of square or uneven
+            Damage from incorrect installation
+            Window size changes after ordering
+            Deliberate measurement errors
+            Dissatisfaction with color, style, or fabric
+
+            <strong>Have questions?</strong>
+            📧 hello@incustom.com
+            📞 +1 458-329-6702
+            Mon–Sat 9am–10pm | Sun 10am–6pm (Your local time)`
+    },
+    {
+        label: "Do you offer free shipping?",
+        content:
+            "Yes! We're happy to offer free standard shipping on all orders – no minimum purchase required. Whether you're ordering one sample or a full set of custom blinds, shipping is on us."
+    },
 ];
 </script>
 

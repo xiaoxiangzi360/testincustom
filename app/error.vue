@@ -40,7 +40,7 @@ function handleError() {
 <template>
   <NuxtLoadingIndicator />
   <NuxtLayout>
-    <div class="lg:min-h-[500px] flex flex-col bg-white">
+    <div class="lg:min-h-[500px] flex flex-col bg-white w-[90%] mx-auto max-md:w-full">
       <!-- 主体 -->
       <main class="flex flex-col flex-1 items-center justify-center  p-6">
         <!-- <h1 class="text-[60px] font-extrabold text-primary mb-2">404</h1>
@@ -51,16 +51,16 @@ function handleError() {
         </p>
         <a href="/" class="text-primary underline mb-12">Return to Home</a>
         <!-- 推荐产品部分（原样） -->
-        <div class="max-row">
+        <div class="">
           <div class="mt-6 pb-4" v-if="products.length > 0">
             <h1 class="text-lg font-semibold mb-3 md:mb-4 dark:text-black text-left">Similar item you might like</h1>
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <NuxtLink :to="`/products/${slugify(product.seoUrlKeyword || product.productEnglishName)}-${product.id}`"
+              <NuxtLink :to="`/products/${slugify(product?.seoUrlKeyword || product?.productEnglishName)}-${product?.id}`"
                 v-for="(product, index) in products" :key="index"
                 class="product-card rounded-lg transition-transform duration-300  hover:scale-[1.02] md:hover:-translate-y-0.5 cursor-pointer">
                 <div class="relative overflow-hidden">
-                  <img :src="product.mainPic?.url
-                    ? `${product.mainPic.url}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`
+                  <img :src="product?.mainPic?.url
+                    ? `${product?.mainPic?.url}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`
                     : '/images/empty.jpg'"
                     :alt="product.mainPic?.altText || product.productEnglishName || 'Product image'"
                     class="w-full h-full object-cover object-top rounded">
@@ -71,11 +71,9 @@ function handleError() {
                   </h3>
                   <div class="flex items-center">
 
-                    <!-- Regular price -->
                     <span class="text-sm sm:text-base font-medium text-primary">
                       ${{ product.basePrice }}
                     </span>
-                    <!-- Crossed-out price -->
                     <span v-if="product.originPrice" class="text-sm text-gray-400 line-through ml-3">
                       ${{ product.originPrice }}
                     </span>

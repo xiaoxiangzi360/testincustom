@@ -46,27 +46,27 @@
                     <div v-show="products.length > 0"
                         class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
                         <ULink
-                            :to="`/products/${slugify(product.seoUrlKeyword || product.productEnglishName)}-${product.id}`"
+                            :to="`/products/${slugify(product?.seoUrlKeyword || product?.productEnglishName)}-${product?.id}`"
                             v-for="(product, index) in products" :key="`product-${index}`"
                             class="bg-white rounded-lg cursor-pointer group">
                             <div class="aspect-square overflow-hidden rounded-t-lg">
-                                <img :src="product.productMainPic ?? '/images/empty.jpg'"
-                                    :alt="product.productEnglishName"
+                                <img :src="product?.productMainPic ?? '/images/empty.jpg'"
+                                    :alt="product?.productEnglishName"
                                     class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                                     style="aspect-ratio: 1 / 1;" />
                             </div>
                             <div class="py-2">
                                 <h3 class="text-sm sm:text-sm mb-1 sm:mb-2 text-customblack mt-2 sm:mt-3 line-clamp-2 cursor-default font-normal"
-                                    :title="product.productEnglishName">
-                                    {{ product.productEnglishName }}
+                                    :title="product?.productEnglishName">
+                                    {{ product?.productEnglishName }}
                                 </h3>
-                                <p class="text-sm sm:text-sm text-[#AEAEAE] mb-1 sm:mb-2">{{ product.size }}</p>
+                                <p class="text-sm sm:text-sm text-[#AEAEAE] mb-1 sm:mb-2">{{ product?.size }}</p>
                                 <div class="flex items-center">
                                     <span class="text-sm sm:text-base font-medium text-primary">
-                                        ${{ product.customPriceStr }}
+                                        ${{ product?.customPriceStr }}
                                     </span>
-                                    <span v-if="product.originPrice" class="text-sm text-gray-400 line-through ml-3">
-                                        ${{ product.originPriceStr }}
+                                    <span v-if="product?.originPrice" class="text-sm text-gray-400 line-through ml-3">
+                                        ${{ product?.originPriceStr }}
                                     </span>
                                 </div>
                             </div>
@@ -119,8 +119,8 @@
                     <!-- 推荐产品列表 -->
                     <div v-show="recommendproducts.length > 0 && !recommendLoading"
                         class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-12 mt-4 px-1 sm:px-0">
-                        <div @click="checkdetail(product.id, product.seoUrlKeyword || product.productEnglishName)"
-                            v-for="(product, index) in recommendproducts" :key="index"
+                        <div @click="checkdetail(product.id, product?.seoUrlKeyword || product?.productEnglishName)"
+                            v-for="(product, index) in recommendproducts" :key="`recommend-${index}`"
                             class="bg-white rounded-lg cursor-pointer group shadow-sm">
                             <div class="aspect-square overflow-hidden rounded-t-lg">
                                 <img :src="product.productMainPic ?? '/images/empty.jpg'"
@@ -340,8 +340,11 @@ const getproductSearchRecommendation = async () => {
 getlistlist()
 
 const checkdetail = (id, productName) => {
-
-    router.push(`/products/${slugify(productName)}-${id}`);
-
+    router.push(`/products/${slugify(productName)}-${id}`)
 }
+
+// 组件卸载时清理
+onUnmounted(() => {
+    // 如果有需要清理的监听器或定时器，在这里清理
+})
 </script>

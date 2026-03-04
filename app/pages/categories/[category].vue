@@ -206,6 +206,7 @@ watch(selectedsort, () => {
 
 const isFixed = ref(false)
 const stickyElement = ref(null)
+const {headerHeight} = useHeaderHeight()
 const { navBarHeight } = useNavBar() // 默认监听 id 为 "navBar" 的元素
 const initTop = ref(0)
 const handleScroll = () => {
@@ -610,9 +611,9 @@ const handleTagMore = () => {
     </div> -->
     <div class="max-row py-4">
       <!-- 面包屑 -->
-      <CustomBreadcrumb :links="breadcrumbLinks" />
+      <CustomBreadcrumb :links="breadcrumbLinks"/>
       <!-- Hero Section -->
-      <div class="relative h-[330px] overflow-hidden max-md:w-full max-md:h-auto max-md:aspect-[2/1]"
+      <div class="relative h-[330px] overflow-hidden max-md:w-full max-md:h-auto max-md:aspect-[2/1] mt-4"
         v-show="contentConfigView">
         <!-- 骨架屏 -->
         <div v-if="bannerLoading" class="absolute inset-0 bg-gray-200 rounded-lg animate-pulse"></div>
@@ -647,11 +648,10 @@ const handleTagMore = () => {
         <!-- Sticky 元素 -->
         <div ref="stickyElement" :class="[
           isFixed
-            ? 'fixed top-[100px] left-0 right-0 z-50 max-lg:top-[80px] shadow-sm'
+            ? 'fixed left-0 right-0 z-50 max-lg:top-[80px] shadow-sm'
             : '',
-          contentConfigView || isFixed ? '' : '!pt-0',
           'py-4 max-lg:py-2 bg-white',
-        ]">
+        ]" :style="{ top: `${headerHeight}px` }">
           <!-- Filters -->
           <div :class="[isFixed ? 'max-row' : '', isLoadedFilterTree ? '' : 'hidden']">
             <div class="flex gap-2">
@@ -696,30 +696,30 @@ const handleTagMore = () => {
           <!-- Product List -->
           <div v-show="products.length > 0 && !loading"
             class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
-            <ULink :to="`/products/${slugify(product.seoUrlKeyword || product.productEnglishName)}-${product.id}`"
+            <ULink :to="`/products/${slugify(product?.seoUrlKeyword || product?.productEnglishName)}-${product?.id}`"
               @click="onSelectItem(product, index)" v-for="(product, index) in products" :key="index"
               class="bg-white rounded-lg cursor-pointer group">
               <div class="aspect-square overflow-hidden rounded-t-lg">
-                <NuxtImg :src="product.mainPic?.url
+                <NuxtImg :src="product?.mainPic?.url
                   ? `${product.mainPic.url}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`
                   : '/images/empty.jpg'
-                  " :alt="product.mainPic?.altText || product.productEnglishName || 'Product image'"
+                  " :alt="product?.mainPic?.altText || product?.productEnglishName || 'Product image'"
                   class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                   style="aspect-ratio: 1 / 1;" loading="lazy" />
               </div>
               <div>
                 <h3 class="text-sm sm:text-sm text-customblack my-2 cursor-default font-normal line-clamp-[2]"
-                  :title="product.productEnglishName">
-                  {{ product.productEnglishName }}
+                  :title="product?.productEnglishName">
+                  {{ product?.productEnglishName }}
                 </h3>
                 <div class="flex items-center">
                   <!-- Regular price -->
                   <span class="text-sm sm:text-base font-medium text-primary">
-                    ${{ product.basePrice }}
+                    ${{ product?.basePrice }}
                   </span>
                   <!-- Crossed-out price -->
-                  <span v-if="product.originPrice" class="text-sm text-gray-400 line-through ml-3">
-                    ${{ product.originPrice }}
+                  <span v-if="product?.originPrice" class="text-sm text-gray-400 line-through ml-3">
+                    ${{ product?.originPrice }}
                   </span>
                 </div>
               </div>

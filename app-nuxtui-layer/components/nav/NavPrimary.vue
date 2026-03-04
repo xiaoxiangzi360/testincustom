@@ -619,8 +619,8 @@ onMounted(async () => {
       <!-- All Products Hover 多级 -->
       <div class="relative group pr-2" @mouseleave="hoverLevel1 = null">
         <NuxtLink>
-          <div class="flex items-center p-2 pl-0 cursor-pointer" @mouseenter="hoverLevel1 = 0">
-            <ComSvg href="#icon-all" class="h-[24px] w-[24px] mr-2 text-white" />
+          <div class="flex items-center p-2 pl-0 cursor-pointer hover:text-primary group" @mouseenter="hoverLevel1 = 0">
+            <ComSvg href="#icon-all" class="h-[24px] w-[24px] mr-2 text-customblack  group-hover:text-inherit" />
             <!-- <NuxtImg src="cell.png" width="24" class="mr-2" /> -->
             All
           </div>
@@ -673,15 +673,15 @@ onMounted(async () => {
 
       <!-- 推荐分类按钮 -->
       <div v-for="(category, index) in menuData.slice(0, 6)" :key="category.id" ref="navItems"
-        class="relative flex items-center md:p-1 xl:p-2 cursor-pointer whitespace-nowrap "
+        class="relative flex items-center px-4 cursor-pointer whitespace-nowrap "
         @mouseenter="hoverRecommend = index" @mouseleave="hoverRecommend = null; hoverRecommendSub = null">
         <NuxtLink :to="getNavPath(category)" @click.prevent="goToNavItem(category, $event)"
-          class="text-sm xl:text-base duration-200 border border-transparent md:border-none leading-none max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap"
+          class="text-sm xl:text-base duration-200 border border-transparent md:border-none leading-none max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap hover:text-primary"
           @click="emit('closeSlideover')">
           {{ category.enName }}
         </NuxtLink>
 
-        <div class="absolute top-full left-0 top-full bg-white shadow-2xl  z-50 py-1 flex "
+        <div class="absolute left-0 top-full bg-white shadow-2xl  z-50 py-1 flex "
           v-if="hoverRecommend === index && category?.children?.length">
           <!-- 二级 -->
           <ul class="text-sm w-50 xl:w-60 max-h-[600px] overflow-y-auto mb-0">

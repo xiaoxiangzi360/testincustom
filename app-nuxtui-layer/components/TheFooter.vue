@@ -2,18 +2,18 @@
   <footer class="bg-[#121212] text-white py-4 md:py-12">
     <div class="max-row">
       <!-- 顶部主区：左品牌 + 右四列 -->
-      <div class="flex flex-col md:flex-row gap-8 md:gap-12 justify-between">
+      <div class="flex flex-col md:flex-row gap-8 md:gap-12 justify-between text-white">
         <!-- 左侧 Logo & 介绍 -->
         <div class="">
           <NuxtImg format="webp" alt="incustom" loading="lazy"
             src="https://cdn.incustom.com/upload/icons/footerlogo.png" class="h-8 md:h-10" />
-          <p class="text-sm mt-3 text-white">Fulfilling your ideas on demand</p>
-          <p class="text-xs mt-2 text-white">Trusted to deliver 99.8M items since 2024</p>
+          <p class="text-sm mt-3 text-white font-[500]">inCustom | Whole-Home Shading Ecosystem</p>
+          <p class="text-xs mt-2 text-white">Factory-direct from our US & Global Manufacturing Facilities.</p>
 
           <div class="flex items-center gap-3 mt-5">
             <NuxtImg format="webp" loading="lazy" src="https://cdn.incustom.com/upload/web/email-2.png" alt="email"
               class="w-5" />
-            <a href="mailto:hello@incustom.com" class="text-sm hover:text-primary">hello@incustom.com</a>
+            <a href="mailto:hello@incustom.com" class="text-sm text-white hover:text-primary">hello@incustom.com</a>
           </div>
 
           <!-- 社交图标（设计图在右下角，这里放在桌面端底部栏右侧；移动端保持这里也显示） -->
@@ -134,7 +134,7 @@
       </div>
       <!-- 版权 -->
       <div class="text-center text-xs text-white/50">
-        © 2025 Incustom. All rights reserved.
+        © 2025 Incustom. All rights reserved. | Operated by Hangzhou Xishan Import & Export Co., Ltd.
       </div>
     </div>
   </footer>
@@ -227,6 +227,7 @@ const sections = [
     title: 'Company & Brand',
     links: [
       { label: 'About Us', to: '/about-us' },
+      { label: 'Blogs', to: '/topic/blogs-2020758628671307776' },
       // { label: 'Sustainability & Materials', to: '' },
       // { label: 'Blog / Shade Tips', to: '' },
       // { label: 'Affiliate / Influencer Program', to: '' },

@@ -62,9 +62,9 @@ const getDiscountStr = ({ discountType, discountRuleList }) => {
     if (discountRuleList && discountRuleList.length > 0) {
         const rule = discountRuleList[discountRuleList.length - 1];
         if (discountType == 50 || discountType == 150) {
-            discountStr = `Get Up To $${rule.y} Off，Code`;
+            discountStr = `Get Up to ${rule.y}% Off，Code`;
         } else if (discountType == 100) {
-            discountStr = `Get Up To $${rule.y} Off，Code`;
+            discountStr = `Get Up to $${rule.y} Off，Code`;
         }
     }
     return { discountStr };
@@ -74,29 +74,23 @@ const getDiscountStr = ({ discountType, discountRuleList }) => {
 /** 复制券码 */
 function copyCode(text) {
     const textToCopy = text
-    if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard
-            .writeText(textToCopy)
-            .then(() => message.success('copy success'))
-            .catch(() => message.error('copy failed'))
-    } else {
-        const textArea = document.createElement('textarea')
-        textArea.value = textToCopy
-        textArea.style.position = 'absolute'
-        textArea.style.opacity = '0'
-        textArea.style.left = '-999999px'
-        textArea.style.top = '-999999px'
-        document.body.appendChild(textArea)
-        textArea.focus()
-        textArea.select()
-        try {
-            document.execCommand('copy')
-            message.success('copy success')
-        } catch (err) {
-            message.error('copy failed')
-        }
-        textArea.remove()
+    const textArea = document.createElement('textarea')
+    textArea.value = textToCopy
+    textArea.style.position = 'fixed'
+    textArea.style.opacity = '0'
+    // textArea.style.left = '-999999px'
+    // textArea.style.top = '-999999px'
+    document.body.appendChild(textArea)
+    textArea.focus()
+    textArea.select()
+    try {
+        document.execCommand('copy')
+        message.success('copy success')
+    } catch (err) {
+        message.error('copy failed')
     }
+    textArea.remove()
+
 }
 
 /**
@@ -194,12 +188,38 @@ const convertToAbsolutePath = (relativePath: string): string => {
 
 /** 抛出页面错误 */
 const throwPageError = (message) => {
-  throw createError({
-    statusCode: 404,
-    message: message || 'Product not found or not published.',
-  })
+    throw showError({
+        statusCode: 404,
+        message: message || 'Product not found or not published.',
+    })
+}
+
+function getCatalogId(arr) {
+    if (!Array.isArray(arr) || arr.length === 0) return ''
+    if (arr.length >= 2) return arr[1]
+    return arr[0]
+}
+
+const toGa4Item = ({ productInfo, opts, quantity }) => {
+    if (!productInfo) return null
+    const qty = opts.withQuantity ? (opts.q ?? quantity ?? 1) : 1
+    return {
+        item_id: String(productInfo.id),
+        item_name: productInfo.productEnglishName || '',
+        price: Number(productInfo.skuprice ?? productInfo.basePrice ?? 0),
+        currency: 'USD',
+        quantity: qty,
+        // 可选
+        item_brand: productInfo.productName,
+        item_category: getCatalogId(productInfo.catalogPathIdList) || undefined,
+    }
+}
+
+const getImgCdn = (name: string) => {
+    return `https://cdn.incustom.com/upload/web/${name}`;
 }
 export {
-    deepToRaw, getBreakpoint, Breakpoints, slugify, getDiscountStr, copyCode, preloadImage, createJsonLd, extractTextFromRichText,
-    getCurrentHref, clearAllJsonLdScripts, convertToAbsolutePath, throwPageError
+    getImgCdn, deepToRaw, getBreakpoint, Breakpoints, slugify, getDiscountStr, copyCode, preloadImage, createJsonLd, extractTextFromRichText,
+    getCurrentHref, clearAllJsonLdScripts, convertToAbsolutePath, throwPageError,
+    toGa4Item, getCatalogId
 };

@@ -201,11 +201,11 @@ export const ProductAuth = () => {
     }
   }
 
-  const getProductSpuLevelTwo = async (params) => {
+  const checkProductAvailablePurchase = async (params) => {
     try {
-      const query = new URLSearchParams(params).toString()
-      const response = await $api(`/product/product/groupProductSpuLevelTwoCatalogByCatalogId?${query}`, {
-        method: 'GET',
+      const response = await $api('/product/product/checkProductAvailablePurchase', {
+        method: 'POST',
+        body: params,
       })
 
       return response
@@ -214,11 +214,12 @@ export const ProductAuth = () => {
       throw error
     }
   }
-  const checkProductAvailablePurchase = async (params) => {
+
+  const getProductSpuLevelTwo = async (params) => {
     try {
-      const response = await $api('/product/product/checkProductAvailablePurchase', {
-        method: 'POST',
-        body: params,
+      const query = new URLSearchParams(params).toString()
+      const response = await $api(`/product/product/groupProductSpuLevelTwoCatalogByCatalogId?${query}`, {
+        method: 'GET',
       })
 
       return response

@@ -5,7 +5,7 @@ export function useMobile(breakpoint = 768) {
 
     // 是否是移动端
     const isMobile = computed(() => windowWidth.value < breakpoint);
-
+    const isPad = computed(() => windowWidth.value >= breakpoint && windowWidth.value < 1024);
     // 监听窗口大小变化
     const handleResize = () => {
         windowWidth.value = window.innerWidth;
@@ -24,6 +24,7 @@ export function useMobile(breakpoint = 768) {
     });
 
     return {
+        isPad,
         isMobile, // 是否是移动端
         windowWidth, // 当前窗口宽度
     };

@@ -6,6 +6,10 @@ import { Tooltip, Select } from 'ant-design-vue'
 import { ref, computed, watch } from 'vue'
 import { useCartStore } from '@/stores/cart'
 import { useRoute } from 'vue-router'
+import { ActivityScope } from '~/types/Activity';
+const { beginCheckout } = useTrack()
+const { countDisTotalAmountOrdered, getSortInProgressMarketingActivityFromLocation } = ActivityAuth()
+
 const route = useRoute()
 // ========= 类型 =========
 type CountryItem = { id: string | number; countryCode: string; countryName: string }
@@ -29,6 +33,7 @@ const usermenu = [
   { lable: 'Account Setting', url: '/userinfo', type: 'link', img: '/setting.png' },
   { lable: 'Sign Out', url: '', type: 'button', img: '/loginout.png' }
 ]
+const PageTag = '[ProfileActions.vue]====='
 
 // ========= 位置相关状态 =========
 const countryarr = ref<CountryItem[]>([])
@@ -189,12 +194,72 @@ const handleGetCart = async () => {
     console.error('Failed to refresh cart:', error)
   }
 };
+
+const shipping = ref(0);
+const subtotal = computed(() => cart.itemList.reduce((sum, item) => sum + item.productPrice * item.productQuantity, 0));
+const totalQuantity = computed(() => cart.itemList.reduce((sum, item) => sum + item.productQuantity, 0));
+const total = computed(() => (subtotal.value + shipping.value).toFixed(2));
+const offPrice = ref('')
+const activityInfo = ref<any>({})
+const getOffAccountPrice = async (quantity, totalPrice, activityInfo) => {
+  if (!activityInfo.couponCode || quantity <= 0 || totalPrice <= 0) {
+    offPrice.value = ''
+    return
+  }
+  const res = await countDisTotalAmountOrdered({
+    marketingActivity: {
+      discountType: activityInfo.discountType,
+      discountRuleList: activityInfo.discountRuleList,
+    },
+    totalAmountOrdered: totalPrice,
+    totalQtyOrdered: quantity
+  })
+  if (res.result) {
+    offPrice.value = (totalPrice - Number(res.result)).toFixed(2)
+  } else {
+    offPrice.value = ''
+  }
+
+  console.log(PageTag, 'getOffAccountPrice result:', res)
+}
+const { throttledFunction: throttledGetOffAccountPrice } = useThrottled(
+  (quantity, totalPrice, activityInfo) =>
+    getOffAccountPrice(quantity, totalPrice, activityInfo),  // 接收3个参数
+  500
+)
+watch([() => total, () => activityInfo, () => totalQuantity], (newVal) => {
+  console.log(PageTag, 'quantity or totalPrice changed:', totalQuantity.value, total.value, activityInfo.value)
+  getOffAccountPrice(totalQuantity.value, Number(total.value), activityInfo.value)
+}, { immediate: true, deep: true })
+
+const fetchActivityInfo = async () => {
+  try {
+    const res = await getSortInProgressMarketingActivityFromLocation({ location: ActivityScope.shoppingCart, spuId: '' })
+    if (!res.result) {
+      return
+    }
+    const { discountStr } = getDiscountStr({ discountType: res.result.discountType, discountRuleList: res.result.discountRuleList })
+    activityInfo.value = {
+      mallView: res.result.mallView,
+      couponCode: res.result.couponCode,
+      discountStr: discountStr,
+      discountRuleList: res.result.discountRuleList,
+      discountType: res.result.discountType,
+    }
+    console.log('活动列表', res.result, activityInfo.value)
+  } catch (error) {
+    // message.error('Failed to load activities.')
+  } finally {
+    // toast.add({ title: 'Failed to load activities.' })
+    // loading.value = false
+  }
+}
 onMounted(() => {
   if (isTokenValid.value) {
+    fetchActivityInfo();
     handleGetCart(); // 页面加载完成后请求购物车数据
   }
 });
-const shipping = ref(0);
 const increaseproductQuantity = (index: number) => { cart.increaseQuantity(index) };
 const decreaseproductQuantity = (index: number) => { cart.decreaseQuantity(index) };
 const removeItem = async (index: number) => {
@@ -209,9 +274,6 @@ const removeItem = async (index: number) => {
   message.success('Delete successful')
 
 }
-
-const subtotal = computed(() => cart.itemList.reduce((sum, item) => sum + item.productPrice * item.productQuantity, 0));
-const total = computed(() => subtotal.value + shipping.value);
 const showDetails = ref(false);
 const min = 1
 const max = 999
@@ -220,6 +282,7 @@ const onInputNumber = (e: Event, index: number) => {
   if (val < 1) val = 1
   if (val > 999) val = 999
   cart.itemList[index].productQuantity = val
+  cart.updateQuantity(cart.itemList[index].id, val)
 }
 const sanitizeInput = (index: number) => {
   const val = cart.itemList[index].productQuantity
@@ -435,6 +498,22 @@ const handleSubmit = () => {
 const checkout = () => {
   const itemsParam = cart.itemList.map(item => `${item.id}:${item.productQuantity}`).join(',')
 
+  const ga4Items = cart.itemList.map(item => ({
+    item_id: item.id || '',
+    item_name: item.productName || '',
+    price: Number(item.productPrice ?? 0).toFixed(2),
+    currency: 'USD',
+    quantity: item.productQuantity || 1,
+    item_variant: item.productSkuId || '',
+    // 可选
+    // item_brand: item.productName,
+    // item_category: getCatalogId(item.product.catalogPathIdList) || undefined,
+
+  }))
+  if (ga4Items.length > 0) {
+    beginCheckout({ items: ga4Items, value: total.value, currency: 'USD' })
+  }
+
   router.push(`/checkout?from=cart&items=${encodeURIComponent(itemsParam)}`)
 
 }
@@ -527,7 +606,7 @@ if (process.client) {
                               <button @click="decreaseproductQuantity(index)"
                                 class="text-gray-500 hover:text-black disabled:text-gray-300"
                                 :disabled="item.productQuantity <= min">-</button>
-                              <input v-model.number="item.productQuantity" @input="onInputNumber($event, index)"
+                              <input v-model.number="item.productQuantity" @blur="onInputNumber($event, index)"
                                 class="w-16 h-8 text-center outline-none border-none focus:ring-0 focus:outline-none text-black"
                                 :min="min" :max="max" />
                               <button @click="increaseproductQuantity(index)"
@@ -542,18 +621,19 @@ if (process.client) {
                       </div>
                     </div>
 
-                    <div class="ml-6 flex flex-col items-end">
-                      <img @click="removeItem(index)" src="/del.png" class="w-6 cursor-pointer">
-                    </div>
+                    <div @click="removeItem(index)"
+                      class="cursor-pointer text-[#BCBCBC] font-medium text-[14px] hover:text-customblack hover:underline">
+                      Remove</div>
                   </div>
                 </div>
 
                 <div class="p-6">
+
                   <div class="flex items-center justify-between mb-6">
                     <span class="font-semibold text-black text-base">Total</span>
                     <span class="text-base font-semibold text-black cursor-pointer flex"
                       @click="showDetails = !showDetails">
-                      ${{ total.toFixed(2) }}
+                      ${{ total }}
                       <BaseIcon name="i-heroicons-chevron-down-20-solid" width="24px" height="24px"
                         class="transition-transform duration-200 h-6 w-6" :class="{ 'rotate-180': showDetails }" />
                     </span>
@@ -569,7 +649,11 @@ if (process.client) {
                       <span class="text-base font-medium text-black mr-8">${{ shipping.toFixed(2) }}</span>
                     </div>
                   </div>
-
+                  <div v-show="offPrice" class="text-[14px] text-[#FF4F63] cursor-pointer mt-4 mb-2"
+                    @click="copyCode(activityInfo.couponCode)">
+                    <span>Save ${{ offPrice }} | Use Code: </span>
+                    <span class='underline mx-1 text-[#EB001B]'>{{ activityInfo.couponCode }}</span>
+                  </div>
                   <div class="flex space-x-4">
                     <button @click="goToCart"
                       class="flex-1 px-6 py-3 border border-solid border-[#979797] bg-gray-100 text-gray-800 font-normal rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap !rounded-button">

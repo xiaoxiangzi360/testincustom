@@ -13,15 +13,15 @@ const shadowContainerRef = ref(null)
 
 const createShadowContent = () => {
   if (!shadowContainerRef.value) return
-  
+
   const shadowRoot = shadowContainerRef.value.attachShadow({ mode: 'open' })
-  
+
   // 1. 加载 CSS
   const link = document.createElement('link')
   link.rel = 'stylesheet'
-  link.href = 'https://cdn.ckeditor.com/ckeditor5/47.3.0/ckeditor5.css'
+  link.href = 'https://cdn.ckeditor.com/ckeditor5/47.4.0/ckeditor5.css'
   shadowRoot.appendChild(link)
-  
+
   // 2. 直接在 style 中定义所有需要的变量
   const style = document.createElement('style')
   style.textContent = `
@@ -29,11 +29,19 @@ const createShadowContent = () => {
     /* 确保所有元素都能访问这些变量 */
     * {
       --ck-content-image-style-spacing: 1.5em;
+      --ck-content-font-size-small:0.85em;
+      --ck-content-font-color:#000;
+      --ck-content-word-break:break-word;
+      --ck-content-line-height:1.5;
     }
+      p{
+        margin: 0;
+        padding: 0;
+      }
     
   `
   shadowRoot.appendChild(style)
-  
+
   // 3. 添加内容
   const contentDiv = document.createElement('div')
   contentDiv.className = 'ck-content'

@@ -1,5 +1,5 @@
 <template>
-    <section class="px-6 py-12 max-w-4xl mx-auto text-gray-800">
+    <section class="px-6 py-12 max-w-4xl mx-auto text-gray-800 font-hind">
         <h1 class="text-3xl font-bold mb-6">About Us</h1>
 
         <p class="text-xl italic text-gray-600 mb-8">
@@ -62,6 +62,8 @@
                     </p>
                 </div>
             </div>
+
+            <p>InCustom is operated by Hangzhou Xishan Import & Export Co., Ltd.</p>
         </div>
     </section>
 </template>

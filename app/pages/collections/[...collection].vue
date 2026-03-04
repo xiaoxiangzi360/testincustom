@@ -1,9 +1,9 @@
 <template>
     <div class="bg-white">
         <div class="max-row py-4">
-            <CustomBreadcrumb :links="breadcrumbLinks" />
+            <CustomBreadcrumb :links="breadcrumbLinks"/>
             <!-- Hero Section -->
-            <div class="relative h-[330px] overflow-hidden max-md:w-full max-md:h-auto max-md:aspect-[2/1]"
+            <div class="relative h-[330px] overflow-hidden max-md:w-full max-md:h-auto max-md:aspect-[2/1] mt-4"
                 v-if="bannerInfo?.contentConfigView">
                 <div class="absolute inset-0 md:block hidden">
                     <NuxtImg :src="bannerInfo?.contentConfigImageUrl"
@@ -38,9 +38,9 @@
                 <div ref="stickyElement" :class="[
                     'py-4 max-lg:py-2 bg-white',
                     isFixed
-                        ? 'fixed top-[100px] left-0 right-0 z-50 max-lg:top-[80px] shadow-sm'
+                        ? 'fixed left-0 right-0 z-50 shadow-sm'
                         : ''
-                ]">
+                ]" :style="{ top: `${headerHeight}px` }">
                     <!-- Filters -->
                     <div :class="[isFixed ? 'max-row' : '', isLoadedFilterTree ? '' : 'hidden']">
                         <div class="flex gap-2">
@@ -88,31 +88,31 @@
                     <div v-show="products.length > 0 && !loading"
                         class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
                         <NuxtLink
-                            :to="`/products/${slugify(product.seoUrlKeyword || product.productEnglishName)}-${product.id}`"
+                            :to="`/products/${slugify(product?.seoUrlKeyword || product?.productEnglishName)}-${product?.id}`"
                             v-for="(product, index) in products" :key="index"
                             class="bg-white rounded-lg cursor-pointer group">
                             <div class="aspect-square overflow-hidden rounded-t-lg">
-                                <NuxtImg :src="product.mainPic?.url
+                                <NuxtImg :src="product?.mainPic?.url
                                     ? `${product.mainPic.url}?x-oss-process=image/auto-orient,1/resize,w_500,limit_0`
                                     : '/images/empty.jpg'"
-                                    :alt="product.mainPic?.altText || product.productEnglishName || 'Product image'"
+                                    :alt="product?.mainPic?.altText || product?.productEnglishName || 'Product image'"
                                     class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                                     style="aspect-ratio: 1 / 1;" loading="lazy" />
                             </div>
                             <div>
                                 <h3 class="text-sm sm:text-sm text-customblack my-2 cursor-default font-normal line-clamp-[2]"
-                                    :title="product.productEnglishName">
-                                    {{ product.productEnglishName }}
+                                    :title="product?.productEnglishName">
+                                    {{ product?.productEnglishName }}
                                 </h3>
                                 <div class="flex items-center">
 
                                     <!-- Regular price -->
                                     <span class="text-sm sm:text-base font-medium text-primary">
-                                        ${{ product.basePrice }}
+                                        ${{ product?.basePrice }}
                                     </span>
                                     <!-- Crossed-out price -->
-                                    <span v-if="product.originPrice" class="text-sm text-gray-400 line-through ml-3">
-                                        ${{ product.originPrice }}
+                                    <span v-if="product?.originPrice" class="text-sm text-gray-400 line-through ml-3">
+                                        ${{ product?.originPrice }}
                                     </span>
                                 </div>
                             </div>
@@ -183,7 +183,7 @@ const collectionFull = route.params.collection[0] // "Outdoor-Shade-Solutions-db
 const splitCollection = collectionFull.split('-')
 const collectionName = splitCollection.slice(0, -1).join('-').replace(/-/g, ' ')
 const tagId = splitCollection.pop() // Tagid (the last part)
-
+const { headerHeight } = useHeaderHeight()
 const bannerInfo = ref<any>(null)
 const collectionInfo = ref<any>(null)
 const breadcrumbLinks = ref<any>([])
@@ -229,7 +229,7 @@ const initData = (dataInfo) => {
                 },
             ],
         })
-    }else{
+    } else {
         throwPageError('Collection not found or not published.')
     }
 }

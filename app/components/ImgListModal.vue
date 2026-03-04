@@ -10,8 +10,7 @@
         width: 'md:max-w-5xl max-md:w-full',
     }" @update:model-value="handleClose">
         <div class=" flex justify-center flex-col items-center gap-4 p-4 relative">
-            <ImgList :list="imgList" :defaultIndex="defaultIndex" wrapClass=" min-h-[80vh]"
-                itemClass="w-[80vw] h-[80vh]" />
+            <ImgList :list="imgList" :defaultIndex="defaultIndex" :wrapClass="wrapClass" :itemClass="itemClass" />
             <div class=" cursor-pointer text-white" @click="handleClose">
                 <UIcon name="i-material-symbols:close" class="w-12 h-12 inline-block" />
             </div>
@@ -31,6 +30,14 @@ const props = defineProps({
     defaultIndex: {
         type: Number,
         default: 0
+    },
+    wrapClass: {
+        type: String,
+        default: ''
+    },
+    itemClass: {
+        type: String,
+        default: ''
     }
 })
 

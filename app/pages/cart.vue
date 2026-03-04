@@ -53,7 +53,7 @@
                                                     class="whitespace-normal">
                                                     {{ spec.label }}
                                                     <span class="text-[#0C1013] ml-1">{{ spec.value
-                                                    }}</span>
+                                                        }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -70,7 +70,7 @@
                                                             -
                                                         </div>
 
-                                                        <input type="number" @blur="validate(index)"
+                                                        <input step="1" type="number" @blur="validate($event, index)"
                                                             v-model.number="item.productQuantity" :min="min" :max="max"
                                                             class="focus:outline-none focus:ring-0 focus:border-transparent w-12 h-[26px] text-center outline-none border-0 py-1 bg-[#F8F8F8] mx-0.5" />
                                                         <div class="text-gray-500 border-[#F8F8F8] px-2 hover:opacity-80 cursor-pointer bg-[#F8F8F8] h-[26px] flex items-center justify-center rounded-tr-[6px] rounded-br-[6px]"
@@ -90,7 +90,7 @@
 
                                     </div>
                                     <div @click="deleteItem(item)"
-                                        class="cursor-pointer text-[#BCBCBC] font-medium text-[14px] flex justify-end w-full px-4 max-md:px-0 max-md:pt-1">
+                                        class="cursor-pointer text-[#BCBCBC] font-medium text-[14px] flex justify-end w-full px-4 max-md:px-0 max-md:pt-1 hover:text-customblack hover:underline">
                                         Remove</div>
                                 </div>
                                 <!-- Empty Cart -->
@@ -152,7 +152,7 @@
                                                     :key="i" class="whitespace-normal">
                                                     {{ spec.label }}
                                                     <span class="text-[#0C1013] ml-1">{{ spec.value
-                                                    }}</span>
+                                                        }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -187,13 +187,13 @@
                                 </div> -->
                                 <div class="flex justify-between">
                                     <span>Total </span>
-                                    <span class="text-primary">$ {{ (selectedTotal + shipping).toFixed(2) }}</span>
+                                    <span class="text-primary text-[16px]">$ {{ (selectedTotal + shipping).toFixed(2) }}</span>
                                 </div>
                             </div>
-                            <div class="text-[14px] text-[#00B2E3] cursor-pointer mt-4 mb-2"
-                                v-show="activityInfo?.mallView" @click="copyCode(activityInfo.couponCode)">
-                                <span>{{ activityInfo.discountStr }}:</span>
-                                <span class='underline mx-1'>{{ activityInfo.couponCode }}</span>
+                            <div v-show="offPrice" class="text-[14px] text-[#FF4F63] cursor-pointer mt-4 mb-2"
+                                @click="copyCode(activityInfo.couponCode)">
+                                <span>Save ${{ offPrice }} | Use Code: </span>
+                                <span class='underline mx-1 text-[#EB001B]'>{{ activityInfo.couponCode }}</span>
                             </div>
                             <button @click="checkout()"
                                 class="!rounded-button rounded w-full bg-primary text-white py-3 whitespace-nowrap hidden md:block sticky  bottom-1">
@@ -216,10 +216,10 @@
                                 <span>TOTAL PRICE：</span>
                                 <span class="text-primary">$ {{ (selectedTotal + shipping).toFixed(2) }}</span>
                             </div>
-                            <div class="text-[14px] text-[#00B2E3] cursor-pointer" v-show="activityInfo?.mallView"
+                            <div v-show="offPrice" class="text-[14px] text-[#FF4F63] cursor-pointer"
                                 @click="copyCode(activityInfo.couponCode)">
-                                <span>{{ activityInfo.discountStr }}:</span>
-                                <span class='underline mx-1'>{{ activityInfo.couponCode }}</span>
+                                <span>Save ${{ offPrice }} | Use Code: </span>
+                                <span class='underline mx-1 text-[#EB001B]'>{{ activityInfo.couponCode }}</span>
                             </div>
                             <button @click="checkout()"
                                 class="rounded w-full bg-primary text-white py-3 whitespace-nowrap  mt-4">
@@ -240,7 +240,8 @@ import { message, Tooltip } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { ActivityScope } from '~/types/Activity'
-const { getSortInProgressMarketingActivityFromLocation } = ActivityAuth()
+const { getSortInProgressMarketingActivityFromLocation, countDisTotalAmountOrdered } = ActivityAuth()
+const { beginCheckout } = useTrack()
 
 const payList = ['/product/pay1.webp', '/product/pay2.webp', '/product/pay3.webp', '/product/pay4.webp', '/product/pay5.webp', '/product/pay6.webp', '/product/pay7.webp']
 const activityInfo = ref({} as any)
@@ -310,13 +311,46 @@ const getSpecArray = (propList: any[]) => {
 }
 
 
-const validate = (index: number) => {
-    if (cart.itemList[index].productQuantity < min) cart.itemList[index].productQuantity = min
-    if (cart.itemList[index].productQuantity > max) cart.itemList[index].productQuantity = max
-}
+const validate = (event: Event, index: number) => {
+    const input = event.target as HTMLInputElement;
+    let quantity = Number(input.value);
 
+    if (quantity < min) quantity = min;
+    if (quantity > max) quantity = max;
+
+    cart.itemList[index].productQuantity = Math.floor(quantity);
+    cart.updateQuantity(cart.itemList[index].id, Math.floor(quantity));
+}
+const PageTag = '购物车Cart======'
 const token = useCookie('token')
 const isTokenValid = computed(() => !!token.value)
+const offPrice = ref('')
+const getOffAccountPrice = async (quantity, totalPrice, activityInfo) => {
+    if (!activityInfo.couponCode || quantity <= 0 || totalPrice <= 0) {
+        offPrice.value = ''
+        return
+    }
+    const res = await countDisTotalAmountOrdered({
+        marketingActivity: {
+            discountType: activityInfo.discountType,
+            discountRuleList: activityInfo.discountRuleList,
+        },
+        totalAmountOrdered: totalPrice,
+        totalQtyOrdered: quantity
+    })
+    if (res.result) {
+        offPrice.value = (totalPrice - Number(res.result)).toFixed(2)
+    } else {
+        offPrice.value = ''
+    }
+    console.log(PageTag, 'getOffAccountPrice result:', res)
+}
+watch([() => selectedTotal, () => shipping, () => activityInfo, () => selectedQuantity], (newVal) => {
+    const totalPrice = (selectedTotal.value + shipping.value).toFixed(2)
+    const quantity = selectedQuantity.value
+    console.log(PageTag, 'quantity or totalPrice changed:', quantity, totalPrice, activityInfo.value)
+    getOffAccountPrice(quantity, totalPrice, activityInfo.value)
+}, { immediate: true, deep: true })
 
 // 初始化从 store 拉
 const refreshFromStore = async () => {
@@ -342,6 +376,8 @@ const fetchActivityInfo = async () => {
             mallView: res.result.mallView,
             couponCode: res.result.couponCode,
             discountStr: discountStr,
+            discountRuleList: res.result.discountRuleList,
+            discountType: res.result.discountType,
         }
         console.log('活动列表', res.result, activityInfo.value)
     } catch (error) {
@@ -372,7 +408,23 @@ const checkout = () => {
 
     // id:qty 组成的字符串，例如 "123:2,456:1"
     const itemsParam = selectedItems.value.map(item => `${item.id}:${item.productQuantity}`).join(',')
+    console.log('Checkout itemsParam===:', itemsParam)
+    const ga4Items = selectedItems.value.map(item => ({
+        item_id: item.id || '',
+        item_name: item.productName || '',
+        item_variant: item.productSkuId || '',
+        price: Number(Number(item.productPrice ?? 0).toFixed(2)),
+        currency: 'USD',
+        quantity: item.productQuantity || 1,
+        // 可选
+        // item_brand: item.productName,
+        // item_category: getCatalogId(item.product.catalogPathIdList) || undefined,
 
+    }))
+    const totalPrice = selectedTotal.value + shipping.value
+    if (ga4Items.length > 0) {
+        beginCheckout({ items: ga4Items, value: Number(totalPrice.toFixed(2)), currency: 'USD' })
+    }
     router.push(`/checkout?from=cart&items=${encodeURIComponent(itemsParam)}`)
 }
 

@@ -23,7 +23,7 @@
       </template>
     </ConfigProvider>
     <UNotifications />
-    <GActivityModal/>
+    <GActivityModal :open="true"/>
     <Cookiemodal />
     <div v-if="loading" class="global-loading">
       <Spin size="large" :style="{ color: '#999' }" />

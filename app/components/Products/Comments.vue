@@ -119,7 +119,7 @@
                 </div>
             </section>
         </div>
-        <ImgListModal :isShow="imgListModal?.isShow" :imgList="imgListModal?.imgList"
+        <ImgListModal :isShow="imgListModal?.isShow" :imgList="imgListModal?.imgList" wrap-class="min-h-[80vh]" item-class="h-[80vh] w-[80vw]"
             :defaultIndex="imgListModal?.defaultIndex" @close="handleImgListModalClose" />
     </div>
 </template>
@@ -212,9 +212,9 @@ const fetchComments = async () => {
         // }
         sortReviews()
     } catch (error) {
-        message.error('Failed to load comments')
         console.error(error)
-    } finally { message.destroy() }
+    } finally { 
+     }
 }
 
 const sortReviews = () => {

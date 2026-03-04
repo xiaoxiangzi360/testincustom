@@ -4,33 +4,34 @@
         <!-- Product List -->
         <div v-show="props.productList?.length > 0">
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-2">
-                <NuxtLink :to="`/products/${slugify(product.seoUrlKeyword || product.productEnglishName)}-${product.id}`"
+                <NuxtLink :to="`/products/${slugify(product?.seoUrlKeyword || product?.productEnglishName)}-${product?.id}`"
                     @click="handleProductClick(product)" v-for="(product, index) in productList" :key="index"
-                    class="bg-white cursor-pointer">
+                    class="bg-white cursor-pointer"
+                    >
                     <div class="aspect-square overflow-hidden rounded-[4px]">
                         <!-- 使用原生 img 标签 -->
-                        <img :data-src="`${product.mainPic.url}?x-oss-process=image/auto-orient,1/resize,w_500,m_lfit`"
-                            :alt="product.mainPic?.altText || product.productEnglishName || 'Product image'"
+                        <img :data-src="`${product?.mainPic?.url}?x-oss-process=image/auto-orient,1/resize,w_500,m_lfit`"
+                            :alt="product?.mainPic?.altText || product?.productEnglishName || 'Product image'"
                             class="w-full h-full loadObserveImg aspect-square object-cover object-center transition-transform duration-300 hover:scale-105"
                             style="aspect-ratio: 1 / 1;" />
                     </div>
                     <div>
                         <h3 class="text-sm sm:text-sm text-customblack my-2 cursor-default font-normal line-clamp-[2]"
-                            :title="product.productEnglishName">
-                            {{ product.productEnglishName }}
+                            :title="product?.productEnglishName">
+                            {{ product?.productEnglishName }}
                         </h3>
                         <div class="flex items-center">
                             <span class="text-sm sm:text-base font-medium text-primary">
-                                ${{ product.basePrice }}
+                                ${{ product?.basePrice }}
                             </span>
-                            <span v-if="product.originPrice" class="text-sm text-gray-400 line-through ml-3">
-                                ${{ product.originPrice }}
+                            <span v-if="product?.originPrice" class="text-sm text-gray-400 line-through ml-3">
+                                ${{ product?.originPrice }}
                             </span>
                         </div>
                     </div>
                 </NuxtLink>
             </div>
-            <div class="flex items-center justify-center pb-2 mt-4">
+            <div class="flex items-center justify-center pb-2 mt-4" v-if="moreLink">
                 <NuxtLink :to="moreLink" class=" text-[18px] max-md:text-[14px] text-primary border border-primary px-4 py-2 flex items-center justify-center rounded-[4px] cursor-pointer
                     hover:scale-105 transition-all duration-300">
                     View More
@@ -85,6 +86,7 @@ const handleProductClick = (product: any) => {
 
 const observer = ref<IntersectionObserver | null>(null);
 watch(() => props.productList, () => {
+    console.log(pageTag, 'ProductList props.productList changed:', props.productList);
     startObserve();
 });
 onMounted(() => {

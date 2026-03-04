@@ -1,5 +1,5 @@
 <template>
-    <div class="max-row py-4 min-h-screen relative">
+    <div class="max-row py-4 min-h-screen max-md:min-h-0 relative">
         <ComRender :loading="!pageInfo.id">
             <template #fallback>
                 <div class="w-full min-h-[300px]">
@@ -13,9 +13,12 @@
             </template>
             <template #default>
                 <ComBreadcrumb :links="links" />
-                <TopActivityBanner :data="pageInfo.venueBanner" />
-                <div ref="tabsContainer"
-                    class="mt-4 mb-4 max-md:mb-4 sticky max-lg:top-[80px] top-[100px] z-[20] py-2 bg-[white]">
+                <NuxtImg fetchpriority="high"
+                    :src="isMobile ? pageInfo.venueBanner?.backgroundMobileImageUrl : pageInfo.venueBanner?.backgroundImageUrl"
+                    :alt="isMobile ? pageInfo.venueBanner?.pcImageAlt : pageInfo.venueBanner?.mobileImageAlt"
+                    class="w-full h-auto rounded-[8px]" />
+                <!-- <TopActivityBanner :data="pageInfo.venueBanner" /> -->
+                <div class="mt-4 mb-4 max-md:mb-4 sticky z-[20] py-2 bg-[white]" :style="{ top: `${headerHeight}px` }">
                     <ComTabs :tabs="tabs" :active-tab="curTab" @update:active-tab="handleTabChange" />
                 </div>
                 <div v-for="item in pageInfo.venueColumnList" :id="item._columnId" class="mb-6">
@@ -24,8 +27,27 @@
                 </div>
             </template>
         </ComRender>
-
-        <ComFAQ :list="faqItems" />
+        <NuxtImg :src="logisticsImg" class="w-full" />
+        <!-- <div class="grid grid-cols-4 max-md:grid-cols-2 mb-4">
+            <div v-for="(item, index) in logisticsList" :key="index">
+                <div class="flex gap-2 justify-center items-center">
+                        <NuxtImg class="w-[65px] object-cover" :src="item.img" loading="lazy" />
+                    <p class="text-[18px] text-customblack font-[500]">{{ item.text }}</p>
+                </div>
+            </div>
+        </div> -->
+        <!-- <div class="grid grid-cols-4 max-md:grid-cols-2 mb-4">
+            <div v-for="(item, index) in measurementList" :key="index">
+                <div  class="relative">
+                    <NuxtImg v-if="item.img" class="w-full object-cover" :src="item.img" loading="lazy" />
+                    <p class="text-[22px] text-[#4D8552] absolute bottom-[20px] left-0">{{ item.text }}</p>
+                </div>
+            </div>
+        </div> -->
+        <NuxtImg :src="measurementImg" class="w-full mb-4" />
+        <div :style="{ display: pageInfo.venueFaqView ? 'block' : 'none' }">
+            <ComFAQ :list="faqItems" :is-html="true" />
+        </div>
         <!-- <div v-show="!(pageInfo.id > 0)" class=" relative w-full min-h-[300px] flex items-center justify-center">
             <p class="text-center text-gray-400">
                 No activity found.
@@ -35,186 +57,108 @@
 </template>
 
 <script setup lang="ts">
-
-const testData = {
-    "id": "",
-    "venueView": true,
-    "venueBanner": {
-        "backgroundImageUrl": "https://cdn.incustom.com/upload/online/2025/12/24/venue/banner-bg.webp",
-        "overlayColor": "rgba(156,9,15,0.4)",
-        "mainTitle": "Refresh Your Space，Reward Your Future Purchase.",
-        "mainTitleColor": "#FFFFFF",
-        "sloganText": "UP TO 18% OFF",
-        "sloganTextColor": "#FFD54F",
-        "codeHintText": "Code: NewYear",
-        "codeHintTextColor": "#FFFFFF",
-        "activityDescription": "Enjoy Massive Discounts & Get Gift Cards for Your Next Project!",
-        "activityDescriptionColor": "#FFFFFF"
-    },
-    "venueColumnList": [
-        // {
-        //     "columnId": "1",
-        //     "columnName": "20251209是分类",
-        //     "recommendSpuIdList": [
-        // "1991466001048408064",
-        // "1991466001618833408",
-        // "1991466001090351104",
-        // "1998207388355792896",
-        // "1991466001711108096",
-        // "1991466002679992320",
-        // "1991468224906158080",
-        //     ],
-        //     "viewMoreType": 10,
-        //     "viewMoreCatalogId": "1998203723645587456",
-        //     "viewMoreCatalogName": "20251209",
-        //     "viewMoreTagId": null,
-        //     "viewMoreUrl": null
-        // },
-        // {
-        //     "columnId": "2",
-        //     "columnName": "New-Arrivals 是标签",
-        //     "recommendSpuIdList": [
-        //         "1998207388355792896",
-        //         "1991466001711108096",
-        //         "1991466002679992320",
-        //         "1991468224906158080",
-        //         "1991466003527241728",
-        //         "1991468229960294400",
-        //         "1991468226361581568",
-        //         "1991468218363043840",
-        //         "1991466007251783680",
-        //         "1991466006798798848",
-        //         "1991468219680055296",
-        //         "1991466003103617024",
-        //     ],
-        //     "viewMoreType": 20,
-        //     "viewMoreCatalogId": null,
-        //     "viewMoreTagId": "31d26a6487e08357bd771619e894b0c6",
-        //     "viewMoreTagName": "New-Arrivals",
-        //     "viewMoreUrl": null
-        // },
-        // {
-        //     "columnId": "3",
-        //     "columnName": "More Deals是链接",
-        //     "recommendSpuIdList": [
-        //         "1998207388355792896",
-        //         "1991466001711108096",
-        //         "1991466002679992320",
-        //         "1991468224906158080",
-        //         "1991466003527241728",
-        //         "1991468229960294400",
-        //         "1991468226361581568",
-        //         "1991468218363043840",
-        //         "1991466007251783680",
-        //         "1991466006798798848",
-        //         "1991468219680055296",
-        //         "1991466003103617024",
-        //     ],
-        //     "viewMoreType": 30,
-        //     "viewMoreCatalogId": null,
-        //     "viewMoreTagId": null,
-        //     "viewMoreUrl": "https://www.incustom.com/collections/deals"
-        // },
-        // {
-        //     "columnId": "4",
-        //     "columnName": "20251209是分类重复的",
-        //     "recommendSpuIdList": [
-        //         "1991466001048408064",
-        //         "1991466001618833408",
-        //         "1991466001090351104",
-        //         "1998207388355792896",
-        //         "1991466001711108096",
-        //         "1991466002679992320",
-        //         "1991468224906158080",
-        //     ],
-        //     "viewMoreType": 10,
-        //     "viewMoreCatalogId": "1998203723645587456",
-        //     "viewMoreCatalogName": "20251209",
-        //     "viewMoreTagId": null,
-        //     "viewMoreUrl": null
-        // },
-        // {
-        //     "columnId": "5",
-        //     "columnName": "New-Arrivals 是标签重复2",
-        //     "recommendSpuIdList": [
-        //         "1998207388355792896",
-        //         "1991466001711108096",
-        //         "1991466002679992320",
-        //         "1991468224906158080",
-        //         "1991466003527241728",
-        //         "1991468229960294400",
-        //         "1991468226361581568",
-        //         "1991468218363043840",
-        //         "1991466007251783680",
-        //         "1991466006798798848",
-        //         "1991468219680055296",
-        //         "1991466003103617024",
-        //     ],
-        //     "viewMoreType": 20,
-        //     "viewMoreCatalogId": null,
-        //     "viewMoreTagId": "31d26a6487e08357bd771619e894b0c6",
-        //     "viewMoreTagName": "New-Arrivals",
-        //     "viewMoreUrl": null
-        // },
-        // {
-        //     "columnId": "6",
-        //     "columnName": "More Deals是链接重复3",
-        //     "recommendSpuIdList": [
-        //         "1998207388355792896",
-        //         "1991466001711108096",
-        //         "1991466002679992320",
-        //         "1991468224906158080",
-        //         "1991466003527241728",
-        //         "1991468229960294400",
-        //         "1991468226361581568",
-        //         "1991468218363043840",
-        //         "1991466007251783680",
-        //         "1991466006798798848",
-        //         "1991468219680055296",
-        //         "1991466003103617024",
-        //     ],
-        //     "viewMoreType": 30,
-        //     "viewMoreCatalogId": null,
-        //     "viewMoreTagId": null,
-        //     "viewMoreUrl": "https://www.incustom.com/collections/deals"
-        // }
-    ]
-}
 const getTabElementId = (id) => {
     return `activity-tab-${id}`
 }
-const faqItems = [
+const cdnBase = getImgCdnSrc('activityPage')
+const logisticsList = [
     {
-        label: "What special offers are available for the launch sale?",
-        content:
-            "During the launch sale, you can enjoy the following exclusive benefits:\n<b>Discounts:</b> All products are on special launch sale pricing, with a store-wide 18% off discount (equivalent to 82% of the regular price).\n<b>Gifts/Bonuses:</b>\nOrders over $200 will receive a $20 voucher for next purchase.\nOrders over $400 will receive a $50 voucher for next purchase.\nVouchers are valid for 2 months from the date of issue.\n<b>Priority Shipping:</b> All launch sale orders will be prioritized in production and shipping."
+        img: `${cdnBase}/logistics_1_1.webp`,
+        text: 'Trusted by Thousands of Homes'
     },
     {
-        label: "How does the customization process work?",
-        content:
-            "Select a base product → 2. Go to the product details page → 3. Follow the steps to choose color, size, etc. → 4. Reconfirm your custom measurements (we recommend contacting customer service for a secondary measurement check) → 5. Add to cart and checkout."
+        img: `${cdnBase}/logistics_1_2.webp`,
+        text: '30-Day Returns & Refunds'
     },
     {
-        label: "Will the product photos match the actual item?",
-        content:
-            "We strive to ensure that screen displays match the actual product as closely as possible. However, due to differences in monitor settings and material characteristics, slight color variations may occur. The final product color is subject to the actual item received."
+        img: `${cdnBase}/logistics_1_3.webp`,
+        text: 'Free Shipping'
     },
     {
-        label: "Can I modify or cancel my order after customization?",
-        content:
-            "Once your order payment is successful, the system will automatically lock and enter the production queue after 24 hours. Therefore, customized orders cannot be modified or canceled once 24 hours have passed since payment. We strongly recommend reviewing your design carefully before confirming your order."
+        img: `${cdnBase}/logistics_1_4.webp`,
+        text: 'Lifetime Warranty'
+    },
+]
+const measurementList = [
+    {
+        img: `${cdnBase}/measurement_1.webp`,
+        text: 'Design from Home'
     },
     {
-        label: "Do you accept returns or exchanges?",
-        content:
-            "Because our products are personalized and made-to-order, we generally do not accept returns or exchanges unless there is a quality issue or a significant mismatch in custom measurements. Please double-check your design and measurements before confirming your order."
+        img: `${cdnBase}/measurement_2.webp`,
+        text: 'Custmize on inCustom'
     },
     {
-        label: "When will my order ship?",
-        content:
-            "We will review your order within 72 hours after it is placed and begin production. The estimated shipping time depends on the product and its custom specifications, but generally takes around 10 business days. Once your order ships, we will send the tracking information to your email address."
+        img: `${cdnBase}/measurement_3.webp`,
+        text: 'Delivered to You'
     },
-];
+    {
+        img: `${cdnBase}/measurement_4.webp`,
+        text: 'Easy DIY Install'
+    },
+]
+
+const faqItems = computed(() => {
+    return pageInfo.value.venueFaqList?.map(item => ({ label: item.question, content: item.answer })) || []
+})
+// const faqItems = [
+//     {
+//         label: "What are your Spring Sale offers?",
+//         content:
+//             `Celebrate the season of renewal with our exclusive Spring Sale discounts, available from February 15th to March 15th. Enjoy instant savings on your order—no future vouchers needed.
+
+//             🌱 Instant Discount Tiers (Store-wide):
+//             Spend $200, Get $30 OFF
+//             Spend $300, Get $60 OFF
+//             Spend $500, Get $100 OFF
+
+//             ✨ How to Redeem:
+//             Simply enter the code SPRING at checkout to apply your discount automatically.
+
+//             ⚡ Priority Processing:
+//             All Spring Sale orders will be prioritized in production and shipping, helping you refresh your home in time for the season.`
+//     },
+//     {
+//         label: "What if I measure my windows incorrectly?",
+//         content:
+//             `At inCutsom, we want your custom blinds to fit perfectly—the first time and every time. That’s why we’ve built a Measurement Assurance Program just for you.
+
+//             1. We double‑check your measurements
+//             Once you place your order, our team reviews the window sizes you submitted before production begins. If we notice anything unusual or potentially incorrect, we’ll proactively reach out to confirm with you.
+
+//             2. Free one‑time remake, even after delivery
+//             If, despite our review, your blinds still don’t fit due to measurement errors, we will remake them once – completely free of charge. Simply contact our support team with your order details and corrected measurements, and we’ll start the remake process right away.
+
+//             No extra costs, no hassle. Just the perfect fit you deserve.
+
+//             This policy applies to one free remake per order for size‑related issues. Terms and conditions apply.`
+//     },
+//     {
+//         label: "How does the customization process work?",
+//         content:
+//             `Select a base product → 2. Go to the product details page → 3. Follow the steps to choose color, size, etc. → 4. Reconfirm your custom measurements (we recommend contacting customer service for a secondary measurement check) → 5. Add to cart and checkout.`
+//     },
+//     {
+//         label: "Will the product photos match the actual item?",
+//         content:
+//             `We strive to ensure that screen displays match the actual product as closely as possible. However, due to differences in monitor settings and material characteristics, slight color variations may occur. The final product color is subject to the actual item received.`
+//     },
+//     {
+//         label: "Can I modify or cancel my order after customization?",
+//         content:
+//             `Once your order payment is successful, the system will automatically lock and enter the production queue after 24 hours. Therefore, customized orders cannot be modified or canceled once 24 hours have passed since payment. We strongly recommend reviewing your design carefully before confirming your order.`
+//     },
+//     {
+//         label: "Do you accept returns or exchanges?",
+//         content:
+//             `Because our products are personalized and made-to-order, we generally do not accept returns or exchanges unless there is a quality issue or a significant mismatch in custom measurements. Please double-check your design and measurements before confirming your order.`
+//     },
+//     {
+//         label: "When will my order ship?",
+//         content:
+//             `We will review your order within 72 hours after it is placed and begin production. The estimated shipping time depends on the product and its custom specifications, but generally takes around 10 business days. Once your order ships, we will send the tracking information to your email address.`
+//     },
+// ];
 const links = computed(() => [
     {
         label: 'Home',
@@ -227,17 +171,18 @@ const links = computed(() => [
 ]);
 const { listProductSpuV2ByIdList } = ProductAuth();
 const { getMarketingActivityById } = ActivityAuth();
+const PageTag = 'activity_page_view会场页面======';
 const route = useRoute()
 const routeParam = route.params.id[0]
 const splitCollection = routeParam.split('-')
 const collectionName = splitCollection.slice(0, -1).join('-').replace(/-/g, ' ')
 const activityId = splitCollection.pop()
-console.log('routeParam===', collectionName, activityId)
-const pageInfo = ref<any>(testData)
+const pageInfo = ref<any>({})
 const { isMobile } = useMobile()
 const offsetTop = computed(() => isMobile.value ? 135 : 155)
 const productInfoMaps = ref({})
 const curTab = ref('')
+const { headerHeight } = useHeaderHeight()
 const tabs = computed(() => {
     return pageInfo.value.venueColumnList.map(item => ({
         label: item.columnName,
@@ -245,6 +190,34 @@ const tabs = computed(() => {
     }))
 })
 let tabElements = [];
+
+const logisticsImg = computed(() => {
+    if (isMobile.value) {
+        return getImgCdnSrc(`activityPage/logistics_mobile1.webp`)
+    }
+    return getImgCdnSrc(`activityPage/logistics_pc1.webp`)
+})
+const measurementImg = computed(() => {
+    if (isMobile.value) {
+        return getImgCdnSrc(`activityPage/measurement_mobile.webp`)
+    }
+    return getImgCdnSrc(`activityPage/measurement_pc.webp`)
+})
+// 服务端拿数据
+const { data: serverInfo, pending: pending, error: error } = await useAsyncData(
+    () => `getMarketingActivityById-${activityId}`, () => {
+        return getMarketingActivityById({ marketingActivityId: activityId })
+    }
+);
+console.log(PageTag, 'serverInfo===', serverInfo.value)
+const initData = (dataInfo) => {
+    if (dataInfo.id) {
+        pageInfo.value = dataInfo
+    } else {
+        throwPageError('No activity found.')
+    }
+}
+initData(serverInfo.value?.result || {})
 
 // 滚动监听函数
 const handleScroll = () => {
@@ -292,7 +265,6 @@ const handleTabChange = (tabKey) => {
 
 
 onMounted(async () => {
-    await fetchActivityInfo(activityId)
     const ids = pageInfo.value.venueColumnList.map(item => item.recommendSpuIdList).flat()
     // pageInfo.value = testData
     await fetchList(ids)
@@ -314,23 +286,11 @@ onUnmounted(() => {
 
 });
 
-const fetchActivityInfo = async (id) => {
-    try {
-        const res = await getMarketingActivityById({ marketingActivityId: id })
-        // console.log('res', res.result)
-        pageInfo.value = res.result
-    } catch (error) {
-
-    } finally {
-        // 
-    }
-}
-
 const fetchList = async (ids) => {
     try {
         const params = {
             productSpuV2IdList: ids,
-            fields: "id,productEnglishName,basePrice,mainPic"
+            fields: "id,productEnglishName,basePrice,mainPic,seoUrlKeyword"
         };
         const res = await listProductSpuV2ByIdList(params)
         const productMap = {}
@@ -357,11 +317,7 @@ const fetchList = async (ids) => {
 }
 
 const getMoreLink = (item) => {
-    if (item.viewMoreType === 10) { // 分类
-        return `/${slugify(item.viewMoreCatalogName)}-${item.viewMoreCatalogId}`
-    } else if (item.viewMoreType === 20) { // 标签
-        return `/collections/${slugify(item.viewMoreTagName)}-${item.viewMoreTagId}`
-    } else if (item.viewMoreType === 30) { // 链接
+    if (item.viewMoreType === 30) { // 链接
         return item.viewMoreUrl
     }
     return null

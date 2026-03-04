@@ -41,7 +41,7 @@ export const useCartStore = defineStore('cart', {
 
         async updateQuantity(id: any, quantity: any) {
             try {
-                const params = { id, productQuantity: quantity }
+                const params = { id, productQuantity: quantity, opType: 'update' }
                 const { updateCart } = cartAuth()
                 await updateCart(params)
             } catch (error) {
@@ -94,7 +94,7 @@ export const useCartStore = defineStore('cart', {
             if (!list?.length) return
             try {
                 const { batchDeductionUserShoppingCart } = cartAuth()
-                await batchDeductionUserShoppingCart({ deleteList: list })
+                await batchDeductionUserShoppingCart({ deleteList: list ,opType: 'delete'})
 
                 // 本地同步移除（按 id）
                 const idSet = new Set(list.map(i => i.id))

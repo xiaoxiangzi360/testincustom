@@ -21,6 +21,30 @@ export default defineNuxtConfig({
     './app-nuxtui-layer', // NavBar and Footer components
   ],
 
+  vite: {
+     esbuild: {
+      // 在生产环境中移除 console 和 debugger
+      // drop: ['console', 'debugger']
+    },
+    build: {
+      rollupOptions: {
+        treeshake: true, // 启用 Tree Shaking
+      },
+      terserOptions: {
+          compress: {
+            drop_console: true, // 移除 console.log
+            drop_debugger: true, // 移除 debugger
+          },
+        }
+    },
+    plugins: process.env.NODE_ENV === 'production' ? [
+      (await import('rollup-plugin-visualizer')).default({
+        filename: '.nuxt/stats.html',
+        open: true
+      })
+    ] : []
+  },
+
   ssr: true,
   // devtools: { enabled: false }, // enabled by default, disable when using standalone Vue devtools
 
@@ -51,7 +75,7 @@ export default defineNuxtConfig({
   nitro: {
     // preset: 'netlify',
     preset: 'vercel',
-        // 优化：启用压缩和缓存
+    // 优化：启用压缩和缓存
     compressPublicAssets: true,
     // 优化：启用服务端缓存
     storage: {
@@ -61,10 +85,13 @@ export default defineNuxtConfig({
         ttl: 60 * 60 * 1000, // 1小时
       }
     },
+    // prerender: {
+    //   routes: ['/sitemap-pages.xml', '/sitemap.xml', '/sitemap-product.xml', '/sitemap-guidingstar.xml'],
+    // },
     devProxy: {
       '/api/': {
-        target: 'https://mallapi.incustom.com',
-        // target: 'http://192.168.8.52:50500',
+        // target: 'https://mallapi.incustom.com',
+        target: 'http://192.168.8.52:50500',
         changeOrigin: true,
         prependPath: false,
       }
@@ -77,63 +104,80 @@ export default defineNuxtConfig({
     head: {
       meta: [{ charset: 'utf-8' }], // defaulted by nuxt
       script: [
+        // {
+        //   key: 'gtag-lib',
+        //   src: 'https://www.googletagmanager.com/gtag/js?id=G-6GC29WGLF4',
+        //   async: true,
+        // },
+        // {
+        //   key: 'gtag-config',
+        //   type: 'text/javascript',
+        //   children: `
+        //     window.dataLayer = window.dataLayer || [];
+        //     function gtag(){ dataLayer.push(arguments); }
+        //     gtag('js', new Date());
+        //     gtag('config', 'G-6GC29WGLF4');
+        //   `,
+        // },
         // 优化：延迟加载 GTM，使用 defer 和延迟执行
-        {
-          key: 'gtm-loader',
-          type: 'text/javascript',
-          defer: true,
-          children: `
-            // 延迟加载 GTM，等待页面交互或滚动
-            function loadGTM() {
-              if (window.dataLayer) return;
-              (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-              new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-              'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-              })(window,document,'script','dataLayer','GTM-WLSVXPKK');
-            }
-            // 页面加载完成后延迟 2 秒加载，或用户交互时立即加载
-            if (document.readyState === 'complete') {
-              setTimeout(loadGTM, 2000);
-            } else {
-              window.addEventListener('load', function() { setTimeout(loadGTM, 2000); });
-              ['mousedown', 'touchstart', 'scroll'].forEach(function(event) {
-                window.addEventListener(event, loadGTM, { once: true, passive: true });
-              });
-            }
-          `,
-        },
+        // {
+        //   key: 'gtm-loader',
+        //   type: 'text/javascript',
+        //   defer: true,
+        //   children: `
+        //     // 延迟加载 GTM，等待页面交互或滚动
+        //     function loadGTM() {
+        //        // 防止重复加载
+        //       if (window.dataLayer && window.dataLayer.gtmLoadInitiated) return;
+        //       window.dataLayer = window.dataLayer || [];
+        //       window.dataLayer.gtmLoadInitiated = true;
+        //       (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        //       new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        //       j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        //       'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        //       })(window,document,'script','dataLayer','GTM-WLSVXPKK');
+        //     }
+        //     // 页面加载完成后延迟 2 秒加载，或用户交互时立即加载
+        //     if (document.readyState === 'complete') {
+        //       setTimeout(loadGTM, 2000);
+        //     } else {
+        //       window.addEventListener('load', function() { setTimeout(loadGTM, 2000); });
+        //       ['mousedown', 'touchstart', 'scroll'].forEach(function(event) {
+        //         window.addEventListener(event, loadGTM, { once: true, passive: true });
+        //       });
+        //     }
+        //   `,
+        // },
         // 优化：延迟加载 Meta Pixel
-        {
-          key: 'meta-pixel',
-          type: 'text/javascript',
-          defer: true,
-          children: `
-            // 延迟加载 Meta Pixel
-            function loadMetaPixel() {
-              if (window.fbq) return;
-              !function(f,b,e,v,n,t,s){
-                if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-                n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-                if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-                n.queue=[];t=b.createElement(e);t.async=!0;
-                t.src=v;s=b.getElementsByTagName(e)[0];
-                s.parentNode.insertBefore(t,s)
-              }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
-              fbq('init', '1715265472507752');
-              fbq('track', 'PageView');
-            }
-            // 页面加载完成后延迟 3 秒加载，或用户交互时立即加载
-            if (document.readyState === 'complete') {
-              setTimeout(loadMetaPixel, 3000);
-            } else {
-              window.addEventListener('load', function() { setTimeout(loadMetaPixel, 3000); });
-              ['mousedown', 'touchstart', 'scroll'].forEach(function(event) {
-                window.addEventListener(event, loadMetaPixel, { once: true, passive: true });
-              });
-            }
-          `,
-        },
+        // {
+        //   key: 'meta-pixel',
+        //   type: 'text/javascript',
+        //   defer: true,
+        //   children: `
+        //     function loadMetaPixel() {
+        //       if (window.fbq) return;
+        //       !function(f,b,e,v,n,t,s){
+        //         if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        //         n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        //         if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        //         n.queue=[];t=b.createElement(e);t.async=!0;
+        //         t.src=v;s=b.getElementsByTagName(e)[0];
+        //         s.parentNode.insertBefore(t,s)
+        //       }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+        //       fbq('init', '1162640842704322');
+        //       fbq('track', 'PageView');
+        //     }
+        //     // 页面加载完成后延迟 3 秒加载，或用户交互时立即加载
+        //     if (document.readyState === 'complete') {
+        //       setTimeout(loadMetaPixel, 3000);
+        //     } else {
+        //       window.addEventListener('load', function() { setTimeout(loadMetaPixel, 3000); });
+        //       ['mousedown', 'touchstart', 'scroll'].forEach(function(event) {
+        //         window.addEventListener(event, loadMetaPixel, { once: true, passive: true });
+        //       });
+        //     }
+        //   `,
+        // },
       ],
       noscript: [
         {
@@ -145,7 +189,7 @@ export default defineNuxtConfig({
           key: 'meta-pixel-noscript',
           children: `
             <img height="1" width="1" style="display:none"
-              src="https://www.facebook.com/tr?id=1715265472507752&ev=PageView&noscript=1"
+              src="https://www.facebook.com/tr?id=1162640842704322&ev=PageView&noscript=1"
             />
           `,
           tagPosition: 'bodyOpen'
@@ -183,14 +227,21 @@ export default defineNuxtConfig({
       })
     },
   ],
- routeRules: {
+  routeRules: {
     '/.well-known/apple-developer-merchantid-domain-association': {
       headers: {
         'Content-Type': 'application/octet-stream',
         'Cache-Control': 'public, max-age=3600'
       }
     },
-        '/product/**': {
+    '/**/*.xml': {
+      ssr: false, // 禁用服务端渲染
+      prerender: false, // 禁用预渲染
+      headers: {
+        'Content-Type': 'application/xml', // 确保正确的 Content-Type
+      },
+    },
+    '/products/**': {
       ssr: true,
       prerender: false,
       // 启用 ISR（增量静态再生）缓存
@@ -199,7 +250,7 @@ export default defineNuxtConfig({
     // 首页预渲染
     '/': {
       prerender: true,
-      headers: { 'Cache-Control': 's-maxage=3600' }
+      cache: false
     },
     // API 路由不缓存
     '/api/**': { cors: true, headers: { 'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS' } },
@@ -209,11 +260,13 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-    	 paypalClientId: 'AWVya-REAJ9WaVV8Mzm56_EXtp__TyhjRapzK8JTmePsjqTYCcpDnUAyUIJyQgkBPlNmHR7h3hL472el',
+      paypalClientId: process.env.paypalClientId,
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://mallapi.incustom.com',
       airwallexEnv: process.env.NUXT_PUBLIC_AIRWALLEX_ENV || 'prod',
       gmpApiKey: process.env.GMP_API_KEY,
       // apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://192.168.8.52:50500',
+      // 这两个值会在构建时被 process.env 的值覆盖
+      buildTime: String(new Date().getTime()),
     }
   },
   ui: {
@@ -240,6 +293,7 @@ export default defineNuxtConfig({
     config: {
       // Default: 'media'
       preload: 'swap',
+      // pruneSource: true
     },
   },
 
@@ -258,7 +312,7 @@ export default defineNuxtConfig({
     'lite-youtube-embed/src/lite-yt-embed.css',
   ],
   plugins: [
-    { src: '~/plugins/clarity.js', mode: 'client' },
+    // { src: '~/plugins/clarity.js', mode: 'client' },
     { src: '~/plugins/chaty.client.ts', mode: 'client' },
     { src: '~/plugins/tiktok-pixel.client.ts', mode: 'client' }
 
@@ -268,6 +322,37 @@ export default defineNuxtConfig({
       'tailwindcss/nesting': {},
       tailwindcss: {},
       autoprefixer: {},
+      // '@fullhuman/postcss-purgecss': {
+      //   content: [
+      //     './app/**/*.{vue,js,ts,jsx,tsx}',
+      //     './components/**/*.{vue,js,ts,jsx,tsx}',
+      //     './layouts/**/*.{vue,js,ts,jsx,tsx}',
+      //     './pages/**/*.{vue,js,ts,jsx,tsx}',
+      //     './plugins/**/*.{js,ts}',
+      //   ],
+      //   defaultExtractor: (content) =>
+      //     content.match(/[^<>"'`\s]*[^<>"'`\s:]/g) || [],
+      //   safelist: [
+      //     // 核心保护
+      //     /^splide/,           // Splide轮播库
+      //     /^is-/,              // 状态类
+      //     /^has-/,             // 状态类
+      //     /^v-/,               // Vue作用域
+      //     /^nuxt-/,            // Nuxt相关
+      //     /^i-/,               // 图标
+      //     /^page-/, /^layout-/, // 页面/布局
+
+      //     // Tailwind常用类
+      //     /^[wh]-\d/,          // 尺寸 w-1, h-2等
+      //     /^[mp][trblxy]?-\d/, // 间距 mt-1, p-2等
+      //     /^(bg|text|border)-/, // 颜色
+      //     /^flex$|^grid$|^block$|^hidden$/, // 显示
+      //     /^relative$|^absolute$|^fixed$/, // 定位
+
+      //     // 响应式
+      //     /^sm:|^md:|^lg:|^xl:/,
+      //   ],
+      // }
     },
   },
   image: {
@@ -316,15 +401,15 @@ export default defineNuxtConfig({
     alias: {
       unsplash: 'https://images.unsplash.com',
     },
-    vite: {
-      resolve: {
-        alias: {
-          'ohash/utils': 'ohash/dist/utils.mjs'
-        }
-      }
-    }
+    // 新增配置：小于 10KB 的图片将被转为 Base64
+    inlineThreshold: 10000 // 单位：字节，10KB
   },
-
+  components: [
+    {
+      path: '~/components',
+      pathPrefix: false, // 关键：关闭路径前缀
+    }
+  ],
   veeValidate: {
     // disable or enable auto imports
     autoImports: true,
@@ -379,9 +464,10 @@ export default defineNuxtConfig({
     },
   },
 
+
   sourcemap: {
-    client: false,
-    server: false,
+    client: process.env.NODE_ENV !== 'production',
+    server: process.env.NODE_ENV !== 'production',
   },
   // Used by all modules in the @nuxtjs/seo collection
   // https://nuxtseo.com/docs/nuxt-seo/guides/using-the-modules
@@ -399,28 +485,30 @@ export default defineNuxtConfig({
 
   robots: {
     // https://nuxtseo.com/docs/robots/api/config#blocknonseobots-boolean
-    blockNonSeoBots: true,
+    // blockNonSeoBots: true,
   },
-
   sitemap: {
-    // https://nuxtseo.com/docs/sitemap/getting-started/troubleshooting
-    // Open {{site.url}}/sitemap.xml
-    xslColumns: [
-      { label: 'URL', width: '50%' },
-      { label: 'Last Modified', select: 'sitemap:lastmod', width: '12.5%' },
-      { label: 'Priority', select: 'sitemap:priority', width: '12.5%' },
-      {
-        label: 'Change Frequency',
-        select: 'sitemap:changefreq',
-        width: '12.5%',
-      },
-      { label: 'Hreflangs', select: 'count(xhtml:link)', width: '12.5%' },
-    ],
-    // To turn off xls file when viewing sitemap.xml
-    // xsl: false,
-    // Remove strictNuxtContentPaths if using nuxt-content in documentDriven mode
-    strictNuxtContentPaths: true,
+    enabled: false,
   },
+  // sitemap: {
+  //   // https://nuxtseo.com/docs/sitemap/getting-started/troubleshooting
+  //   // Open {{site.url}}/sitemap.xml
+  //   xslColumns: [
+  //     { label: 'URL', width: '50%' },
+  //     { label: 'Last Modified', select: 'sitemap:lastmod', width: '12.5%' },
+  //     { label: 'Priority', select: 'sitemap:priority', width: '12.5%' },
+  //     {
+  //       label: 'Change Frequency',
+  //       select: 'sitemap:changefreq',
+  //       width: '12.5%',
+  //     },
+  //     { label: 'Hreflangs', select: 'count(xhtml:link)', width: '12.5%' },
+  //   ],
+  //   // To turn off xls file when viewing sitemap.xml
+  //   // xsl: false,
+  //   // Remove strictNuxtContentPaths if using nuxt-content in documentDriven mode
+  //   strictNuxtContentPaths: true,
+  // },
 
   ogImage: {
     enabled: false,

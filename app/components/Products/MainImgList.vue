@@ -1,30 +1,40 @@
 <template>
-    <div class="w-full h-full relative overflow-visible">
+    <div ref="mainImgListRef" class="w-full h-full relative overflow-visible" style="aspect-ratio: 1 / 1;">
         <div v-if="list.length > 0" class="relative w-full overflow-hidden rounded-[6px] h-full" id="mainImgListDiv"
             @mousedown="onDragStart" @mousemove="onDragMove" @mouseup="onDragEnd" @mouseleave="onDragEnd"
-            @touchstart="onDragStart" @touchmove="onDragMove" @touchend="onDragEnd" @mouseenter="onMouseEnter">
+            @mouseenter="onMouseEnter">
             <!-- 图片/视频容器 -->
-            <div class="flex transition-transform duration-300 ease-in-out " :class="wrapClass"
+            <div class="flex transition-transform duration-300 ease-in-out h-full" :class="wrapClass"
                 :style="`transform: translateX(-${currentIndex * 100}%)`">
                 <div v-for="(item, index) in list" :key="index"
                     class="w-full flex-shrink-0 flex justify-center items-center" :class="itemClass">
-                    <!-- 判断是否为视频 -->
-                    <template v-if="item.type === 'video'">
-                        <video :src="item.url" playsinline class="w-full object-contain select-none flex items-center justify-center bg-black" controls
-                            draggable="false" :alt="item.altText" preload="metadata" style="aspect-ratio: 1 / 1;" />
-                    </template>
-                    <template v-else>
+                    <div v-show="showSkuImg && curSkuImg"
+                        class="absolute w-full h-full flex items-center justify-center z-10">
+                        <!--:src="loadedImages[index] ? item.url : `/home/place_img.png`" -->
+                        <NuxtImg fetchpriority="high" format="webp" :data-index="index"
+                            :src="`${curSkuImg}?x-oss-process=image/format,webp`"
+                            class="w-full h-full object-cover select-none lazy-image" draggable="false"
+                            style="aspect-ratio: 1 / 1;" :alt="item.altText" loading="eager"
+                            :class="{ 'cursor-pointer': !isMobile }" />
+                    </div>
+                    <div v-show="item.type !== 'video'" class="w-full h-full flex items-center justify-center">
                         <!--:src="loadedImages[index] ? item.url : `/home/place_img.png`" -->
                         <NuxtImg fetchpriority="high" format="webp" :data-index="index"
                             :src="`${item.url}?x-oss-process=image/format,webp`"
                             class="w-full h-full object-contain select-none lazy-image" draggable="false"
                             style="aspect-ratio: 1 / 1;" :alt="item.altText" loading="eager"
                             :class="{ 'cursor-pointer': !isMobile }" />
-                    </template>
+                    </div>
+                    <!-- 判断是否为视频 -->
+                    <div v-show="item.type === 'video'" class="w-full h-full flex items-center justify-center">
+                        <video :src="item.url" playsinline
+                            class="w-full h-full object-contain select-none flex items-center justify-center" controls
+                            draggable="false" :alt="item.altText" preload="metadata" style="aspect-ratio: 1 / 1;" />
+                    </div>
                 </div>
             </div>
-            <div v-show="!isMobile && curItem?.type !== 'video' && !mouseBtnIn && showZoomBox" :style="zoomBoxStyle"
-                class="absolute top-0 bg-white bg-opacity-50 z-[20]">
+            <div v-show="!isMobile && ((showSkuImg && curSkuImg) || curItem?.type !== 'video') && !mouseBtnIn && showZoomBox"
+                :style="zoomBoxStyle" class="absolute top-0 bg-white bg-opacity-50 z-[20]">
             </div>
             <!-- 导航箭头 -->
             <div name="i-raphael:arrowleft2"
@@ -39,14 +49,14 @@
             <div name="i-raphael:arrowright2"
                 class="absolute right-[5px] top-1/2 -translate-y-1/2 cursor-pointer transition-all duration-300 ease-in-out 
                    w-[34px] h-[34px] bg-white rounded-full flex items-center justify-center shadow text-primary z-[100]" @click="next"
-                :style="{ opacity: showZoomBox || mouseBtnIn ? (list.length > 1 && showNext ? '0.6' : '0.3') : '0', cursor: showNext ? 'pointer' : 'not-allowed'  }"
+                :style="{ opacity: showZoomBox || mouseBtnIn ? (list.length > 1 && showNext ? '0.6' : '0.3') : '0', cursor: showNext ? 'pointer' : 'not-allowed' }"
                 @mouseleave="onBtnMouseLeave" @mouseenter="onBtnMouseEnter">
                 <BaseIcon name="i-raphael:arrowright2" class="text-primary w-6 h-6" />
             </div>
         </div>
         <NuxtImg v-else format="webp" src="/home/place_img.png" loading="eager" :alt="'Product image'"
             class="w-full h-full object-cover" style="aspect-ratio: 1 / 1;" />
-        <div v-show="!isMobile && curItem?.type !== 'video' && !mouseBtnIn && showZoomBox"
+        <div v-show="!isMobile && (curItem?.type !== 'video' || (curSkuImg && showSkuImg)) && !mouseBtnIn && showZoomBox"
             class="absolute top-1/2 left-[calc(100%+10px)] -translate-y-1/2 bg-white flex justify-center items-center z-[1000] shadow-lg rounded-[6px]"
             :style="zoomPreviewBoxStyle">
             <div class="w-full h-full bg-no-repeat bg-center rounded-[6px]" :style="zoomedImageStyle"></div>
@@ -76,10 +86,29 @@ const props = defineProps({
     itemClass: {
         type: String,
         default: ''
+    },
+    curSkuImg: {
+        type: String,
+        default: ''
+    },
+    showSkuImg: {
+        type: Boolean,
+        default: false
+    },
+    ref: {
+        type: String,
+        default: ''
     }
 })
 
-const emit = defineEmits(['img-change']);
+const emit = defineEmits<{
+    (event: 'img-change', index: number): void;
+    (event: 'img-visible', isHidden: boolean): void;
+}>();
+
+watch(() => props.curSkuImg, (newVal) => {
+    console.log('curSkuImg==:', newVal);
+});
 
 const currentIndex = ref(props.currentIndex)
 // const loadedImages = ref<boolean[]>(props.list.map(() => false)) // 记录图片是否加载完成
@@ -120,6 +149,12 @@ watch(() => props.currentIndex, (newIndex) => {
     currentIndex.value = newIndex;
     stopVideoPlayback();
 })
+
+watch([() => props.curSkuImg, () => props.showSkuImg], (newValue) => {
+    if (props.showSkuImg && props.curSkuImg) {
+        stopVideoPlayback();
+    }
+});
 
 // 当鼠标进入主图时，显示放大方块（移动端不启用）
 const onMouseEnter = () => {
@@ -166,7 +201,7 @@ const handleMove = (event) => {
     };
 
     // 获取当前主图的 src
-    zoomedImage.value = props.list[currentIndex.value].url;
+    zoomedImage.value = (props.showSkuImg && props.curSkuImg) ? props.curSkuImg : props.list[currentIndex.value].url;
 
     // 更新放大图片的样式
     zoomedImageStyle.value = {
@@ -212,11 +247,13 @@ const onBtnMouseEnter = (event) => {
 
 // 手势滑动事件
 const onDragStart = (event: MouseEvent | TouchEvent) => {
+    // event.preventDefault();
     isDragging = true
     startX = 'touches' in event ? event.touches[0].clientX : event.clientX
 }
 
 const onDragMove = (event: MouseEvent | TouchEvent) => {
+    // event.preventDefault();
     if (event.type === 'mousemove') {
         const mouseEvent = event as MouseEvent;
         // console.log('鼠标移动事件==== called',mouseEvent.clientX,mouseEvent.clientY,mouseEvent.x,mouseEvent.y);
@@ -229,6 +266,7 @@ const onDragMove = (event: MouseEvent | TouchEvent) => {
 }
 
 const onDragEnd = (event: MouseEvent | TouchEvent) => {
+    // event.preventDefault();
     console.log('拖拽结束事件==== called', event.type);
     if (event.type === 'mouseleave') {
         showZoomBox.value = false;
@@ -249,28 +287,42 @@ const onDragEnd = (event: MouseEvent | TouchEvent) => {
     // 重置滑动距离
     deltaX = 0
 }
-
+const mainImgListRef = ref(null);
+const isMainImgListVisible = ref(false);
+const mainImgObserver = ref<IntersectionObserver | null>(null);
 // 懒加载逻辑
-// const observeImages = () => {
-//     const observer = new IntersectionObserver((entries) => {
-//         entries.forEach((entry) => {
-//             if (entry.isIntersecting) {
-//                 const index = Number(entry.target.getAttribute('data-index'))
-//                 loadedImages.value[index] = true
-//                 observer.unobserve(entry.target)
-//             }
-//         })
-//     })
+const observeImages = () => {
+    mainImgObserver.value = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            isMainImgListVisible.value = entry.isIntersecting;
+            emit('img-visible', entry.isIntersecting);
+        })
+    }, { threshold: 0.6 });
+    mainImgObserver.value.observe(mainImgListRef.value)
 
-//     document.querySelectorAll('.lazy-image').forEach((img, index) => {
-//         if (!loadedImages.value[index]) {
-//             observer.observe(img)
-//         }
-//     })
-// }
+}
 
 
-// onMounted(() => {
-// observeImages()
-// })
+onMounted(() => {
+    nextTick(() => {
+        mainImgObserver.value = null;
+        observeImages()
+    });
+    const mainImgListDiv = document.getElementById('mainImgListDiv');
+    if (mainImgListDiv) {
+        mainImgListDiv.addEventListener('touchstart', onDragStart, { passive: false });
+        mainImgListDiv.addEventListener('touchmove', onDragMove, { passive: false });
+        mainImgListDiv.addEventListener('touchend', onDragEnd);
+    }
+})
+
+onUnmounted(() => {
+    mainImgObserver.value?.disconnect(); // 组件卸载时，断开观察者
+    const mainImgListDiv = document.getElementById('mainImgListDiv');
+    if (mainImgListDiv) {
+        mainImgListDiv.removeEventListener('touchstart', onDragStart);
+        mainImgListDiv.removeEventListener('touchmove', onDragMove);
+        mainImgListDiv.removeEventListener('touchend', onDragEnd);
+    }
+})
 </script>
