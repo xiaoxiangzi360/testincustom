@@ -11,7 +11,9 @@
   @apply w-[84%] mx-auto max-lg:w-[100%] max-lg:px-4 text-customblack;
   /* @apply max-w-[1440px] mx-auto px-3 max-lg:px-4; */
 }
-
+input:focus{
+  box-shadow: none;
+}
 .ant-input:focus {
   border-color: #25B9EC !important;
   border: none;
@@ -21,13 +23,20 @@
 .ant-input:focus {
   --tw-ring-color: #25B9EC !important;
 }
-
+.ant-select-selection-search-input{
+  font-size: 14px;
+}
 /* 带 suffix/prefix 的情况 */
 .ant-input-affix-wrapper:focus-within {
   --tw-ring-color: #25B9EC !important;
 }
 .skeleton-animation {
   animation: pulse 1.5s infinite;
+}
+
+.ant-select-focused .ant-select-selector{
+    box-shadow: none !important;
+    outline: none !important;
 }
 
 /* 定义动画效果 */

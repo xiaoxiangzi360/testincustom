@@ -76,7 +76,7 @@ const testData = [
   {
     pcImage: `${prefixUrl}/pc2/1_0211.webp`,
     mobileImage: `${prefixUrl}/mobile2/1_0211.webp`,
-    link: '/activityPage/spring-sale-2021766913172045824',
+    link: '/activitypage/spring-sale-2021766913172045824',
   },
   {
     pcImage: `${prefixUrl}/pc2/2-1.webp`,

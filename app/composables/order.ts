@@ -27,6 +27,19 @@ export const OrderAuth = () => {
             throw error
         }
     }
+    const updateOrder = async (params) => {
+        try {
+            const response = await $api('/order/order/updateOrder', {
+                method: 'POST',
+                body: params,
+            })
+
+            return response
+        } catch (error) {
+
+            throw error
+        }
+    }
     const tryOrder = async (params) => {
         try {
             const response = await $api('/order/order/tryOrder', {
@@ -123,5 +136,5 @@ export const OrderAuth = () => {
             throw error
         }
     }
-    return { generateOrderId, createOrder, getOrderlists, groupUserOrderStatusCount, cancleOrder, getUserOrderDocByOrderNumber, tryOrder, groupOrderTrackInfo, getOrderByOrderNumberWithAuthorizationCode }
+    return { generateOrderId, createOrder, updateOrder, getOrderlists, groupUserOrderStatusCount, cancleOrder, getUserOrderDocByOrderNumber, tryOrder, groupOrderTrackInfo, getOrderByOrderNumberWithAuthorizationCode }
 }

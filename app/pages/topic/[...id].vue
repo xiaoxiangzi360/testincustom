@@ -11,7 +11,8 @@
         <div v-else>
             <CustomBreadcrumb :links="links" />
             <TopConfigBanner :data="pageInfo" />
-            <div class="py-4 max-md: max-md:py-2 sticky bg-[white] z-[20] text-customblack" :style="{ top: `${headerHeight}px` }">
+            <div class="py-4 max-md: max-md:py-2 sticky bg-[white] z-[20] text-customblack"
+                :style="{ top: `${headerHeight}px` }">
                 <USelectMenu class="w-[200px]" v-model="curTag" :options="filterArr" placeholder="All Posts"
                     value-attribute="id" option-attribute="name" variant="none" :ui="{
                         base: 'ring-1 ring-[#d5d5d5] dark:text-[#0C1013]',
@@ -41,6 +42,9 @@ const collectionName = splitCollection.slice(0, -1).join('-').replace(/-/g, ' ')
 const topicId = splitCollection.pop()
 const { headerHeight } = useHeaderHeight()
 console.log('routeParam===', collectionName, topicId)
+const currentSeoUrl = computed(() => {
+    return convertToAbsolutePath(`/topic/${slugify(pageInfo.value.seoUrlKeyword || pageInfo.value.name)}-${pageInfo.value.id}`)
+})
 const links = computed(() => {
     if (pageInfo.value.id) {
         return [
@@ -56,6 +60,7 @@ const links = computed(() => {
         ]
     }
 });
+
 const pageInfo = ref<any>({})
 const curTag = ref<any>('0');
 const filterArr = ref([{ name: 'All Posts', id: '0' }]);
@@ -86,6 +91,12 @@ const initData = (dataInfo) => {
             meta: [
                 { name: 'description', content: dataInfo.seoMetaDescription || dataInfo.desc || '' },
                 { name: 'keywords', content: dataInfo.seoUrlKeyword || '' },
+            ],
+            link: [
+                {
+                    rel: 'canonical',
+                    href: currentSeoUrl.value,
+                },
             ],
             script: [
                 { type: 'application/ld+json', innerHTML: JSON.stringify(breadcrumbParams) }

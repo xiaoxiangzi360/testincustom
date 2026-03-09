@@ -4,7 +4,7 @@
             <div v-show="listData.list.length > 0">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-2">
                     <NuxtLink
-                        :to="`/Posts/${slugify(`${(product.seoUrlKeyword || product.enTitle)}-${topicName}`)}-${product.id}`"
+                        :to="`/posts/${slugify(`${(product.seoUrlKeyword || product.enTitle)}-${topicName}`)}-${product.id}`"
                         v-for="(product, index) in listData.list" :key="index" class="group cursor-pointer">
                         <div class=" overflow-hidden rounded-[4px]">
                             <NuxtImg :src="getImageSrc(product.coverImageUrl)"

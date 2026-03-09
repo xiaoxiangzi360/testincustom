@@ -53,7 +53,7 @@
                                                     class="whitespace-normal">
                                                     {{ spec.label }}
                                                     <span class="text-[#0C1013] ml-1">{{ spec.value
-                                                        }}</span>
+                                                    }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -152,7 +152,7 @@
                                                     :key="i" class="whitespace-normal">
                                                     {{ spec.label }}
                                                     <span class="text-[#0C1013] ml-1">{{ spec.value
-                                                        }}</span>
+                                                    }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -187,7 +187,8 @@
                                 </div> -->
                                 <div class="flex justify-between">
                                     <span>Total </span>
-                                    <span class="text-primary text-[16px]">$ {{ (selectedTotal + shipping).toFixed(2) }}</span>
+                                    <span class="text-primary text-[16px]">$ {{ (selectedTotal + shipping).toFixed(2)
+                                        }}</span>
                                 </div>
                             </div>
                             <div v-show="offPrice" class="text-[14px] text-[#FF4F63] cursor-pointer mt-4 mb-2"
@@ -425,7 +426,7 @@ const checkout = () => {
     if (ga4Items.length > 0) {
         beginCheckout({ items: ga4Items, value: Number(totalPrice.toFixed(2)), currency: 'USD' })
     }
-    router.push(`/checkout?from=cart&items=${encodeURIComponent(itemsParam)}`)
+    router.push(`/checkout?from=cart&items=${encodeURIComponent(itemsParam)}&couponCode=${!offPrice.value ? '' : encodeURIComponent(activityInfo.value.couponCode || '')}`)
 }
 
 const updateSelection = () => {

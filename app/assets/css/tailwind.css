@@ -35,6 +35,9 @@
     @apply text-black;
   }
 
+  .input:focus,
+  .select,
+  .textarea,
   .form-input:focus,
   .form-textarea:focus,
   .form-select:focus,

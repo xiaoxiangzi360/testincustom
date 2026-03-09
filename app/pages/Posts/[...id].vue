@@ -1,9 +1,10 @@
 <template>
     <div class="">
-        <div class="max-row text-[#0C1013] dark:text-customblack px-[60px] py-4 relative flex justify-between max-md:flex-col  min-h-[80vh] gap-6 max-md:gap-0">
+        <div
+            class="max-row text-[#0C1013] dark:text-customblack px-[60px] py-4 relative flex justify-between max-md:flex-col  min-h-[80vh] gap-6 max-md:gap-0">
             <div class="w-[76%] max-md:w-full">
                 <div>
-                    <CustomBreadcrumb :links="links" wrapper-class="mb-4"/>
+                    <CustomBreadcrumb :links="links" wrapper-class="mb-4" />
                     <h1 class="text-[24px] text-[#3D3D3D] mb-6">{{ pageInfo.enTitle }}</h1>
                     <div class="flex gap-8 items-center mb-4">
                         <div style="grid-area: logo" class="">
@@ -72,15 +73,18 @@ const links = computed(() => {
         },
         {
             label: pageInfo.value.blogTopic?.name,
-            to: convertToAbsolutePath(`/topic/${pageInfo.value.blogTopicId}`)
+            to: convertToAbsolutePath(`/topic/${slugify(pageInfo.value?.blogTopic?.seoUrlKeyword || pageInfo.value?.blogTopic?.name)}-${pageInfo.value.blogTopicId}`)
         },
         {
             label: pageInfo.value?.enTitle,
             hidden: true,
-            to: convertToAbsolutePath(`/Posts/${slugify(pageInfo.value.seoUrlKeyword || pageInfo.value.enTitle)}-${pageInfo.value.id}`)
+            to: convertToAbsolutePath(`/posts/${slugify(pageInfo.value.seoUrlKeyword || pageInfo.value.enTitle)}-${slugify(pageInfo.value?.blogTopic?.name)}-${pageInfo.value.id}`)
         },
     ]
 });
+const currentSeoUrl = computed(() => {
+    return convertToAbsolutePath(`/posts/${slugify(pageInfo.value.seoUrlKeyword || pageInfo.value.enTitle)}-${slugify(pageInfo.value?.blogTopic?.name)}-${pageInfo.value.id}`)
+})
 const pageInfo = ref<any>({})
 
 const platformLinks = [
@@ -149,6 +153,12 @@ const createJsonLd = (dataInfo) => {
             { name: 'description', content: dataInfo.seoMetaDescription || dataInfo.summary || '' },
             { name: 'keywords', content: dataInfo.seoUrlKeyword || '' },
         ],
+        link: [
+            {
+                rel: 'canonical',
+                href: currentSeoUrl.value,
+            },
+        ],
         script: [
             { type: 'application/ld+json', innerHTML: JSON.stringify(breadcrumbParams) },
             { type: 'application/ld+json', innerHTML: JSON.stringify(params) }
@@ -170,7 +180,7 @@ initData(serverInfo.value?.result || {})
 const prevBlog = async () => {
     const res = await getLastBlogPostById({ blogTopicId: pageInfo.value.blogTopicId, id: blogId })
     if (res.result?.id) {
-        navigateTo(`/Posts/${slugify(res.result.seoUrlKeyword || res.result.enTitle)}-${res.result.id}`)
+        navigateTo(`/posts/${slugify(res.result.seoUrlKeyword || res.result.enTitle)}-${res.result.id}`)
     } else {
         message.info('Sorry, there are no more articles available.')
     }
@@ -179,7 +189,7 @@ const prevBlog = async () => {
 const nextBlog = async () => {
     const res = await getNextBlogPostById({ blogTopicId: pageInfo.value.blogTopicId, id: blogId })
     if (res.result?.id) {
-        navigateTo(`/Posts/${slugify(res.result.seoUrlKeyword || res.result.enTitle)}-${res.result.id}`)
+        navigateTo(`/posts/${slugify(res.result.seoUrlKeyword || res.result.enTitle)}-${res.result.id}`)
     } else {
         message.info('Sorry, there are no more articles available.')
     }

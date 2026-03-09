@@ -1,7 +1,7 @@
 <template>
     <div class="bg-white">
         <div class="max-row py-4">
-            <CustomBreadcrumb :links="breadcrumbLinks"/>
+            <CustomBreadcrumb :links="breadcrumbLinks" />
             <!-- Hero Section -->
             <div class="relative h-[330px] overflow-hidden max-md:w-full max-md:h-auto max-md:aspect-[2/1] mt-4"
                 v-if="bannerInfo?.contentConfigView">
@@ -194,15 +194,17 @@ const { data: serverProductInfo, pending: pending, error: error } = await useAsy
     }
 )
 const initData = (dataInfo) => {
+
     if (dataInfo.result) {
         const result = dataInfo.result
         bannerInfo.value = dataInfo.result
         collectionInfo.value = dataInfo.result
+        const currentSeoUrl = convertToAbsolutePath(`/collections/${slugify(result.seoUrlKeyword || result.tagName)}-${result.id}`)
         console.log(PageTag, 'collections======initData===:', result);
         if (collectionInfo.value?.tagName) {
             breadcrumbLinks.value = [
                 { label: 'Home', to: convertToAbsolutePath('/') },
-                { label: collectionInfo.value?.tagName, to: convertToAbsolutePath(`/collections/${slugify(collectionInfo.value?.tagName)}-${collectionInfo.value?.id}`), disabled: true }]
+                { label: collectionInfo.value?.tagName, to: currentSeoUrl, disabled: true }]
         }
         const breadcrumbParams = {
             "@context": "https://schema.org",
@@ -221,6 +223,12 @@ const initData = (dataInfo) => {
                     name: 'description',
                     content: result.seoMetaDescription
                 }
+            ],
+            link: [
+                {
+                    rel: 'canonical',
+                    href: currentSeoUrl,
+                },
             ],
             script: [
                 {

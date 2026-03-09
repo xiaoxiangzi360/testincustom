@@ -487,7 +487,7 @@ console.log(PageTag, '服务端渲染---Fetched product data:', serverProductDat
 const breadcrumbLinks = ref([])
 const getLinks = (productInfo) => {
   const links = [{ label: 'Home', to: convertToAbsolutePath('/'), }]
-  const { catalogPathIdList, catalogPathNameList, productEnglishName } = productInfo
+  const { catalogPathIdList, catalogPathNameList, productEnglishName, seoUrlKeyword } = productInfo
   if (catalogPathIdList?.length > 0) {
     catalogPathIdList.forEach((id, index) => {
       links.push({
@@ -498,7 +498,7 @@ const getLinks = (productInfo) => {
   }
   links.push({
     label: productEnglishName,
-    to: convertToAbsolutePath(`/products/${slugify(productEnglishName)}-${productInfo.id}`),
+    to: convertToAbsolutePath(`/products/${slugify(seoUrlKeyword || productEnglishName)}-${productInfo.id}`),
     disabled: true,
     hidden: true,
   })
@@ -517,7 +517,7 @@ const createJsonLdProduct = (productInfo) => {
       "item": link.to
     }))
   }
-
+  const currentSeoUrl = convertToAbsolutePath(`/products/${slugify(productInfo.seoUrlKeyword || productInfo.productEnglishName)}-${productInfo.id}`)
   const params = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -531,7 +531,7 @@ const createJsonLdProduct = (productInfo) => {
     image: productInfo.mainPic.url, //图片url
     offers: {
       "@type": "Offer",
-      url: convertToAbsolutePath(`/products/${slugify(productInfo.productEnglishName)}-${productInfo.id}`),//详情页url
+      url: currentSeoUrl,//详情页url
       price: productInfo.basePrice?.toFixed(2),
       priceCurrency: "USD",
       availability: "https://schema.org/InStock",
@@ -565,9 +565,16 @@ const createJsonLdProduct = (productInfo) => {
 
 
   }
+  // console.log(PageTag, 'currentSeoUrl product:', currentSeoUrl)
   // ✅ 如果 SEO 字段为空，回退到商品英文名
   useHead({
     title: productinfo.value.productEnglishName || 'Product Detail',
+    link: [
+      {
+        rel: 'canonical',
+        href: currentSeoUrl,
+      },
+    ],
     meta: [
       {
         name: 'description',
@@ -991,7 +998,7 @@ const handleOrder = async () => {
       return;
     }
     collectOrderEvent();
-    const linkUrl = '/checkout?from=detail&sku=' + curProductSkuId.value + '&number=' + quantity.value
+    const linkUrl = '/checkout?from=detail&sku=' + curProductSkuId.value + '&number=' + quantity.value + (offPrice.value ? `&couponCode=${encodeURIComponent(activityInfo.value.couponCode || '')}` : '')
     redirect_to.value = linkUrl
     router.push(linkUrl)
   } catch (error) {
